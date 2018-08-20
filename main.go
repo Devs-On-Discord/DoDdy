@@ -13,6 +13,12 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+	bot.AddHandler(func(s *discordgo.Session, h *discordgo.MessageCreate) {
+		if h.Author.ID == s.State.User.ID {
+			return
+		}
+		s.ChannelMessageSend(h.ChannelID, "Hello!")
+	})
 	if bot.Open() != nil {
 		panic("could not open bot: " + err.Error())
 	}
