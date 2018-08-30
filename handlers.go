@@ -1,9 +1,9 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"time"
+
+	"github.com/Devs-On-Discord/DoDdy/embed"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -12,13 +12,13 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 	if h.Author.ID == s.State.User.ID {
 		return
 	}
-	s.ChannelMessageSend(h.ChannelID, "Hello!")
-	result, err := store.Collection("Users").
-		Doc(fmt.Sprint(time.Now().Format("20060102150405"))).
-		Set(context.Background(), map[string]string{"message": h.Content})
-	if err != nil {
-		fmt.Println("Could not save message: " + err.Error())
+	if len(h.Content) < len(s.State.User.ID)+3 {
+		return
 	}
-	fmt.Printf("Result:\n%v", result)
-
+	if h.Content[2:len(s.State.User.ID)+2] == s.State.User.ID {
+		errMsg, _ := s.ChannelMessageSendEmbed(h.ChannelID, embed.NewEmbed().SetColor(0xFF0000).SetTitle("Command not recognized").SetFooter("Deletion in 10 seconds").MessageEmbed)
+		time.Sleep(10 * time.Second)
+		s.ChannelMessageDelete(h.ChannelID, h.ID)
+		s.ChannelMessageDelete(h.ChannelID, errMsg.ID)
+	}
 }
