@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"github.com/bwmarrin/discordgo"
 	"google.golang.org/api/option"
@@ -15,18 +16,23 @@ import (
 
 const version = "0.0.1"
 
+// The store is global for access in goroutines, this might create race conditions and lead to loss of data
+// Miyoyo: I can't find anything saying this is goroutine safe or not, I'll assume, for the sake of simplicity
+//         and because client is only a struct with data, that it is.
+var store *firestore.Client
+
 func main() {
-	fmt.Printf("DoDdy %s starting", version)
+	fmt.Printf("DoDdy %s starting\n", version)
 	opt := option.WithCredentialsFile("firebase.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		panic("could not initialize firebase: " + err.Error())
 	}
-	firestore, err := app.Firestore(context.Background())
+	store, err = app.Firestore(context.Background())
 	if err != nil {
 		panic("could not connect to firestore: " + err.Error())
 	}
-	defer firestore.Close()
+	defer store.Close()
 	bot, err := discordgo.New("Bot " + testToken)
 	if err != nil {
 		panic(err.Error())
@@ -36,7 +42,7 @@ func main() {
 			return
 		}
 		s.ChannelMessageSend(h.ChannelID, "Hello!")
-		result, err := firestore.Collection("Users").
+		result, err := store.Collection("Users").
 			Doc(fmt.Sprint(time.Now().Format("20060102150405"))).
 			Set(context.Background(), map[string]string{"message": h.Content})
 		if err != nil {
