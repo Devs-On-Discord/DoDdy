@@ -12,7 +12,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var prefixes = map[string]string{} // TODO: load prefixes from firebase on launch
+var prefixes = map[string]string{}
 
 const errColor = 0xb30000
 const okColor = 0x00b300
