@@ -13,7 +13,10 @@ import (
 	"google.golang.org/api/option"
 )
 
+const version = "0.0.1"
+
 func main() {
+	fmt.Printf("DoDdy %s starting", version)
 	opt := option.WithCredentialsFile("firebase.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
@@ -47,6 +50,7 @@ func main() {
 	}
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	fmt.Println("DoDdy ready.\nPress Ctrl+C to exit.")
 	<-sc
 	bot.Close()
 }
