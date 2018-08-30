@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
@@ -23,37 +22,31 @@ var store *firestore.Client
 
 func main() {
 	fmt.Printf("DoDdy %s starting\n", version)
+
 	opt := option.WithCredentialsFile("firebase.json")
+
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		panic("could not initialize firebase: " + err.Error())
 	}
+
 	store, err = app.Firestore(context.Background())
 	if err != nil {
 		panic("could not connect to firestore: " + err.Error())
 	}
 	defer store.Close()
+
 	bot, err := discordgo.New("Bot " + testToken)
 	if err != nil {
 		panic(err.Error())
 	}
-	bot.AddHandler(func(s *discordgo.Session, h *discordgo.MessageCreate) {
-		if h.Author.ID == s.State.User.ID {
-			return
-		}
-		s.ChannelMessageSend(h.ChannelID, "Hello!")
-		result, err := store.Collection("Users").
-			Doc(fmt.Sprint(time.Now().Format("20060102150405"))).
-			Set(context.Background(), map[string]string{"message": h.Content})
-		if err != nil {
-			fmt.Println("Could not save message: " + err.Error())
-		}
-		fmt.Printf("Result:\n%v", result)
 
-	})
+	bot.AddHandler(handleMessageCreate)
+
 	if bot.Open() != nil {
 		panic("could not open bot: " + err.Error())
 	}
+
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	fmt.Println("DoDdy ready.\nPress Ctrl+C to exit.")
