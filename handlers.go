@@ -15,6 +15,9 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 	if h.Author.ID == s.State.User.ID {
 		return
 	}
+	if len(h.Content) == 0 {
+		return
+	}
 
 	input := h.Content
 	channel, err := s.Channel(h.ChannelID)
