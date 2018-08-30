@@ -36,6 +36,17 @@ func main() {
 	}
 	defer store.Close()
 
+	Nodes, err := store.Collection("Nodes").Select("Prefix").Documents(context.Background()).GetAll()
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		for _, j := range Nodes {
+			if val, ok := j.Data()["Prefix"]; ok {
+				prefixes[j.Ref.ID] = val.(string)
+			}
+		}
+	}
+
 	bot, err := discordgo.New("Bot " + testToken)
 	if err != nil {
 		panic(err.Error())
