@@ -19,3 +19,5 @@ firebase.json
 # Database
 doddy.db
 doddy.db.lock
+#Golang
+.idea
