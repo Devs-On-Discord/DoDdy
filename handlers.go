@@ -8,12 +8,23 @@ import (
 	"github.com/Devs-On-Discord/DoDdy/embed"
 	"github.com/anmitsu/go-shlex"
 	"github.com/bwmarrin/discordgo"
+	bolt "go.etcd.io/bbolt"
 )
 
 var prefixes = map[string]string{}
 
 const errColor = 0xb30000
 const okColor = 0x00b300
+
+type deletionTarget struct {
+	commandID    string
+	answerID     string
+	channelID    string
+	deletionTime time.Time
+}
+
+// The message deletion channel is used to schedule messages for deletion, without having to keep a goroutine alive
+var deletionChannel chan deletionTarget
 
 func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 	if h.Author.ID == s.State.User.ID {
@@ -80,27 +91,81 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 				message = "Invalid prefix: the prefix should only be one character."
 				if len(command[1]) == 4 && command[1] == "none" {
 					prefixes[channel.GuildID] = command[1]
-					//store.Collection("Nodes").Doc(channel.GuildID).Update(context.Background(), []firestore.Update{{Path: "Prefix", Value: firestore.Delete}})
-					message = fmt.Sprintf("Prefix deleted")
-					color = okColor
+					db.Update(func(tx *bolt.Tx) error {
+						nodeBucket, err := tx.CreateBucketIfNotExists([]byte("Nodes"))
+						if err != nil {
+							return err
+						}
+						guildBucket, err := nodeBucket.CreateBucketIfNotExists([]byte(channel.GuildID))
+						if err != nil {
+							return err
+						}
+						if guildBucket.Delete([]byte("Prefix")) != nil {
+							return err
+						}
+						return nil
+					})
+					if err != nil {
+						message = "Database error: " + err.Error()
+					} else {
+						message = fmt.Sprintf("Prefix deleted")
+						color = okColor
+					}
 				}
 			} else {
-				if strings.ContainsAny(command[1], "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890<") {
-					message = "Invalid prefix: the prefix should not be a letter (a-z, A-Z), nor a number (0-9), nor the character '<'"
+				if strings.ContainsAny(command[1], "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890< ") {
+					message = "Invalid prefix: the prefix should not be a letter (a-z, A-Z), nor a number (0-9), nor the character '<' or a whitespace"
 				} else {
 					prefixes[channel.GuildID] = command[1]
-					//store.Collection("Nodes").Doc(channel.GuildID).Set(context.Background(), map[string]string{"Prefix": command[1]}, firestore.MergeAll)
-					message = fmt.Sprintf("Prefix set to '%s'", command[1])
-					color = okColor
+					db.Update(func(tx *bolt.Tx) error {
+						nodeBucket, err := tx.CreateBucketIfNotExists([]byte("Nodes"))
+						if err != nil {
+							return err
+						}
+						guildBucket, err := nodeBucket.CreateBucketIfNotExists([]byte(channel.GuildID))
+						if err != nil {
+							return err
+						}
+						if guildBucket.Put([]byte("Prefix"), []byte(command[1])) != nil {
+							return err
+						}
+						return nil
+					})
+					if err != nil {
+						message = "Database error: " + err.Error()
+					} else {
+						message = fmt.Sprintf("Prefix set to '%s'", command[1])
+						color = okColor
+					}
 				}
 			}
 		}
 	}
 
-	s.ChannelMessageSendEmbed(h.ChannelID, embed.NewEmbed().SetFooter("DoDdy", "https://media.discordapp.net/attachments/446257876005289984/484880103218610187/dod01B.png").MessageEmbed)
+	answer, _ := s.ChannelMessageSendEmbed(h.ChannelID, embed.NewEmbed().SetColor(color).SetTitle(message).SetFooter("Deletion in 10 seconds").MessageEmbed)
+	deletionChannel <- deletionTarget{
+		commandID:    h.ID,
+		answerID:     answer.ID,
+		channelID:    h.ChannelID,
+		deletionTime: time.Now().Add(10 * time.Second),
+	}
 
-	errMsg, _ := s.ChannelMessageSendEmbed(h.ChannelID, embed.NewEmbed().SetColor(color).SetTitle(message).SetFooter("Deletion in 10 seconds").MessageEmbed)
-	time.Sleep(10 * time.Second)
-	s.ChannelMessageDelete(h.ChannelID, h.ID)
-	s.ChannelMessageDelete(h.ChannelID, errMsg.ID)
+}
+
+func deleter(input chan deletionTarget, s *discordgo.Session) {
+	for {
+		select {
+		case x, ok := <-input:
+
+			if time.Now().After(x.deletionTime) {
+				s.ChannelMessageDelete(x.channelID, x.commandID)
+				s.ChannelMessageDelete(x.channelID, x.answerID)
+			} else {
+				if ok {
+					input <- x
+					time.Sleep(10 * time.Millisecond)
+				}
+			}
+		}
+	}
 }

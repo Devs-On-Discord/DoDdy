@@ -27,9 +27,25 @@ func main() {
 
 	db, err = bolt.Open("doddy.db", 0666, nil)
 	if err != nil {
-		panic("could not open boltdb : " + err.Error())
+		panic("could not open boltdb: " + err.Error())
 	}
 	defer db.Close()
+
+	if db.View(
+		func(tx *bolt.Tx) error {
+			b := tx.Bucket([]byte("Nodes"))
+			c := b.Cursor()
+			for k, _ := c.First(); k != nil; k, _ = c.Next() {
+				prefixes[string(k)] = string(b.Bucket(k).Get([]byte("Prefix")))
+			}
+			return nil
+		}) != nil {
+		panic("could not read prefixes from boltdb: " + err.Error())
+	}
+
+	deletionChannel = make(chan deletionTarget, 10000)
+
+	go deleter(deletionChannel, bot)
 
 	bot.AddHandler(handleMessageCreate)
 
