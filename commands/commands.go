@@ -6,13 +6,20 @@ import (
 )
 
 type Commands struct {
-	commands map[string]Command
-	ResultMessages  chan commandResultMessage
+	commands         map[string]Command
+	ResultMessages   chan commandResultMessage
+	incomingMessages chan string
 }
 
 func (c *Commands) Init() {
 	c.commands = make(map[string]Command)
 	c.ResultMessages = make(chan commandResultMessage)
+	go func() {
+		for {
+			incomingMessage := <-c.incomingMessages
+			c.parse(incomingMessage)
+		}
+	}()
 }
 
 func (c *Commands) Register(command Command) {
@@ -21,33 +28,28 @@ func (c *Commands) Register(command Command) {
 		return
 	}
 	name := commandNameSplit[0]
-	channel := make(chan []string)
-	command.channel = channel
 	c.commands[name] = command
-	go func() {
-		for {
-			arguments := <-channel
-			c.ResultMessages <- command.Handler(arguments)
-		}
-	}()
 }
 
-func (c *Commands) Parse(input string) (error) {
+func (c *Commands) parse(input string) {
 	commandParsed, err := shlex.Split(input, true)
 	if err != nil {
-		return err
+		c.ResultMessages <- commandError{message: "Error happened " + err.Error(), color: 0xb30000}
 	}
 	commandCount := len(commandParsed)
 	if commandCount < 1 {
-		return &commandError{message: "Invalid Command"}
+		c.ResultMessages <- commandError{message: "Invalid Command", color: 0xb30000}
 	}
 	commandName := commandParsed[0]
 	if command, exists := c.commands[commandName]; exists {
 		if commandCount < 2 {
-			command.channel <- nil
+			command.Handler(nil)
 		} else {
-			command.channel <- commandParsed[1:]
+			command.Handler(commandParsed[1:])
 		}
 	}
-	return nil
+}
+
+func (c *Commands) Parse(input string) {
+	c.incomingMessages <- input
 }
