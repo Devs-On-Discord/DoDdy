@@ -81,7 +81,6 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 				message = "Invalid prefix: the prefix should only be one character."
 				if len(command[1]) == 4 && command[1] == "none" {
 					prefixes[channel.GuildID] = command[1]
-					//store.Collection("Nodes").Doc(channel.GuildID).Update(context.Background(), []firestore.Update{{Path: "Prefix", Value: firestore.Delete}})
 					db.Update(func(tx *bolt.Tx) error {
 						nodeBucket, err := tx.CreateBucketIfNotExists([]byte("Nodes"))
 						if err != nil {
