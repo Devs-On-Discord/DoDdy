@@ -132,8 +132,8 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 		}
 	}
 
-	errMsg, _ := s.ChannelMessageSendEmbed(h.ChannelID, embed.NewEmbed().SetColor(color).SetTitle(message).SetFooter("Deletion in 10 seconds").MessageEmbed)
+	answer, _ := s.ChannelMessageSendEmbed(h.ChannelID, embed.NewEmbed().SetColor(color).SetTitle(message).SetFooter("Deletion in 10 seconds").MessageEmbed)
 	time.Sleep(10 * time.Second)
 	s.ChannelMessageDelete(h.ChannelID, h.ID)
-	s.ChannelMessageDelete(h.ChannelID, errMsg.ID)
+	s.ChannelMessageDelete(h.ChannelID, answer.ID)
 }
