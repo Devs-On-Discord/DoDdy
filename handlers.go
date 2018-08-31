@@ -16,6 +16,16 @@ var prefixes = map[string]string{}
 const errColor = 0xb30000
 const okColor = 0x00b300
 
+type deletionTarget struct {
+	commandID    string
+	answerID     string
+	channelID    string
+	deletionTime time.Time
+}
+
+// The message deletion channel is used to schedule messages for deletion, without having to keep a goroutine alive
+var deletionChannel chan deletionTarget
+
 func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 	if h.Author.ID == s.State.User.ID {
 		return
@@ -133,7 +143,29 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 	}
 
 	answer, _ := s.ChannelMessageSendEmbed(h.ChannelID, embed.NewEmbed().SetColor(color).SetTitle(message).SetFooter("Deletion in 10 seconds").MessageEmbed)
-	time.Sleep(10 * time.Second)
-	s.ChannelMessageDelete(h.ChannelID, h.ID)
-	s.ChannelMessageDelete(h.ChannelID, answer.ID)
+	deletionChannel <- deletionTarget{
+		commandID:    h.ID,
+		answerID:     answer.ID,
+		channelID:    h.ChannelID,
+		deletionTime: time.Now().Add(10 * time.Second),
+	}
+
+}
+
+func deleter(input chan deletionTarget, s *discordgo.Session) {
+	for {
+		select {
+		case x, ok := <-input:
+
+			if time.Now().After(x.deletionTime) {
+				s.ChannelMessageDelete(x.channelID, x.commandID)
+				s.ChannelMessageDelete(x.channelID, x.answerID)
+			} else {
+				if ok {
+					input <- x
+					time.Sleep(10 * time.Millisecond)
+				}
+			}
+		}
+	}
 }

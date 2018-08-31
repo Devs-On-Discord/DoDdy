@@ -43,6 +43,10 @@ func main() {
 		panic("could not read prefixes from boltdb: " + err.Error())
 	}
 
+	deletionChannel = make(chan deletionTarget, 10000)
+
+	go deleter(deletionChannel, bot)
+
 	bot.AddHandler(handleMessageCreate)
 
 	if bot.Open() != nil {
