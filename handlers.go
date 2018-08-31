@@ -103,8 +103,8 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 					}
 				}
 			} else {
-				if strings.ContainsAny(command[1], "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890<") {
-					message = "Invalid prefix: the prefix should not be a letter (a-z, A-Z), nor a number (0-9), nor the character '<'"
+				if strings.ContainsAny(command[1], "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890< ") {
+					message = "Invalid prefix: the prefix should not be a letter (a-z, A-Z), nor a number (0-9), nor the character '<' or a whitespace"
 				} else {
 					prefixes[channel.GuildID] = command[1]
 					db.Update(func(tx *bolt.Tx) error {
