@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
 
-	"cloud.google.com/go/firestore"
 	"github.com/Devs-On-Discord/DoDdy/embed"
 	"github.com/anmitsu/go-shlex"
 	"github.com/bwmarrin/discordgo"
@@ -21,15 +19,18 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 	if h.Author.ID == s.State.User.ID {
 		return
 	}
+
 	if len(h.Content) == 0 {
 		return
 	}
 
 	input := h.Content
+
 	channel, err := s.Channel(h.ChannelID)
 	if err != nil {
 		return
 	}
+
 	if h.Content[:1] == "<" && len(h.Content) >= 2 { // Called by mention
 		nickSpacing := 0
 		if h.Content[2:3] == "!" {
@@ -79,7 +80,7 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 				message = "Invalid prefix: the prefix should only be one character."
 				if len(command[1]) == 4 && command[1] == "none" {
 					prefixes[channel.GuildID] = command[1]
-					store.Collection("Nodes").Doc(channel.GuildID).Update(context.Background(), []firestore.Update{{Path: "Prefix", Value: firestore.Delete}})
+					//store.Collection("Nodes").Doc(channel.GuildID).Update(context.Background(), []firestore.Update{{Path: "Prefix", Value: firestore.Delete}})
 					message = fmt.Sprintf("Prefix deleted")
 					color = okColor
 				}
@@ -88,15 +89,15 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 					message = "Invalid prefix: the prefix should not be a letter (a-z, A-Z), nor a number (0-9), nor the character '<'"
 				} else {
 					prefixes[channel.GuildID] = command[1]
-					store.Collection("Nodes").Doc(channel.GuildID).Set(context.Background(), map[string]string{"Prefix": command[1]}, firestore.MergeAll)
+					//store.Collection("Nodes").Doc(channel.GuildID).Set(context.Background(), map[string]string{"Prefix": command[1]}, firestore.MergeAll)
 					message = fmt.Sprintf("Prefix set to '%s'", command[1])
 					color = okColor
-
 				}
 			}
 		}
-
 	}
+
+	s.ChannelMessageSendEmbed(h.ChannelID, embed.NewEmbed().SetFooter("DoDdy", "https://media.discordapp.net/attachments/446257876005289984/484880103218610187/dod01B.png").MessageEmbed)
 
 	errMsg, _ := s.ChannelMessageSendEmbed(h.ChannelID, embed.NewEmbed().SetColor(color).SetTitle(message).SetFooter("Deletion in 10 seconds").MessageEmbed)
 	time.Sleep(10 * time.Second)

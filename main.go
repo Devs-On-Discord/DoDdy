@@ -1,56 +1,35 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"cloud.google.com/go/firestore"
-	firebase "firebase.google.com/go"
 	"github.com/bwmarrin/discordgo"
-	"google.golang.org/api/option"
+	bolt "go.etcd.io/bbolt"
 )
 
 const version = "0.0.1"
 
 // The store is global for access in goroutines, this might create race conditions and lead to loss of data
-// Miyoyo: I can't find anything saying this is goroutine safe or not, I'll assume, for the sake of simplicity
-//         and because client is only a struct with data, that it is.
-var store *firestore.Client
+// Miyoyo: I can't find anything saying this is goroutine safe or not, I'll assume, for the sake of simplicity.
+//         Could be replaced by a goroutine transaction system
+var db *bolt.DB
 
 func main() {
 	fmt.Printf("DoDdy %s starting\n", version)
-
-	opt := option.WithCredentialsFile("firebase.json")
-
-	app, err := firebase.NewApp(context.Background(), nil, opt)
-	if err != nil {
-		panic("could not initialize firebase: " + err.Error())
-	}
-
-	store, err = app.Firestore(context.Background())
-	if err != nil {
-		panic("could not connect to firestore: " + err.Error())
-	}
-	defer store.Close()
-
-	Nodes, err := store.Collection("Nodes").Select("Prefix").Documents(context.Background()).GetAll()
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		for _, j := range Nodes {
-			if val, ok := j.Data()["Prefix"]; ok {
-				prefixes[j.Ref.ID] = val.(string)
-			}
-		}
-	}
 
 	bot, err := discordgo.New("Bot " + testToken)
 	if err != nil {
 		panic(err.Error())
 	}
+
+	db, err = bolt.Open("doddy.db", 0666, nil)
+	if err != nil {
+		panic("could not open boltdb : " + err.Error())
+	}
+	defer db.Close()
 
 	bot.AddHandler(handleMessageCreate)
 
