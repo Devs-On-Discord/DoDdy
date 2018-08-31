@@ -15,3 +15,7 @@ debug
 # Keyfile
 secret.go
 firebase.json
+
+# Database
+doddy.db
+doddy.db.lock

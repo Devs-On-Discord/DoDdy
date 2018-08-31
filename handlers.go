@@ -8,6 +8,7 @@ import (
 	"github.com/Devs-On-Discord/DoDdy/embed"
 	"github.com/anmitsu/go-shlex"
 	"github.com/bwmarrin/discordgo"
+	bolt "go.etcd.io/bbolt"
 )
 
 var prefixes = map[string]string{}
@@ -81,23 +82,56 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 				if len(command[1]) == 4 && command[1] == "none" {
 					prefixes[channel.GuildID] = command[1]
 					//store.Collection("Nodes").Doc(channel.GuildID).Update(context.Background(), []firestore.Update{{Path: "Prefix", Value: firestore.Delete}})
-					message = fmt.Sprintf("Prefix deleted")
-					color = okColor
+					db.Update(func(tx *bolt.Tx) error {
+						nodeBucket, err := tx.CreateBucketIfNotExists([]byte("Nodes"))
+						if err != nil {
+							return err
+						}
+						guildBucket, err := nodeBucket.CreateBucketIfNotExists([]byte(channel.GuildID))
+						if err != nil {
+							return err
+						}
+						if guildBucket.Delete([]byte("Prefix")) != nil {
+							return err
+						}
+						return nil
+					})
+					if err != nil {
+						message = "Database error: " + err.Error()
+					} else {
+						message = fmt.Sprintf("Prefix deleted")
+						color = okColor
+					}
 				}
 			} else {
 				if strings.ContainsAny(command[1], "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890<") {
 					message = "Invalid prefix: the prefix should not be a letter (a-z, A-Z), nor a number (0-9), nor the character '<'"
 				} else {
 					prefixes[channel.GuildID] = command[1]
-					//store.Collection("Nodes").Doc(channel.GuildID).Set(context.Background(), map[string]string{"Prefix": command[1]}, firestore.MergeAll)
-					message = fmt.Sprintf("Prefix set to '%s'", command[1])
-					color = okColor
+					db.Update(func(tx *bolt.Tx) error {
+						nodeBucket, err := tx.CreateBucketIfNotExists([]byte("Nodes"))
+						if err != nil {
+							return err
+						}
+						guildBucket, err := nodeBucket.CreateBucketIfNotExists([]byte(channel.GuildID))
+						if err != nil {
+							return err
+						}
+						if guildBucket.Put([]byte("Prefix"), []byte(command[1])) != nil {
+							return err
+						}
+						return nil
+					})
+					if err != nil {
+						message = "Database error: " + err.Error()
+					} else {
+						message = fmt.Sprintf("Prefix set to '%s'", command[1])
+						color = okColor
+					}
 				}
 			}
 		}
 	}
-
-	s.ChannelMessageSendEmbed(h.ChannelID, embed.NewEmbed().SetFooter("DoDdy", "https://media.discordapp.net/attachments/446257876005289984/484880103218610187/dod01B.png").MessageEmbed)
 
 	errMsg, _ := s.ChannelMessageSendEmbed(h.ChannelID, embed.NewEmbed().SetColor(color).SetTitle(message).SetFooter("Deletion in 10 seconds").MessageEmbed)
 	time.Sleep(10 * time.Second)
