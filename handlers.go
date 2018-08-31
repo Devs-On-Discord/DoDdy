@@ -13,6 +13,13 @@ import (
 
 var prefixes = map[string]string{}
 
+func getPrefix(guildID string, username string) string {
+	if prefix, ok := prefixes[guildID]; ok && prefixes[guildID] != "" {
+		return prefix
+	}
+	return fmt.Sprintf("@%s ", username)
+}
+
 const errColor = 0xb30000
 const okColor = 0x00b300
 
@@ -85,7 +92,7 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 
 	if command[0] == "prefix" {
 		if len(command) < 2 {
-			message = "Invalid syntax: correct syntax looks like `prefix '/'`"
+			message = fmt.Sprintf("Invalid syntax: correct syntax looks like `%sprefix /`", getPrefix(channel.GuildID, s.State.User.Username))
 		} else {
 			if len(command[1]) > 1 {
 				message = "Invalid prefix: the prefix should only be one character."
