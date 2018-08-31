@@ -97,7 +97,9 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 			if len(command[1]) > 1 {
 				message = "Invalid prefix: the prefix should only be one character."
 				if len(command[1]) == 4 && command[1] == "none" {
-					prefixes[channel.GuildID] = command[1]
+					if _, ok := prefixes[channel.GuildID]; ok {
+						delete(prefixes, channel.GuildID)
+					}
 					db.Update(func(tx *bolt.Tx) error {
 						nodeBucket, err := tx.CreateBucketIfNotExists([]byte("Nodes"))
 						if err != nil {
