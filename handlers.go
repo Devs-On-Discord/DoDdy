@@ -2,13 +2,11 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/Devs-On-Discord/DoDdy/embed"
 	"github.com/anmitsu/go-shlex"
 	"github.com/bwmarrin/discordgo"
-	bolt "go.etcd.io/bbolt"
 )
 
 var prefixes = map[string]string{}
@@ -19,9 +17,6 @@ func getPrefix(guildID string, username string) string {
 	}
 	return fmt.Sprintf("@%s ", username)
 }
-
-const errColor = 0xb30000
-const okColor = 0x00b300
 
 type deletionTarget struct {
 	commandID    string
@@ -42,23 +37,24 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 		return
 	}
 
-	input := h.Content
-
 	channel, err := s.Channel(h.ChannelID)
 	if err != nil {
 		return
 	}
 
+	input := h.Content
+
 	if h.Content[:1] == "<" && len(h.Content) >= 2 { // Called by mention
-		nickSpacing := 0
+		mentionSize := len(s.State.User.ID) + 2
+		idPrefix := 2
 		if h.Content[2:3] == "!" {
-			nickSpacing = 1
+			mentionSize++
+			idPrefix++
 		}
-		if len(h.Content) >= len(s.State.User.ID)+3+nickSpacing && h.Content[2+nickSpacing:len(s.State.User.ID)+2+nickSpacing] == s.State.User.ID {
-			input = input[len(s.State.User.ID)+3+nickSpacing : len(input)]
-		} else {
+		if len(h.Content) < mentionSize+1 || h.Content[idPrefix:mentionSize] != s.State.User.ID {
 			return
 		}
+		input = input[mentionSize+1 : len(input)]
 	} else if prefix, ok := prefixes[channel.GuildID]; ok && h.Content[:1] == prefix { // Called by prefix
 		input = input[1:len(input)]
 	} else {
@@ -66,99 +62,43 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 	}
 
 	command, err := shlex.Split(input, true)
-	var message = "Unknown error, please contact admins and report this."
-	var color = errColor
 	if err != nil {
-		message = "Could not parse command: " + err.Error()
+		answerThenDelete(h.ID, h.ChannelID, "could not parse:"+err.Error(), true, s)
+		return
+	}
+
+	if len(command) == 0 || command[0] == "help" {
+		dm, err := s.UserChannelCreate(h.Author.ID)
+		if err != nil {
+			answerThenDelete(h.ID, h.ChannelID, "Unable to initiate DM with the user.", true, s)
+			return
+		}
+		_, err = s.ChannelMessageSendEmbed(dm.ID, embed.NewEmbed().SetTitle("Pretend this is the help string").MessageEmbed)
+		if err != nil {
+			answerThenDelete(h.ID, h.ChannelID, "Can't DM help, please allow DMs from this server.", true, s)
+			return
+		}
+		s.ChannelMessageDelete(h.ChannelID, h.ID)
+		return
+	}
+
+	answerThenDelete(h.ID, h.ChannelID, fmt.Sprintf("Command not recognized: %s", command[0]), true, s)
+}
+
+func answerThenDelete(commandID, channelID, message string, isError bool, s *discordgo.Session) {
+	var color int
+	if isError {
+		color = 0xb30000
 	} else {
-		fmt.Println(command)
-		if len(command) == 0 || command[0] == "help" {
-			dm, err := s.UserChannelCreate(h.Author.ID)
-			if err != nil {
-				message = "Unable to initiate DM with the user."
-			} else {
-				_, err := s.ChannelMessageSendEmbed(dm.ID, embed.NewEmbed().SetTitle("Pretend this is the help string").MessageEmbed)
-				if err != nil {
-					message = "Can't DM help, please allow DMs from this server."
-				} else {
-					s.ChannelMessageDelete(h.ChannelID, h.ID)
-					return
-				}
-			}
-		} else {
-			message = fmt.Sprintf("Command not recognized: %s", command[0])
-		}
+		color = 0x00b300
 	}
-
-	if command[0] == "prefix" {
-		if len(command) < 2 {
-			message = fmt.Sprintf("Invalid syntax: correct syntax looks like `%sprefix /`", getPrefix(channel.GuildID, s.State.User.Username))
-		} else {
-			if len(command[1]) > 1 {
-				message = "Invalid prefix: the prefix should only be one character."
-				if len(command[1]) == 4 && command[1] == "none" {
-					if _, ok := prefixes[channel.GuildID]; ok {
-						delete(prefixes, channel.GuildID)
-					}
-					db.Update(func(tx *bolt.Tx) error {
-						nodeBucket, err := tx.CreateBucketIfNotExists([]byte("Nodes"))
-						if err != nil {
-							return err
-						}
-						guildBucket, err := nodeBucket.CreateBucketIfNotExists([]byte(channel.GuildID))
-						if err != nil {
-							return err
-						}
-						if guildBucket.Delete([]byte("Prefix")) != nil {
-							return err
-						}
-						return nil
-					})
-					if err != nil {
-						message = "Database error: " + err.Error()
-					} else {
-						message = fmt.Sprintf("Prefix deleted")
-						color = okColor
-					}
-				}
-			} else {
-				if strings.ContainsAny(command[1], "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890< ") {
-					message = "Invalid prefix: the prefix should not be a letter (a-z, A-Z), nor a number (0-9), nor the character '<' or a whitespace"
-				} else {
-					prefixes[channel.GuildID] = command[1]
-					db.Update(func(tx *bolt.Tx) error {
-						nodeBucket, err := tx.CreateBucketIfNotExists([]byte("Nodes"))
-						if err != nil {
-							return err
-						}
-						guildBucket, err := nodeBucket.CreateBucketIfNotExists([]byte(channel.GuildID))
-						if err != nil {
-							return err
-						}
-						if guildBucket.Put([]byte("Prefix"), []byte(command[1])) != nil {
-							return err
-						}
-						return nil
-					})
-					if err != nil {
-						message = "Database error: " + err.Error()
-					} else {
-						message = fmt.Sprintf("Prefix set to '%s'", command[1])
-						color = okColor
-					}
-				}
-			}
-		}
-	}
-
-	answer, _ := s.ChannelMessageSendEmbed(h.ChannelID, embed.NewEmbed().SetColor(color).SetTitle(message).SetFooter("Deletion in 10 seconds").MessageEmbed)
+	answer, _ := s.ChannelMessageSendEmbed(channelID, embed.NewEmbed().SetColor(color).SetTitle(message).SetFooter("Deletion in 10 seconds").MessageEmbed)
 	deletionChannel <- deletionTarget{
-		commandID:    h.ID,
+		commandID:    commandID,
 		answerID:     answer.ID,
-		channelID:    h.ChannelID,
+		channelID:    channelID,
 		deletionTime: time.Now().Add(10 * time.Second),
 	}
-
 }
 
 func deleter(input chan deletionTarget, s *discordgo.Session) {
