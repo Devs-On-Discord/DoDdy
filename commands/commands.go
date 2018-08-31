@@ -7,10 +7,12 @@ import (
 
 type Commands struct {
 	commands map[string]Command
+	ResultMessages  chan commandResultMessage
 }
 
 func (c *Commands) Init() {
 	c.commands = make(map[string]Command)
+	c.ResultMessages = make(chan commandResultMessage)
 }
 
 func (c *Commands) Register(command Command) {
@@ -25,7 +27,7 @@ func (c *Commands) Register(command Command) {
 	go func() {
 		for {
 			arguments := <-channel
-			command.Handler(arguments)
+			c.ResultMessages <- command.Handler(arguments)
 		}
 	}()
 }

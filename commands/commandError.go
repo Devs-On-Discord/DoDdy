@@ -1,11 +1,11 @@
 package commands
 
-import "fmt"
-
 type commandError struct {
+	commandResultMessage
 	message string
+	color   int
 }
 
 func (c *commandError) Error() string {
-	return fmt.Sprintf("%s", c.message)
+	return c.message
 }

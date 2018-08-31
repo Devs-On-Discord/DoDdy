@@ -1,6 +1,6 @@
 package commands
 
-type Handle func(args []string)
+type Handle func(args []string) (commandResultMessage)
 
 type Command struct {
 	Name string
