@@ -7,9 +7,15 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+	bolt "go.etcd.io/bbolt"
 )
 
 const version = "0.0.1"
+
+// The store is global for access in goroutines, this might create race conditions and lead to loss of data
+// Miyoyo: I can't find anything saying this is goroutine safe or not, I'll assume, for the sake of simplicity.
+//         Could be replaced by a goroutine transaction system
+var db *bolt.DB
 
 func main() {
 	fmt.Printf("DoDdy %s starting\n", version)
@@ -18,6 +24,12 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	db, err = bolt.Open("doddy.db", 0666, nil)
+	if err != nil {
+		panic("could not open boltdb : " + err.Error())
+	}
+	defer db.Close()
 
 	bot.AddHandler(handleMessageCreate)
 
