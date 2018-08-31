@@ -35,11 +35,19 @@ func (c *Commands) Register(command Command) {
 func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 	commandParsed, err := shlex.Split(commandMessage.Content, true)
 	if err != nil {
-		c.ResultMessages <- commandError{message: "Error happened " + err.Error(), color: 0xb30000}
+		c.ResultMessages <- commandError{
+			commandMessage: commandMessage,
+			message:        "Error happened " + err.Error(),
+			color:          0xb30000,
+		}
 	}
 	commandCount := len(commandParsed)
 	if commandCount < 1 {
-		c.ResultMessages <- commandError{message: "Invalid Command", color: 0xb30000}
+		c.ResultMessages <- commandError{
+			commandMessage: commandMessage,
+			message:        "Invalid Command",
+			color:          0xb30000,
+		}
 	}
 	commandName := commandParsed[0]
 	if command, exists := c.commands[commandName]; exists {

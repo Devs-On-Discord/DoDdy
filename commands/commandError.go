@@ -4,7 +4,6 @@ import "github.com/bwmarrin/discordgo"
 
 type commandError struct {
 	commandMessage *discordgo.MessageCreate
-	session *discordgo.Session
 	message string
 	color   int
 }
