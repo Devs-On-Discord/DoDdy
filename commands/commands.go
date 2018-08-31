@@ -6,15 +6,10 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-type IncomingMessage struct {
-	session        *discordgo.Session
-	commandMessage *discordgo.MessageCreate
-}
-
 type Commands struct {
 	commands         map[string]Command
 	ResultMessages   chan commandResultMessage
-	incomingMessages chan IncomingMessage
+	incomingMessages chan *discordgo.MessageCreate
 }
 
 func (c *Commands) Init() {
@@ -37,8 +32,8 @@ func (c *Commands) Register(command Command) {
 	c.commands[name] = command
 }
 
-func (c *Commands) parse(incomingMessage IncomingMessage) {
-	commandParsed, err := shlex.Split(incomingMessage.commandMessage.Content, true)
+func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
+	commandParsed, err := shlex.Split(commandMessage.Content, true)
 	if err != nil {
 		c.ResultMessages <- commandError{message: "Error happened " + err.Error(), color: 0xb30000}
 	}
@@ -49,13 +44,13 @@ func (c *Commands) parse(incomingMessage IncomingMessage) {
 	commandName := commandParsed[0]
 	if command, exists := c.commands[commandName]; exists {
 		if commandCount < 2 {
-			c.ResultMessages <- command.Handler(incomingMessage.session, incomingMessage.commandMessage, nil)
+			c.ResultMessages <- command.Handler(commandMessage, nil)
 		} else {
-			c.ResultMessages <- command.Handler(incomingMessage.session, incomingMessage.commandMessage, commandParsed[1:])
+			c.ResultMessages <- command.Handler(commandMessage, commandParsed[1:])
 		}
 	}
 }
 
-func (c *Commands) Parse(session *discordgo.Session, commandMessage *discordgo.MessageCreate) {
-	c.incomingMessages <- IncomingMessage{session: session, commandMessage: commandMessage}
+func (c *Commands) Parse(commandMessage *discordgo.MessageCreate) {
+	c.incomingMessages <- commandMessage
 }

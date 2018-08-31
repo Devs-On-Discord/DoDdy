@@ -13,10 +13,6 @@ func (c commandError) CommandMessage() *discordgo.MessageCreate {
 	return c.commandMessage
 }
 
-func (c commandError) Session() *discordgo.Session {
-	return c.session
-}
-
 func (c commandError) Message() string {
 	return c.message
 }
