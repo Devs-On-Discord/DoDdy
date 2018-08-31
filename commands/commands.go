@@ -19,7 +19,15 @@ func (c *Commands) Register(command Command) {
 		return
 	}
 	name := commandNameSplit[0]
+	channel := make(chan []string)
+	command.channel = channel
 	c.commands[name] = command
+	go func() {
+		for {
+			arguments := <-channel
+			command.Handler(arguments)
+		}
+	}()
 }
 
 func (c *Commands) Parse(input string) (error) {
@@ -34,9 +42,9 @@ func (c *Commands) Parse(input string) (error) {
 	commandName := commandParsed[0]
 	if command, exists := c.commands[commandName]; exists {
 		if commandCount < 2 {
-			command.Channel <- nil
+			command.channel <- nil
 		} else {
-			command.Channel <- commandParsed[1:]
+			command.channel <- commandParsed[1:]
 		}
 	}
 	return nil
