@@ -37,4 +37,3 @@ func setPrefix(guildID, prefix string) error {
 		return nil
 	})
 }*/
-// Rewrite this code to use non-nested nodes since apparently we're doing that now
