@@ -4,8 +4,8 @@ import "github.com/bwmarrin/discordgo"
 
 type CommandError struct {
 	CommandMessage *discordgo.MessageCreate
-	Message string
-	Color   int
+	Message        string
+	Color          int
 }
 
 func (c *CommandError) setCommandMessage(commandMessage *discordgo.MessageCreate) {

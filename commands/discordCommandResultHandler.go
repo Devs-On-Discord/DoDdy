@@ -1,8 +1,9 @@
 package commands
 
 import (
-	"github.com/bwmarrin/discordgo"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 type erasableMessage struct {

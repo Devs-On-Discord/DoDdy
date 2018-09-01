@@ -4,8 +4,8 @@ import "github.com/bwmarrin/discordgo"
 
 type CommandReply struct {
 	CommandMessage *discordgo.MessageCreate
-	Message string
-	Color   int
+	Message        string
+	Color          int
 }
 
 func (c *CommandReply) setCommandMessage(commandMessage *discordgo.MessageCreate) {

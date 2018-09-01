@@ -7,7 +7,7 @@ type user struct {
 	id uint64
 }
 
-func (u *user) Insert(tx *bolt.Tx) (error) {
+func (u *user) Insert(tx *bolt.Tx) error {
 	b, err := tx.CreateBucket([]byte("user-" + string(u.id)))
 	if err != nil {
 		return fmt.Errorf("create user: %s", err)

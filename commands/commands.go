@@ -1,8 +1,9 @@
 package commands
 
 import (
-	"github.com/anmitsu/go-shlex"
 	"strings"
+
+	"github.com/anmitsu/go-shlex"
 	"github.com/bwmarrin/discordgo"
 )
 

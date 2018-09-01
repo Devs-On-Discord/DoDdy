@@ -1,7 +1,7 @@
-package botCommands
+package botcommands
 
 import (
-	"../commands"
+	"github.com/Devs-On-Discord/DoDdy/commands"
 	"github.com/bwmarrin/discordgo"
 )
 
