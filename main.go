@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	botCommands "github.com/Devs-On-Discord/DoDdy/botCommands"
 	"github.com/bwmarrin/discordgo"
 	bolt "go.etcd.io/bbolt"
 )
@@ -17,6 +18,8 @@ const version = "0.0.1"
 //         Could be replaced by a goroutine transaction system
 var db *bolt.DB
 
+var commands = botCommands.BotCommands{}
+
 func main() {
 	fmt.Printf("DoDdy %s starting\n", version)
 
@@ -24,6 +27,8 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	commands.Init(bot)
 
 	db, err = bolt.Open("doddy.db", 0666, nil)
 	if err != nil {
