@@ -58,6 +58,8 @@ func (b *BotCommands) messageHandler(s *discordgo.Session, m *discordgo.MessageC
 		}
 		input = input[mentionSize+1:]
 		m.Content = input
+	} else if input[:1] == "!" && len(input) > 1 {
+		m.Content = input[1:]
 	} else {
 		return
 	}
