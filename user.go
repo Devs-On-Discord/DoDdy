@@ -7,18 +7,22 @@ type user struct {
 	id uint64
 }
 
-func (u *user) Insert(tx *bolt.Tx) error {
-	b, err := tx.CreateBucket([]byte("user-" + string(u.id)))
+func (u *user) Insert(usersBucket *bolt.Bucket) error {
+	userBucket, err := usersBucket.CreateBucket([]byte("user-" + string(u.id)))
 	if err != nil {
 		return fmt.Errorf("create user: %s", err)
 	}
-	err = b.Put([]byte("id"), []byte(string(u.id)))
-	return nil
+	err = userBucket.Put([]byte("id"), []byte(string(u.id)))
+	return err
 }
 
 func (u *user) Delete() {
 	db.Update(func(tx *bolt.Tx) error {
-		err := tx.DeleteBucket([]byte("user-" + string(u.id)))
+		usersBucket := tx.Bucket([]byte("users"))
+		if usersBucket == nil {
+			return nil
+		}
+		err := usersBucket.DeleteBucket([]byte("user-" + string(u.id)))
 		if err != nil {
 			return fmt.Errorf("delete user: %s", err)
 		}
