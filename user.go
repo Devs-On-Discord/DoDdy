@@ -4,11 +4,11 @@ import "fmt"
 import bolt "go.etcd.io/bbolt"
 
 type user struct {
-	id uint64
+	id string
 }
 
 func (u *user) Insert(usersBucket *bolt.Bucket) error {
-	userBucket, err := usersBucket.CreateBucket([]byte("user-" + string(u.id)))
+	userBucket, err := usersBucket.CreateBucket([]byte(u.id))
 	if err != nil {
 		return fmt.Errorf("create user: %s", err)
 	}
@@ -22,7 +22,7 @@ func (u *user) Delete() {
 		if usersBucket == nil {
 			return nil
 		}
-		err := usersBucket.DeleteBucket([]byte("user-" + string(u.id)))
+		err := usersBucket.DeleteBucket([]byte(u.id))
 		if err != nil {
 			return fmt.Errorf("delete user: %s", err)
 		}

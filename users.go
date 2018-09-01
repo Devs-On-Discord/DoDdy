@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/binary"
-
 	"fmt"
 
 	bolt "go.etcd.io/bbolt"
@@ -10,10 +8,10 @@ import (
 
 //TODO: remove users on disconnect
 type users struct {
-	user map[uint64]user
+	user map[string]user
 }
 
-func (u *users) load(id uint64) user {
+func (u *users) load(id string) user {
 	existingUser, exists := u.user[id]
 	if exists {
 		return existingUser
@@ -23,7 +21,7 @@ func (u *users) load(id uint64) user {
 		if err != nil {
 			return fmt.Errorf("could not create or get users bucket: %s", err)
 		}
-		userBucket := usersBucket.Bucket([]byte("user-" + string(id)))
+		userBucket := usersBucket.Bucket([]byte(id))
 		if userBucket == nil {
 			existingUser := user{id: id}
 			err := existingUser.Insert(usersBucket)
@@ -31,7 +29,7 @@ func (u *users) load(id uint64) user {
 			return err
 		}
 		id := usersBucket.Get([]byte("id"))
-		existingUser = user{id: binary.BigEndian.Uint64(id)}
+		existingUser = user{id: string(id)}
 		return nil
 	})
 	return existingUser
