@@ -8,18 +8,18 @@ type CommandReply struct {
 	Color   int
 }
 
-func (c CommandReply) setCommandMessage(commandMessage *discordgo.MessageCreate) {
+func (c *CommandReply) setCommandMessage(commandMessage *discordgo.MessageCreate) {
 	c.CommandMessage = commandMessage
 }
 
-func (c CommandReply) commandMessage() *discordgo.MessageCreate {
+func (c *CommandReply) commandMessage() *discordgo.MessageCreate {
 	return c.CommandMessage
 }
 
-func (c CommandReply) message() string {
+func (c *CommandReply) message() string {
 	return c.Message
 }
 
-func (c CommandReply) color() int {
+func (c *CommandReply) color() int {
 	return c.Color
 }

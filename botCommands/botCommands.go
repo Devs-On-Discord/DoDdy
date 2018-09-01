@@ -7,15 +7,14 @@ import (
 
 type BotCommands struct {
 	commands                    *commands.Commands
-	session                     *discordgo.Session
 	discordCommandResultHandler *commands.DiscordCommandResultHandler
 }
 
-func (b *BotCommands) Init() {
+func (b *BotCommands) Init(session *discordgo.Session) {
 	b.commands = &commands.Commands{}
 	b.commands.Init()
 	b.discordCommandResultHandler = &commands.DiscordCommandResultHandler{}
-	b.discordCommandResultHandler.Init(b.commands, b.session)
+	b.discordCommandResultHandler.Init(b.commands, session)
 	b.RegisterCommands()
 }
 

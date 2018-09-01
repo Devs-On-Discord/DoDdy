@@ -15,6 +15,7 @@ type Commands struct {
 func (c *Commands) Init() {
 	c.commands = make(map[string]Command)
 	c.ResultMessages = make(chan CommandResultMessage)
+	c.incomingMessages = make(chan *discordgo.MessageCreate)
 	go func() {
 		for {
 			incomingMessage := <-c.incomingMessages
@@ -35,7 +36,7 @@ func (c *Commands) Register(command Command) {
 func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 	commandParsed, err := shlex.Split(commandMessage.Content, true)
 	if err != nil {
-		c.ResultMessages <- CommandError{
+		c.ResultMessages <- &CommandError{
 			CommandMessage: commandMessage,
 			Message:        "Error happened " + err.Error(),
 			Color:          0xb30000,
@@ -43,7 +44,7 @@ func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 	}
 	commandCount := len(commandParsed)
 	if commandCount < 1 {
-		c.ResultMessages <- CommandError{
+		c.ResultMessages <- &CommandError{
 			CommandMessage: commandMessage,
 			Message:        "Invalid Command",
 			Color:          0xb30000,

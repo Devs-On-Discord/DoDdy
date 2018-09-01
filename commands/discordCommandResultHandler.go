@@ -28,7 +28,7 @@ func (d *DiscordCommandResultHandler) Init(commands *Commands, session *discordg
 		for {
 			commandResult := <-d.commands.ResultMessages
 			switch commandResult.(type) {
-			case CommandReply:
+			case *CommandReply:
 				commandMessage := commandResult.commandMessage()
 				message, _ := d.session.ChannelMessageSendEmbed(commandMessage.ChannelID, &discordgo.MessageEmbed{
 					Color: commandResult.color(),
@@ -43,7 +43,7 @@ func (d *DiscordCommandResultHandler) Init(commands *Commands, session *discordg
 					channelId:  commandMessage.ChannelID,
 					expireTime: time.Now().Add(10 * time.Second),
 				}
-			case CommandError:
+			case *CommandError:
 				commandMessage := commandResult.commandMessage()
 				message, _ := d.session.ChannelMessageSendEmbed(commandMessage.ChannelID, &discordgo.MessageEmbed{
 					Color: commandResult.color(),
