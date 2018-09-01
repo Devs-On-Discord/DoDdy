@@ -37,5 +37,33 @@ func (b *BotCommands) MessageHandler(s *discordgo.Session, m *discordgo.MessageC
 	if len(m.Content) == 0 {
 		return
 	}
+
+	/*channel, err := s.Channel(m.ChannelID)
+	if err != nil {
+		return
+	}*/
+
+	input := m.Content
+
+	if m.Content[:1] == "<" && len(m.Content) >= 2 { // Called by mention
+		mentionSize := len(s.State.User.ID) + 2
+		idPrefix := 2
+		if m.Content[2:3] == "!" {
+			mentionSize++
+			idPrefix++
+		}
+		if len(m.Content) < mentionSize+1 || m.Content[idPrefix:mentionSize] != s.State.User.ID {
+			return
+		}
+		input = input[mentionSize+1:]
+		m.Content = input
+	} else {
+		return
+	}
+	/* else if prefix, ok := prefixes[channel.GuildID]; ok && m.Content[:1] == prefix { // Called by prefix
+		input = input[1:len(input)]
+		h.Content = input
+	}*/
+
 	b.Parse(m)
 }
