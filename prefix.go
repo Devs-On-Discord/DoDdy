@@ -1,10 +1,6 @@
 package main
 
-import (
-	bolt "go.etcd.io/bbolt"
-)
-
-func deletePrefix(guildID string) error {
+/*func deletePrefix(guildID string) error {
 	if _, ok := prefixes[guildID]; ok {
 		delete(prefixes, guildID)
 	}
@@ -40,4 +36,5 @@ func setPrefix(guildID, prefix string) error {
 		}
 		return nil
 	})
-}
+}*/
+// Rewrite this code to use non-nested nodes since apparently we're doing that now
