@@ -61,6 +61,12 @@ func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 			resultMessage.setCommandMessage(commandMessage)
 			c.ResultMessages <- resultMessage
 		}
+	} else {
+		c.ResultMessages <- &CommandError{
+			CommandMessage: commandMessage,
+			Message:        "Command doesn't exists",
+			Color:          0xb30000,
+		}
 	}
 }
 
