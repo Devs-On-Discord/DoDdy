@@ -55,11 +55,15 @@ func handleMessageCreate(s *discordgo.Session, h *discordgo.MessageCreate) {
 			return
 		}
 		input = input[mentionSize+1 : len(input)]
+		h.Content = input
 	} else if prefix, ok := prefixes[channel.GuildID]; ok && h.Content[:1] == prefix { // Called by prefix
 		input = input[1:len(input)]
+		h.Content = input
 	} else {
 		return
 	}
+
+	commands.Parse(h)
 
 	command, err := shlex.Split(input, true)
 	if err != nil {
