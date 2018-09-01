@@ -7,12 +7,15 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// Commands is an object containing all commands that can be called, it converts discordgo commands to a single thread each
+// ResultMessages is the return channel for successful commands
 type Commands struct {
 	commands         map[string]Command
 	ResultMessages   chan CommandResultMessage
 	incomingMessages chan *discordgo.MessageCreate
 }
 
+// Init constructs the Commands object
 func (c *Commands) Init() {
 	c.commands = make(map[string]Command)
 	c.ResultMessages = make(chan CommandResultMessage)
@@ -25,6 +28,7 @@ func (c *Commands) Init() {
 	}()
 }
 
+// Register associates a Command name to a Handler
 func (c *Commands) Register(command Command) {
 	commandNameSplit := strings.Split(command.Name, " ")
 	if len(commandNameSplit) < 1 {
@@ -71,6 +75,7 @@ func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 	}
 }
 
+// Parse is the input sink for commands
 func (c *Commands) Parse(commandMessage *discordgo.MessageCreate) {
 	c.incomingMessages <- commandMessage
 }

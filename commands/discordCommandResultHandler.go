@@ -7,12 +7,14 @@ import (
 )
 
 type erasableMessage struct {
-	commandId  string
-	answerId   string
-	channelId  string
+	commandID  string
+	answerID   string
+	channelID  string
 	expireTime time.Time
 }
 
+// DiscordCommandResultHandler is a master object containing everything related to handling incoming commands
+// as well as responding to them, and deleting answers 10 seconds later
 type DiscordCommandResultHandler struct {
 	commands            *Commands
 	erasableMessages    []erasableMessage
@@ -20,6 +22,7 @@ type DiscordCommandResultHandler struct {
 	session             *discordgo.Session
 }
 
+// Init constructs the DiscordCommandResultHandler and launches the handling goroutines
 func (d *DiscordCommandResultHandler) Init(commands *Commands, session *discordgo.Session) {
 	d.commands = commands
 	d.erasableMessages = make([]erasableMessage, 0)
@@ -39,9 +42,9 @@ func (d *DiscordCommandResultHandler) Init(commands *Commands, session *discordg
 					},
 				})
 				d.newErasableMessages <- erasableMessage{
-					commandId:  commandMessage.ID,
-					answerId:   message.ID,
-					channelId:  commandMessage.ChannelID,
+					commandID:  commandMessage.ID,
+					answerID:   message.ID,
+					channelID:  commandMessage.ChannelID,
 					expireTime: time.Now().Add(10 * time.Second),
 				}
 			case *CommandError:
@@ -54,9 +57,9 @@ func (d *DiscordCommandResultHandler) Init(commands *Commands, session *discordg
 					},
 				})
 				d.newErasableMessages <- erasableMessage{
-					commandId:  commandMessage.ID,
-					answerId:   message.ID,
-					channelId:  commandMessage.ChannelID,
+					commandID:  commandMessage.ID,
+					answerID:   message.ID,
+					channelID:  commandMessage.ChannelID,
 					expireTime: time.Now().Add(10 * time.Second),
 				}
 			}
@@ -70,8 +73,8 @@ func (d *DiscordCommandResultHandler) Init(commands *Commands, session *discordg
 				for i := len(d.erasableMessages) - 1; i >= 0; i-- {
 					erasableMessage := d.erasableMessages[i]
 					if time.Now().After(erasableMessage.expireTime) {
-						d.session.ChannelMessageDelete(erasableMessage.channelId, erasableMessage.commandId)
-						d.session.ChannelMessageDelete(erasableMessage.channelId, erasableMessage.answerId)
+						d.session.ChannelMessageDelete(erasableMessage.channelID, erasableMessage.commandID)
+						d.session.ChannelMessageDelete(erasableMessage.channelID, erasableMessage.answerID)
 						d.erasableMessages = append(d.erasableMessages[:i], d.erasableMessages[i+1:]...)
 					}
 				}

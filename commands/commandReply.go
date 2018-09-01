@@ -2,6 +2,8 @@ package commands
 
 import "github.com/bwmarrin/discordgo"
 
+// CommandReply is an object satisfying the commandResultMessage interface
+// Returned from a command handler, it signals the command processor that the request was successful
 type CommandReply struct {
 	CommandMessage *discordgo.MessageCreate
 	Message        string
