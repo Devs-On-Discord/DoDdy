@@ -13,9 +13,10 @@ type erasableMessage struct {
 }
 
 type discordCommandResultHandler struct {
-	commands         *Commands
-	erasableMessages []erasableMessage
-	session          *discordgo.Session
+	commands            *Commands
+	erasableMessages    []erasableMessage
+	newErasableMessages chan erasableMessage
+	session             *discordgo.Session
 }
 
 func (d *discordCommandResultHandler) Init() {
@@ -33,12 +34,12 @@ func (d *discordCommandResultHandler) Init() {
 						Text: "Deletion in 10 seconds",
 					},
 				})
-				d.erasableMessages = append(d.erasableMessages, erasableMessage{
+				d.newErasableMessages <- erasableMessage{
 					commandId:  commandMessage.ID,
 					answerId:   message.ID,
 					channelId:  commandMessage.ChannelID,
 					expireTime: time.Now().Add(10 * time.Second),
-				})
+				}
 			case commandError:
 				commandMessage := commandResult.CommandMessage()
 				message, _ := d.session.ChannelMessageSendEmbed(commandMessage.ChannelID, &discordgo.MessageEmbed{
@@ -48,12 +49,12 @@ func (d *discordCommandResultHandler) Init() {
 						Text: "Deletion in 10 seconds",
 					},
 				})
-				d.erasableMessages = append(d.erasableMessages, erasableMessage{
+				d.newErasableMessages <- erasableMessage{
 					commandId:  commandMessage.ID,
 					answerId:   message.ID,
 					channelId:  commandMessage.ChannelID,
 					expireTime: time.Now().Add(10 * time.Second),
-				})
+				}
 			}
 		}
 	}()
@@ -70,6 +71,10 @@ func (d *discordCommandResultHandler) Init() {
 						d.erasableMessages = append(d.erasableMessages[:i], d.erasableMessages[i+1:]...)
 					}
 				}
+				case newErasableMessage, ok := <-d.newErasableMessages:
+					if ok {
+						d.erasableMessages = append(d.erasableMessages, newErasableMessage)
+					}
 			}
 		}
 	}()
