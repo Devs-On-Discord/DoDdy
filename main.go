@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	botCommands "github.com/Devs-On-Discord/DoDdy/botCommands"
+	botcommands "github.com/Devs-On-Discord/DoDdy/botcommands"
 	"github.com/bwmarrin/discordgo"
 	bolt "go.etcd.io/bbolt"
 )
@@ -18,7 +18,7 @@ const version = "0.0.1"
 //         Could be replaced by a goroutine transaction system
 var db *bolt.DB
 
-var commands = botCommands.BotCommands{}
+var commands = botcommands.BotCommands{}
 
 func main() {
 	fmt.Printf("DoDdy %s starting\n", version)
@@ -29,6 +29,9 @@ func main() {
 	}
 
 	commands.Init(bot)
+	bot.AddHandler(func(_ *discordgo.Session, m *discordgo.MessageCreate) {
+		commands.Parse(m)
+	})
 
 	db, err = bolt.Open("doddy.db", 0666, nil)
 	if err != nil {
@@ -36,7 +39,8 @@ func main() {
 	}
 	defer db.Close()
 
-	if db.View(
+	//TODO: Reimplement prefixes
+	/*if db.View(
 		func(tx *bolt.Tx) error {
 			b := tx.Bucket([]byte("Nodes"))
 			c := b.Cursor()
@@ -46,13 +50,7 @@ func main() {
 			return nil
 		}) != nil {
 		panic("could not read prefixes from boltdb: " + err.Error())
-	}
-
-	deletionChannel = make(chan deletionTarget, 10000)
-
-	go deleter(deletionChannel, bot)
-
-	bot.AddHandler(handleMessageCreate)
+	}*/
 
 	if bot.Open() != nil {
 		panic("could not open bot: " + err.Error())
