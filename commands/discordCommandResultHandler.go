@@ -71,10 +71,10 @@ func (d *discordCommandResultHandler) Init() {
 						d.erasableMessages = append(d.erasableMessages[:i], d.erasableMessages[i+1:]...)
 					}
 				}
-				case newErasableMessage, ok := <-d.newErasableMessages:
-					if ok {
-						d.erasableMessages = append(d.erasableMessages, newErasableMessage)
-					}
+			case newErasableMessage, ok := <-d.newErasableMessages:
+				if ok {
+					d.erasableMessages = append(d.erasableMessages, newErasableMessage)
+				}
 			}
 		}
 	}()
