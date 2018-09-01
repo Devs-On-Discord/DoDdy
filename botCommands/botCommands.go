@@ -18,6 +18,7 @@ func (b *BotCommands) Init(session *discordgo.Session) {
 	b.discordCommandResultHandler = &commands.DiscordCommandResultHandler{}
 	b.discordCommandResultHandler.Init(b.commands, session)
 	b.RegisterCommands()
+	session.AddHandler(b.messageHandler)
 }
 
 // RegisterCommands registers commands with the Commands object
@@ -30,7 +31,7 @@ func (b *BotCommands) Parse(message *discordgo.MessageCreate) {
 	b.commands.Parse(message)
 }
 
-func (b *BotCommands) MessageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+func (b *BotCommands) messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
 	}

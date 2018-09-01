@@ -29,7 +29,6 @@ func main() {
 	}
 
 	commands.Init(bot)
-	bot.AddHandler(commands.MessageHandler)
 
 	db, err = bolt.Open("doddy.db", 0666, nil)
 	if err != nil {

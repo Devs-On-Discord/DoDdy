@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/binary"
 
-	bolt "go.etcd.io/bbolt"
 	"fmt"
+
+	bolt "go.etcd.io/bbolt"
 )
 
 //TODO: remove users on disconnect
