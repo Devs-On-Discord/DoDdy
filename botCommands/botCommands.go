@@ -29,3 +29,13 @@ func (b *BotCommands) RegisterCommands() {
 func (b *BotCommands) Parse(message *discordgo.MessageCreate) {
 	b.commands.Parse(message)
 }
+
+func (b *BotCommands) MessageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if m.Author.ID == s.State.User.ID {
+		return
+	}
+	if len(m.Content) == 0 {
+		return
+	}
+	b.Parse(m)
+}

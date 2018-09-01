@@ -29,15 +29,7 @@ func main() {
 	}
 
 	commands.Init(bot)
-	bot.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		if m.Author.ID == s.State.User.ID {
-			return
-		}
-		if len(m.Content) == 0 {
-			return
-		}
-		commands.Parse(m)
-	})
+	bot.AddHandler(commands.MessageHandler)
 
 	db, err = bolt.Open("doddy.db", 0666, nil)
 	if err != nil {
