@@ -5,11 +5,13 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// BotCommands is an object that encapsulates both Commands and a result handler
 type BotCommands struct {
 	commands                    *commands.Commands
 	discordCommandResultHandler *commands.DiscordCommandResultHandler
 }
 
+// Init constructs the BotCommands object
 func (b *BotCommands) Init(session *discordgo.Session) {
 	b.commands = &commands.Commands{}
 	b.commands.Init()
@@ -18,10 +20,12 @@ func (b *BotCommands) Init(session *discordgo.Session) {
 	b.RegisterCommands()
 }
 
+// RegisterCommands registers commands with the Commands object
 func (b *BotCommands) RegisterCommands() {
 	b.commands.Register(commands.Command{Name: "help", Handler: helpCommand})
 }
 
+// Parse is the input sink for commands
 func (b *BotCommands) Parse(message *discordgo.MessageCreate) {
 	b.commands.Parse(message)
 }
