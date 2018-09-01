@@ -2,6 +2,8 @@ package commands
 
 import "github.com/bwmarrin/discordgo"
 
+// CommandError is an object satisfying the commandResultMessage interface
+// Returned from a command handler, it signals the command processor that the request failed
 type CommandError struct {
 	CommandMessage *discordgo.MessageCreate
 	Message        string
