@@ -14,12 +14,12 @@ type erasableMessage struct {
 
 type discordCommandResultHandler struct {
 	commands         *Commands
-	erasableMessages chan erasableMessage
+	erasableMessages []erasableMessage
 	session          *discordgo.Session
 }
 
 func (d *discordCommandResultHandler) Init() {
-	d.erasableMessages = make(chan erasableMessage)
+	d.erasableMessages = make([]erasableMessage, 0)
 	go func() {
 		for {
 			commandResult := <-d.commands.ResultMessages
@@ -33,12 +33,12 @@ func (d *discordCommandResultHandler) Init() {
 						Text: "Deletion in 10 seconds",
 					},
 				})
-				d.erasableMessages <- erasableMessage{
-					commandId:    commandMessage.ID,
-					answerId:     message.ID,
-					channelId:    commandMessage.ChannelID,
+				d.erasableMessages = append(d.erasableMessages, erasableMessage{
+					commandId:  commandMessage.ID,
+					answerId:   message.ID,
+					channelId:  commandMessage.ChannelID,
 					expireTime: time.Now().Add(10 * time.Second),
-				}
+				})
 			case commandError:
 				commandMessage := commandResult.CommandMessage()
 				message, _ := d.session.ChannelMessageSendEmbed(commandMessage.ChannelID, &discordgo.MessageEmbed{
@@ -48,27 +48,26 @@ func (d *discordCommandResultHandler) Init() {
 						Text: "Deletion in 10 seconds",
 					},
 				})
-				d.erasableMessages <- erasableMessage{
-					commandId:    commandMessage.ID,
-					answerId:     message.ID,
-					channelId:    commandMessage.ChannelID,
+				d.erasableMessages = append(d.erasableMessages, erasableMessage{
+					commandId:  commandMessage.ID,
+					answerId:   message.ID,
+					channelId:  commandMessage.ChannelID,
 					expireTime: time.Now().Add(10 * time.Second),
-				}
+				})
 			}
 		}
 	}()
 	go func() {
+		ticker := time.NewTicker(1 * time.Second)
 		for {
 			select {
-			case x, ok := <-d.erasableMessages:
-
-				if time.Now().After(x.expireTime) {
-					d.session.ChannelMessageDelete(x.channelId, x.commandId)
-					d.session.ChannelMessageDelete(x.channelId, x.answerId)
-				} else {
-					if ok {
-						d.erasableMessages <- x
-						time.Sleep(10 * time.Millisecond)
+			case <-ticker.C:
+				for i := len(d.erasableMessages) - 1; i >= 0; i-- {
+					erasableMessage := d.erasableMessages[i]
+					if time.Now().After(erasableMessage.expireTime) {
+						d.session.ChannelMessageDelete(erasableMessage.channelId, erasableMessage.commandId)
+						d.session.ChannelMessageDelete(erasableMessage.channelId, erasableMessage.answerId)
+						d.erasableMessages = append(d.erasableMessages[:i], d.erasableMessages[i+1:]...)
 					}
 				}
 			}
