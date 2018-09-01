@@ -2,8 +2,9 @@ package commands
 
 import "github.com/bwmarrin/discordgo"
 
-type commandResultMessage interface {
-	CommandMessage() *discordgo.MessageCreate
-	Message() (string)
-	Color() (int)
+type CommandResultMessage interface {
+	setCommandMessage(commandMessage *discordgo.MessageCreate)
+	commandMessage() *discordgo.MessageCreate
+	message() (string)
+	color() (int)
 }

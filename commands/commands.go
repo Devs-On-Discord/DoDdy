@@ -8,13 +8,13 @@ import (
 
 type Commands struct {
 	commands         map[string]Command
-	ResultMessages   chan commandResultMessage
+	ResultMessages   chan CommandResultMessage
 	incomingMessages chan *discordgo.MessageCreate
 }
 
 func (c *Commands) Init() {
 	c.commands = make(map[string]Command)
-	c.ResultMessages = make(chan commandResultMessage)
+	c.ResultMessages = make(chan CommandResultMessage)
 	go func() {
 		for {
 			incomingMessage := <-c.incomingMessages
@@ -35,26 +35,30 @@ func (c *Commands) Register(command Command) {
 func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 	commandParsed, err := shlex.Split(commandMessage.Content, true)
 	if err != nil {
-		c.ResultMessages <- commandError{
-			commandMessage: commandMessage,
-			message:        "Error happened " + err.Error(),
-			color:          0xb30000,
+		c.ResultMessages <- CommandError{
+			CommandMessage: commandMessage,
+			Message:        "Error happened " + err.Error(),
+			Color:          0xb30000,
 		}
 	}
 	commandCount := len(commandParsed)
 	if commandCount < 1 {
-		c.ResultMessages <- commandError{
-			commandMessage: commandMessage,
-			message:        "Invalid Command",
-			color:          0xb30000,
+		c.ResultMessages <- CommandError{
+			CommandMessage: commandMessage,
+			Message:        "Invalid Command",
+			Color:          0xb30000,
 		}
 	}
 	commandName := commandParsed[0]
 	if command, exists := c.commands[commandName]; exists {
 		if commandCount < 2 {
-			c.ResultMessages <- command.Handler(commandMessage, nil)
+			resultMessage := command.Handler(commandMessage, nil)
+			resultMessage.setCommandMessage(commandMessage)
+			c.ResultMessages <- resultMessage
 		} else {
-			c.ResultMessages <- command.Handler(commandMessage, commandParsed[1:])
+			resultMessage := command.Handler(commandMessage, commandParsed[1:])
+			resultMessage.setCommandMessage(commandMessage)
+			c.ResultMessages <- resultMessage
 		}
 	}
 }

@@ -2,20 +2,24 @@ package commands
 
 import "github.com/bwmarrin/discordgo"
 
-type commandReply struct {
-	commandMessage *discordgo.MessageCreate
-	message string
-	color   int
+type CommandReply struct {
+	CommandMessage *discordgo.MessageCreate
+	Message string
+	Color   int
 }
 
-func (c commandReply) CommandMessage() *discordgo.MessageCreate {
-	return c.commandMessage
+func (c CommandReply) setCommandMessage(commandMessage *discordgo.MessageCreate) {
+	c.CommandMessage = commandMessage
 }
 
-func (c commandReply) Message() string {
-	return c.message
+func (c CommandReply) commandMessage() *discordgo.MessageCreate {
+	return c.CommandMessage
 }
 
-func (c commandReply) Color() int {
-	return c.color
+func (c CommandReply) message() string {
+	return c.Message
+}
+
+func (c CommandReply) color() int {
+	return c.Color
 }

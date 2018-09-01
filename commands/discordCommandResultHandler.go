@@ -12,24 +12,27 @@ type erasableMessage struct {
 	expireTime time.Time
 }
 
-type discordCommandResultHandler struct {
+type DiscordCommandResultHandler struct {
 	commands            *Commands
 	erasableMessages    []erasableMessage
 	newErasableMessages chan erasableMessage
 	session             *discordgo.Session
 }
 
-func (d *discordCommandResultHandler) Init() {
+func (d *DiscordCommandResultHandler) Init(commands *Commands, session *discordgo.Session) {
+	d.commands = commands
 	d.erasableMessages = make([]erasableMessage, 0)
+	d.newErasableMessages = make(chan erasableMessage)
+	d.session = session
 	go func() {
 		for {
 			commandResult := <-d.commands.ResultMessages
 			switch commandResult.(type) {
-			case commandReply:
-				commandMessage := commandResult.CommandMessage()
+			case CommandReply:
+				commandMessage := commandResult.commandMessage()
 				message, _ := d.session.ChannelMessageSendEmbed(commandMessage.ChannelID, &discordgo.MessageEmbed{
-					Color: commandResult.Color(),
-					Title: commandResult.Message(),
+					Color: commandResult.color(),
+					Title: commandResult.message(),
 					Footer: &discordgo.MessageEmbedFooter{
 						Text: "Deletion in 10 seconds",
 					},
@@ -40,11 +43,11 @@ func (d *discordCommandResultHandler) Init() {
 					channelId:  commandMessage.ChannelID,
 					expireTime: time.Now().Add(10 * time.Second),
 				}
-			case commandError:
-				commandMessage := commandResult.CommandMessage()
+			case CommandError:
+				commandMessage := commandResult.commandMessage()
 				message, _ := d.session.ChannelMessageSendEmbed(commandMessage.ChannelID, &discordgo.MessageEmbed{
-					Color: commandResult.Color(),
-					Title: commandResult.Message(),
+					Color: commandResult.color(),
+					Title: commandResult.message(),
 					Footer: &discordgo.MessageEmbedFooter{
 						Text: "Deletion in 10 seconds",
 					},
