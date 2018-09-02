@@ -12,7 +12,6 @@ import (
 type Commands struct {
 	commands         map[string]Command
 	ResultMessages   chan CommandResultMessage
-	incomingMessages chan *discordgo.MessageCreate
 	session          *discordgo.Session
 }
 
@@ -20,16 +19,7 @@ type Commands struct {
 func (c *Commands) Init(session *discordgo.Session) {
 	c.commands = make(map[string]Command)
 	c.ResultMessages = make(chan CommandResultMessage)
-	c.incomingMessages = make(chan *discordgo.MessageCreate)
 	c.session = session
-	go func() {
-		for {
-			select {
-			case incomingMessage := <-c.incomingMessages:
-				go c.parse(incomingMessage)
-			}
-		}
-	}()
 }
 
 // Register associates a Command name to a Handler
@@ -82,5 +72,5 @@ func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 
 // Parse is the input sink for commands
 func (c *Commands) Parse(commandMessage *discordgo.MessageCreate) {
-	c.incomingMessages <- commandMessage
+	go c.parse(commandMessage)
 }
