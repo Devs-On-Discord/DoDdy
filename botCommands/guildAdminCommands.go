@@ -24,22 +24,22 @@ func postVote(session *discordgo.Session, commandMessage *discordgo.MessageCreat
 	if len(args) < 3 {
 		return &commands.CommandError{Message: "Vote id, name and message are required", Color: 0xb30000}
 	}
-	voteId := args[0]
+	voteID := args[0]
 	voteName := args[1]
 	voteMessage := args[2]
 	channels, err := guilds.GetVotesChannels()
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
-	votes.AddVote(voteId, voteName, voteMessage, make([]votes.Answer, 0))
+	votes.AddVote(voteID, voteName, voteMessage, make([]votes.Answer, 0))
 	for _, channelID := range channels {
 		go func(channelID string) {
 			message, err := session.ChannelMessageSend(channelID, voteMessage)
 			if err != nil {
 				channel, err := session.Channel(channelID)
 				if err != nil {
-					guilds.AddVote(channel.GuildID, voteId, message.ID, channelID)
-					votes.Instance.Votes[channelID] = votes.Vote{Id: voteId, Name: voteName, Message: voteMessage, Answers: make([]votes.Answer, 0)}
+					guilds.AddVote(channel.GuildID, voteID, message.ID, channelID)
+					votes.Instance.Votes[channelID] = votes.Vote{Id: voteID, Name: voteName, Message: voteMessage, Answers: make([]votes.Answer, 0)}
 				}
 			}
 		}(channelID)
