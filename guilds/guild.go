@@ -112,6 +112,7 @@ func SetVotesChannel(guildID string, channelID string) error {
 	})
 }
 
+// SetPrefix defines the prefix of a single guild
 func SetPrefix(guildID string, prefix string) error {
 	return db.DB.Update(func(tx *bolt.Tx) error {
 		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
