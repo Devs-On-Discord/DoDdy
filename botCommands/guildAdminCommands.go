@@ -70,7 +70,7 @@ func clearAnnouncements(session *discordgo.Session, commandMessage *discordgo.Me
 	for _, channelID := range channels {
 		messages, err := session.ChannelMessages(channelID, 100, "", "", "")
 		if err == nil {
-			messageIDs := make([]string, 100)
+			messageIDs := make([]string, len(messages))
 			for i, message := range messages {
 				messageIDs[i] = message.ID
 			}
