@@ -29,10 +29,29 @@ func postAnnouncement(session *discordgo.Session, commandMessage *discordgo.Mess
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
 	for _, channelID := range channels {
-		session.ChannelMessageSendEmbed(channelID, &discordgo.MessageEmbed{
-			Color: 0x00b300,
-			Title: announcement,
-		})
+		session.ChannelMessageSend(channelID, announcement)
+	}
+	return &commands.CommandReply{Message: "Announcement posted", Color: 0x00b300}
+}
+
+func postLastMessageAsAnnouncement(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	channelId := commandMessage.ChannelID
+	messages, err := session.ChannelMessages(channelId, 1, commandMessage.Message.ID, "", "")
+	if err != nil || len(messages) < 1 {
+		return &commands.CommandError{Message: "Message couldn't be find " + err.Error(), Color: 0xb30000}
+	}
+	message := messages[0]
+	if message == nil {
+		return &commands.CommandError{Message: "Message couldn't be find " + err.Error(), Color: 0xb30000}
+	}
+	session.ChannelMessageDelete(channelId, message.ID)
+	announcement := message.Content
+	channels, err := guilds.GetAnnouncementChannels()
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	for _, channelID := range channels {
+		session.ChannelMessageSend(channelID, announcement)
 	}
 	return &commands.CommandReply{Message: "Announcement posted", Color: 0x00b300}
 }
