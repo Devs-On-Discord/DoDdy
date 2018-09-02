@@ -25,7 +25,7 @@ func GetVotes() ([]Vote, error) {
 	err := db.DB.View(func(tx *bolt.Tx) error {
 		votesBucket := tx.Bucket([]byte("votes"))
 		if votesBucket == nil {
-			return fmt.Errorf("votes bucket doesn't exists")
+			return nil
 		}
 		votesBucket.ForEach(func(k, v []byte) error {
 			voteBucket := votesBucket.Bucket(k)
@@ -80,7 +80,7 @@ func GetVotes() ([]Vote, error) {
 func AddVote(id string, name string, message string, answers []Answer) (error) {
 	return db.DB.Update(func(tx *bolt.Tx) error {
 		votesBucket, err := tx.CreateBucketIfNotExists([]byte("votes"))
-		if err == nil {
+		if err != nil {
 			return fmt.Errorf("could not create votes bucket")
 		}
 		voteBucket, err := votesBucket.CreateBucket([]byte(id))
