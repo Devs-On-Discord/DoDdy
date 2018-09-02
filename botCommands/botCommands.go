@@ -5,8 +5,10 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// Instance is a globally accessible BotCommands object
 var Instance BotCommands
 
+// Init constructs the global BotCommands object
 func Init(session *discordgo.Session) {
 	Instance = BotCommands{}
 	Instance.Init(session)

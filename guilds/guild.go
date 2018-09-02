@@ -12,10 +12,11 @@ type guild struct {
 	name                   string
 	announcementsChannelID string
 	votesChannelID         string
-	votes                  []guildVote
+	votes                  []GuildVote
 }
 
-type guildVote struct {
+// GuildVote contains a vote and it's location
+type GuildVote struct {
 	VoteID    string
 	MessageID string
 	ChannelID string
@@ -129,6 +130,7 @@ func Create(guildID string, name string) error {
 	})
 }
 
+// AddVote adds a single vote to a single guild
 func AddVote(guildID string, voteID string, messageID string, channelID string) error {
 	return db.DB.Update(func(tx *bolt.Tx) error {
 		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
@@ -163,8 +165,9 @@ func AddVote(guildID string, voteID string, messageID string, channelID string) 
 	})
 }
 
-func GetVotes() ([]guildVote, error) {
-	votes := make([]guildVote, 0)
+// GetVotes returns every single vote from every single guild
+func GetVotes() ([]GuildVote, error) {
+	votes := make([]GuildVote, 0)
 	err := db.DB.View(func(tx *bolt.Tx) error {
 		guildsBucket := tx.Bucket([]byte("guilds"))
 		if guildsBucket == nil {
@@ -178,8 +181,8 @@ func GetVotes() ([]guildVote, error) {
 					votesBucket.ForEach(func(k, v []byte) error {
 						voteBucket := votesBucket.Bucket([]byte(k))
 						if voteBucket != nil {
-							voteId := voteBucket.Get([]byte("voteID"))
-							if voteId == nil {
+							voteID := voteBucket.Get([]byte("voteID"))
+							if voteID == nil {
 								return nil
 							}
 							messageID := voteBucket.Get([]byte("messageID"))
@@ -190,7 +193,7 @@ func GetVotes() ([]guildVote, error) {
 							if channelID == nil {
 								return nil
 							}
-							votes = append(votes, guildVote{VoteID: string(voteId), MessageID: string(messageID), ChannelID: string(channelID)})
+							votes = append(votes, GuildVote{VoteID: string(voteID), MessageID: string(messageID), ChannelID: string(channelID)})
 						}
 						return nil
 					})
