@@ -1,8 +1,8 @@
 package votes
 
 import (
-	"github.com/Devs-On-Discord/DoDdy/db"
 	"fmt"
+	"github.com/Devs-On-Discord/DoDdy/db"
 	bolt "go.etcd.io/bbolt"
 	"strconv"
 )

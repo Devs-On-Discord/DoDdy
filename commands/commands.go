@@ -10,9 +10,9 @@ import (
 // Commands is an object containing all commands that can be called, it converts discordgo commands to a single thread each
 // ResultMessages is the return channel for successful commands
 type Commands struct {
-	commands         map[string]Command
-	ResultMessages   chan CommandResultMessage
-	session          *discordgo.Session
+	commands       map[string]Command
+	ResultMessages chan CommandResultMessage
+	session        *discordgo.Session
 }
 
 // Init constructs the Commands object

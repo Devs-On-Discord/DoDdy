@@ -8,7 +8,7 @@ import (
 var DB *bolt.DB
 
 // InitDB connects the database to the global DB value
-func InitDB() {
+func Init() {
 	var err error
 	DB, err = bolt.Open("doddy.db", 0666, nil)
 	if err != nil {

@@ -6,10 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Devs-On-Discord/DoDdy/db"
-	"github.com/bwmarrin/discordgo"
-	"github.com/Devs-On-Discord/DoDdy/votes"
 	"github.com/Devs-On-Discord/DoDdy/botCommands"
+	"github.com/Devs-On-Discord/DoDdy/db"
+	"github.com/Devs-On-Discord/DoDdy/votes"
+	"github.com/bwmarrin/discordgo"
 )
 
 const version = "0.0.1"
@@ -22,26 +22,13 @@ func main() {
 		panic(err.Error())
 	}
 
-	db.InitDB()
+	db.Init()
 
 	defer db.DB.Close()
 
 	botcommands.Init(bot)
 
 	votes.Init(bot)
-
-	//TODO: Reimplement prefixes
-	/*if db.View(
-		func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("Nodes"))
-			c := b.Cursor()
-			for k, _ := c.First(); k != nil; k, _ = c.Next() {
-				prefixes[string(k)] = string(b.Bucket(k).Get([]byte("Prefix")))
-			}
-			return nil
-		}) != nil {
-		panic("could not read prefixes from boltdb: " + err.Error())
-	}*/
 
 	if bot.Open() != nil {
 		panic("could not open bot: " + err.Error())

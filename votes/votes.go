@@ -1,8 +1,8 @@
 package votes
 
 import (
-	"github.com/bwmarrin/discordgo"
 	"github.com/Devs-On-Discord/DoDdy/guilds"
+	"github.com/bwmarrin/discordgo"
 )
 
 var Instance Votes
