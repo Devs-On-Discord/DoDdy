@@ -33,7 +33,7 @@ func postVote(session *discordgo.Session, commandMessage *discordgo.MessageCreat
 	}
 	votes.AddVote(voteId, voteName, voteMessage, make([]votes.Answer, 0))
 	for _, channelID := range channels {
-		go func() {
+		go func(channelID string) {
 			message, err := session.ChannelMessageSend(channelID, voteMessage)
 			if err != nil {
 				channel, err := session.Channel(channelID)
@@ -42,7 +42,7 @@ func postVote(session *discordgo.Session, commandMessage *discordgo.MessageCreat
 					votes.Instance.Votes[channelID] = votes.Vote{Id: voteId, Name: voteName, Message: voteMessage, Answers: make([]votes.Answer, 0)}
 				}
 			}
-		}()
+		}(channelID)
 	}
 	return &commands.CommandReply{Message: "Vote posted", Color: 0x00b300}
 }
