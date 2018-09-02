@@ -8,20 +8,15 @@ import (
 )
 
 func setPrefix(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	channelID := commandMessage.ChannelID
-	channel, err := session.Channel(channelID)
-	if err != nil {
-		return &commands.CommandError{Message: "Server couldn't be identified " + err.Error(), Color: 0xb30000}
-	}
 	if len(args) < 1 {
-		return &commands.CommandReply{Message: "Prefix is " + Instance.Prefixes[channel.GuildID], Color: 0xb30000}
+		return &commands.CommandReply{Message: "Prefix is " + Instance.Prefixes[commandMessage.GuildID], Color: 0xb30000}
 	}
 	prefix := args[0]
-	err = guilds.SetPrefix(channel.GuildID, prefix)
+	err := guilds.SetPrefix(commandMessage.GuildID, prefix)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
-	Instance.Prefixes[channel.GuildID] = prefix
+	Instance.Prefixes[commandMessage.GuildID] = prefix
 	return &commands.CommandReply{Message: "Bot prefix set to " + prefix, Color: 0x00b300}
 }
 
@@ -140,17 +135,11 @@ func postLastMessageAsAnnouncement(session *discordgo.Session, commandMessage *d
 }
 
 func setup(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	channelID := commandMessage.ChannelID
-	channel, err := session.Channel(channelID)
+	guild, err := session.Guild(commandMessage.GuildID)
 	if err != nil {
 		return &commands.CommandError{Message: "Server couldn't be identified " + err.Error(), Color: 0xb30000}
 	}
-	guildID := channel.GuildID
-	guild, err := session.Guild(guildID)
-	if err != nil {
-		return &commands.CommandError{Message: "Server couldn't be identified " + err.Error(), Color: 0xb30000}
-	}
-	err = guilds.Create(guildID, guild.Name)
+	err = guilds.Create(commandMessage.GuildID, guild.Name)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
