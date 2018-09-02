@@ -36,8 +36,9 @@ func (c *Commands) Register(command Command) {
 	if len(commandNameSplit) < 1 {
 		return
 	}
-	name := commandNameSplit[0]
-	c.commands[name] = command
+	for _, commandName := range commandNameSplit {
+		c.commands[strings.ToLower(commandName)] = command
+	}
 }
 
 func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
@@ -58,7 +59,7 @@ func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 		}
 	}
 	commandName := commandParsed[0]
-	if command, exists := c.commands[commandName]; exists {
+	if command, exists := c.commands[strings.ToLower(commandName)]; exists {
 		if commandCount < 2 {
 			resultMessage := command.Handler(c.session, commandMessage, nil)
 			resultMessage.setCommandMessage(commandMessage)
