@@ -42,6 +42,7 @@ func (v *Votes) Load() {
 		}
 		if guildVoteVote != nil {
 			v.Votes[guildVote.ChannelID] = *guildVoteVote
+			guildVoteVote = nil
 		}
 	}
 }

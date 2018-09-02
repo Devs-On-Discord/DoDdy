@@ -35,10 +35,13 @@ func postVote(session *discordgo.Session, commandMessage *discordgo.MessageCreat
 	for _, channelID := range channels {
 		go func(channelID string) {
 			message, err := session.ChannelMessageSend(channelID, voteMessage)
-			if err != nil {
+			if err == nil {
 				channel, err := session.Channel(channelID)
-				if err != nil {
-					guilds.AddVote(channel.GuildID, voteID, message.ID, channelID)
+				if err == nil {
+					err = guilds.AddVote(channel.GuildID, voteID, message.ID, channelID)
+					if err != nil {
+						println(err.Error())
+					}
 					votes.Instance.Votes[channelID] = votes.Vote{Id: voteID, Name: voteName, Message: voteMessage, Answers: make([]votes.Answer, 0)}
 				}
 			}
