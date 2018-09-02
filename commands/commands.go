@@ -24,8 +24,10 @@ func (c *Commands) Init(session *discordgo.Session) {
 	c.session = session
 	go func() {
 		for {
-			incomingMessage := <-c.incomingMessages
-			c.parse(incomingMessage)
+			select {
+			case incomingMessage := <-c.incomingMessages:
+				go c.parse(incomingMessage)
+			}
 		}
 	}()
 }
