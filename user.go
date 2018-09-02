@@ -1,9 +1,10 @@
 package main
 
 import (
-	bolt "go.etcd.io/bbolt"
 	"fmt"
+
 	"github.com/Devs-On-Discord/DoDdy/db"
+	bolt "go.etcd.io/bbolt"
 )
 
 type user struct {
@@ -20,7 +21,7 @@ func (u *user) Insert(usersBucket *bolt.Bucket) error {
 }
 
 func (u *user) Delete() {
-	db.Db.Update(func(tx *bolt.Tx) error {
+	db.DB.Update(func(tx *bolt.Tx) error {
 		usersBucket := tx.Bucket([]byte("users"))
 		if usersBucket == nil {
 			return nil
