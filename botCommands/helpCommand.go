@@ -15,7 +15,7 @@ func helpCommand(session *discordgo.Session, commandMessage *discordgo.MessageCr
 	userChannel, err := session.UserChannelCreate(commandMessage.Author.ID)
 	if err != nil {
 		return &commands.CommandError{
-			Message: "Bot couldn't contact you " + err.Error(),
+			Message: "I couldn't contact you " + err.Error(),
 			Color: 0xb30000,
 		}
 	}
@@ -23,6 +23,13 @@ func helpCommand(session *discordgo.Session, commandMessage *discordgo.MessageCr
 	if err != nil {
 		return &commands.CommandError{
 			Message: "Help couldn't be send as an dm " + err.Error(),
+			Color: 0xb30000,
+		}
+	}
+	_, err = session.ChannelDelete(userChannel.ID)
+	if err != nil {
+		return &commands.CommandError{
+			Message: "Couldn't cleanup channel " + err.Error(),
 			Color: 0xb30000,
 		}
 	}
