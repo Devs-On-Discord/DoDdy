@@ -5,6 +5,13 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+var Instance BotCommands
+
+func Init(session *discordgo.Session) {
+	Instance = BotCommands{}
+	Instance.Init(session)
+}
+
 // BotCommands is an object that encapsulates both Commands and a result handler
 type BotCommands struct {
 	commands                    *commands.Commands

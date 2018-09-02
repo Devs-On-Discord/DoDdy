@@ -12,12 +12,13 @@ type guild struct {
 	name                   string
 	announcementsChannelID string
 	votesChannelID         string
-	votes []guildVote
+	votes                  []guildVote
 }
 
 type guildVote struct {
-	voteID int
-	messageID string
+	VoteID    string
+	MessageID string
+	ChannelID string
 }
 
 const (
@@ -128,7 +129,7 @@ func Create(guildID string, name string) error {
 	})
 }
 
-func AddVote(guildID string, voteID string, messageID string) error {
+func AddVote(guildID string, voteID string, messageID string, channelID string) error {
 	return db.DB.Update(func(tx *bolt.Tx) error {
 		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
 		if err != nil {
@@ -154,6 +155,50 @@ func AddVote(guildID string, voteID string, messageID string) error {
 		if err != nil {
 			return fmt.Errorf("messageID couldn't be saved")
 		}
+		err = voteBucket.Put([]byte("channelID"), []byte(channelID))
+		if err != nil {
+			return fmt.Errorf("channelID couldn't be saved")
+		}
 		return nil
 	})
+}
+
+func GetVotes() ([]guildVote, error) {
+	votes := make([]guildVote, 0)
+	err := db.DB.View(func(tx *bolt.Tx) error {
+		guildsBucket := tx.Bucket([]byte("guilds"))
+		if guildsBucket == nil {
+			return fmt.Errorf(notSetup)
+		}
+		err := guildsBucket.ForEach(func(k, v []byte) error {
+			guildBucket := guildsBucket.Bucket(k)
+			if guildBucket != nil {
+				votesBucket := guildBucket.Bucket([]byte("votes"))
+				if votesBucket != nil {
+					votesBucket.ForEach(func(k, v []byte) error {
+						voteBucket := votesBucket.Bucket([]byte(k))
+						if voteBucket != nil {
+							voteId := voteBucket.Get([]byte("voteID"))
+							if voteId == nil {
+								return nil
+							}
+							messageID := voteBucket.Get([]byte("messageID"))
+							if messageID == nil {
+								return nil
+							}
+							channelID := voteBucket.Get([]byte("channelID"))
+							if channelID == nil {
+								return nil
+							}
+							votes = append(votes, guildVote{VoteID: string(voteId), MessageID: string(messageID), ChannelID: string(channelID)})
+						}
+						return nil
+					})
+				}
+			}
+			return nil
+		})
+		return err
+	})
+	return votes, err
 }

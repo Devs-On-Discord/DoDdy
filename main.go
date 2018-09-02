@@ -6,17 +6,13 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Devs-On-Discord/DoDdy/botcommands"
 	"github.com/Devs-On-Discord/DoDdy/db"
 	"github.com/bwmarrin/discordgo"
 	"github.com/Devs-On-Discord/DoDdy/votes"
+	"github.com/Devs-On-Discord/DoDdy/botCommands"
 )
 
 const version = "0.0.1"
-
-var commands = botcommands.BotCommands{}
-
-var globalVotes = votes.Votes{}
 
 func main() {
 	fmt.Printf("DoDdy %s starting\n", version)
@@ -30,9 +26,9 @@ func main() {
 
 	defer db.DB.Close()
 
-	commands.Init(bot)
+	botcommands.Init(bot)
 
-	globalVotes.Init(bot)
+	votes.Init(bot)
 
 	//TODO: Reimplement prefixes
 	/*if db.View(

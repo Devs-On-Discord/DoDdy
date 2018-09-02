@@ -8,10 +8,10 @@ import (
 )
 
 type Vote struct {
-	id      string
-	name    string
-	message string
-	answers []Answer
+	Id      string
+	Name    string
+	Message string
+	Answers []Answer
 }
 
 type Answer struct {
@@ -23,9 +23,9 @@ type Answer struct {
 func GetVotes() ([]Vote, error) {
 	votes := make([]Vote, 0)
 	err := db.DB.View(func(tx *bolt.Tx) error {
-		votesBucket, err := tx.CreateBucketIfNotExists([]byte("votes"))
-		if err == nil {
-			return fmt.Errorf("could not create votes bucket")
+		votesBucket := tx.Bucket([]byte("votes"))
+		if votesBucket == nil {
+			return fmt.Errorf("votes bucket doesn't exists")
 		}
 		votesBucket.ForEach(func(k, v []byte) error {
 			voteBucket := votesBucket.Bucket(k)
@@ -68,7 +68,7 @@ func GetVotes() ([]Vote, error) {
 					answers = append(answers, Answer{name: string(name), emojiID: string(emojiID), count: countInt})
 					return nil
 				})
-				votes = append(votes, Vote{id: string(id), name: string(name), message: string(message), answers: answers})
+				votes = append(votes, Vote{Id: string(id), Name: string(name), Message: string(message), Answers: answers})
 			}
 			return nil
 		})
