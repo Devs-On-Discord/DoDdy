@@ -96,7 +96,7 @@ func (b *BotCommands) messageHandler(s *discordgo.Session, m *discordgo.MessageC
 		input = input[mentionSize+1:]
 		m.Content = input
 	} else if len(input) > 1 {
-		if prefix, exists := b.Prefixes["guildIDTODO"]; exists {
+		if prefix, exists := b.Prefixes[m.GuildID]; exists {
 			if input[:1] == prefix {
 				m.Content = input[1:]
 			} else {
