@@ -55,7 +55,7 @@ func SetAnnouncementsChannel(guildID string, channelID string) error {
 		}
 		err = guildBucket.Put([]byte("announcementsChannelID"), []byte(channelID))
 		if err != nil {
-			return fmt.Errorf("announcements channel id couldn't be saved")
+			return fmt.Errorf("announcements channel ID couldn't be saved")
 		}
 		return nil
 	})
@@ -97,7 +97,7 @@ func SetVotesChannel(guildID string, channelID string) error {
 		}
 		err = guildBucket.Put([]byte("votesChannelID"), []byte(channelID))
 		if err != nil {
-			return fmt.Errorf("votes channel id couldn't be saved")
+			return fmt.Errorf("votes channel ID couldn't be saved")
 		}
 		return nil
 	})
