@@ -10,6 +10,7 @@ import (
 type guild struct {
 	id                     string
 	name                   string
+	prefix                 string
 	announcementsChannelID string
 	votesChannelID         string
 	votes                  []GuildVote
@@ -111,6 +112,24 @@ func SetVotesChannel(guildID string, channelID string) error {
 	})
 }
 
+func SetPrefix(guildID string, prefix string) error {
+	return db.DB.Update(func(tx *bolt.Tx) error {
+		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
+		if err != nil {
+			return fmt.Errorf(bucketNotCreated)
+		}
+		guildBucket := guildsBucket.Bucket([]byte(guildID))
+		if guildBucket == nil {
+			return fmt.Errorf(notSetup)
+		}
+		err = guildBucket.Put([]byte("prefix"), []byte(prefix))
+		if err != nil {
+			return fmt.Errorf("prefix couldn't be saved")
+		}
+		return nil
+	})
+}
+
 // Create adds a guild to the database
 func Create(guildID string, name string) error {
 	return db.DB.Update(func(tx *bolt.Tx) error {
@@ -125,6 +144,10 @@ func Create(guildID string, name string) error {
 		err = guildBucket.Put([]byte("name"), []byte(name))
 		if err != nil {
 			return fmt.Errorf("name couldn't be saved")
+		}
+		err = guildBucket.Put([]byte("prefix"), []byte("!"))
+		if err != nil {
+			return fmt.Errorf("prefix couldn't be saved")
 		}
 		return nil
 	})

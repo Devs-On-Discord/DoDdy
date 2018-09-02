@@ -7,6 +7,24 @@ import (
 	"github.com/Devs-On-Discord/DoDdy/votes"
 )
 
+func setPrefix(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	channelID := commandMessage.ChannelID
+	channel, err := session.Channel(channelID)
+	if err != nil {
+		return &commands.CommandError{Message: "Server couldn't be identified " + err.Error(), Color: 0xb30000}
+	}
+	if len(args) < 1 {
+		return &commands.CommandReply{Message: "Prefix is " + Instance.Prefixes[channel.GuildID], Color: 0xb30000}
+	}
+	prefix := args[0]
+	err = guilds.SetPrefix(channel.GuildID, prefix)
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	Instance.Prefixes[channel.GuildID] = prefix
+	return &commands.CommandReply{Message: "Bot prefix set to " + prefix, Color: 0x00b300}
+}
+
 func setVotesChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	channelID := commandMessage.ChannelID
 	channel, err := session.Channel(channelID)
@@ -20,6 +38,7 @@ func setVotesChannel(session *discordgo.Session, commandMessage *discordgo.Messa
 	return &commands.CommandReply{Message: "Vote channel set to " + channel.Name, Color: 0x00b300}
 }
 
+//TODO: only create vote when it got successfully posted on all discord servers
 func postVote(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	if len(args) < 3 {
 		return &commands.CommandError{Message: "Vote id, name and message are required", Color: 0xb30000}

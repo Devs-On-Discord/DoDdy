@@ -2,7 +2,9 @@ package botcommands
 
 import (
 	"github.com/Devs-On-Discord/DoDdy/commands"
+	"github.com/Devs-On-Discord/DoDdy/db"
 	"github.com/bwmarrin/discordgo"
+	bolt "go.etcd.io/bbolt"
 )
 
 // Instance is a globally accessible BotCommands object
@@ -18,10 +20,28 @@ func Init(session *discordgo.Session) {
 type BotCommands struct {
 	commands                    *commands.Commands
 	discordCommandResultHandler *commands.DiscordCommandResultHandler
+	Prefixes                    map[string]string
 }
 
 // Init constructs the BotCommands object
 func (b *BotCommands) Init(session *discordgo.Session) {
+	b.Prefixes = make(map[string]string)
+	db.DB.View(func(tx *bolt.Tx) error {
+		guildsBucket := tx.Bucket([]byte("guilds"))
+		if guildsBucket != nil {
+			guildsBucket.ForEach(func(k, v []byte) error {
+				guildBucket := guildsBucket.Bucket(k)
+				if guildBucket != nil {
+					prefix := guildBucket.Get([]byte("prefix"))
+					if prefix != nil {
+						b.Prefixes[string(k)] = string(prefix)
+					}
+				}
+				return nil
+			})
+		}
+		return nil
+	})
 	b.commands = &commands.Commands{}
 	b.commands.Init(session)
 	b.discordCommandResultHandler = &commands.DiscordCommandResultHandler{}
@@ -39,6 +59,7 @@ func (b *BotCommands) RegisterCommands() {
 	b.commands.Register(commands.Command{Name: "postLastMessageAsAnnouncement", Handler: postLastMessageAsAnnouncement})
 	b.commands.Register(commands.Command{Name: "setVotesChannel", Handler: setVotesChannel})
 	b.commands.Register(commands.Command{Name: "vote", Handler: postVote})
+	b.commands.Register(commands.Command{Name: "prefix", Handler: setPrefix})
 	b.commands.Register(commands.Command{Name: "setup", Handler: setup})
 }
 
@@ -74,8 +95,16 @@ func (b *BotCommands) messageHandler(s *discordgo.Session, m *discordgo.MessageC
 		}
 		input = input[mentionSize+1:]
 		m.Content = input
-	} else if input[:1] == "!" && len(input) > 1 {
-		m.Content = input[1:]
+	} else if len(input) > 1 {
+		if prefix, exists := b.Prefixes["guildIDTODO"]; exists {
+			if input[:1] == prefix {
+				m.Content = input[1:]
+			} else {
+				return
+			}
+		} else {
+			return
+		}
 	} else {
 		return
 	}
