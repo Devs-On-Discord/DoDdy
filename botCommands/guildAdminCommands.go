@@ -29,9 +29,27 @@ func postAnnouncement(session *discordgo.Session, commandMessage *discordgo.Mess
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
 	for _, channelID := range channels {
-		session.ChannelMessageSend(channelID, announcement)
+		go session.ChannelMessageSend(channelID, announcement)
 	}
 	return &commands.CommandReply{Message: "Announcement posted", Color: 0x00b300}
+}
+
+func clearAnnouncements(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	channels, err := guilds.GetAnnouncementChannels()
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	for _, channelID := range channels {
+		messages, err := session.ChannelMessages(channelID, 100, "", "", "")
+		if err == nil {
+			for _, message := range messages {
+				go session.ChannelMessageDelete(message.ChannelID, message.ID)
+			}
+		} else {
+			println(err.Error())
+		}
+	}
+	return &commands.CommandReply{Message: "Announcements cleared", Color: 0x00b300}
 }
 
 func postLastMessageAsAnnouncement(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {

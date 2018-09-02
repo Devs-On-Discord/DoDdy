@@ -24,6 +24,7 @@ func (b *BotCommands) Init(session *discordgo.Session) {
 // RegisterCommands registers commands with the Commands object
 func (b *BotCommands) RegisterCommands() {
 	b.commands.Register(commands.Command{Name: "help", Handler: helpCommand})
+	b.commands.Register(commands.Command{Name: "clearAnnouncements", Handler: clearAnnouncements})
 	b.commands.Register(commands.Command{Name: "setAnnouncementsChannel", Handler: setAnnouncementsChannel})
 	b.commands.Register(commands.Command{Name: "announce announcement", Handler: postAnnouncement})
 	b.commands.Register(commands.Command{Name: "postLastMessageAsAnnouncement", Handler: postLastMessageAsAnnouncement})
