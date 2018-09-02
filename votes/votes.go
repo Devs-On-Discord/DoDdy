@@ -56,7 +56,10 @@ func (v *Votes) reactionAdded(session *discordgo.Session, reaction *discordgo.Me
 			}
 		}
 		if !valid {
-			go session.MessageReactionRemove(reaction.ChannelID, reaction.MessageID, reaction.Emoji.ID, reaction.UserID)
+			err := session.MessageReactionRemove(reaction.ChannelID, reaction.MessageID, reaction.Emoji.ID, reaction.UserID)
+			if err != nil {
+				println("reaction remove error", err.Error())
+			}
 		}
 	}
 }
