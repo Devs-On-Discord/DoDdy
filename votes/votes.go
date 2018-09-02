@@ -51,7 +51,7 @@ func (v *Votes) reactionAdded(session *discordgo.Session, reaction *discordgo.Me
 	if vote, exists := v.Votes[reaction.ChannelID]; exists {
 		for _, answer := range vote.Answers {
 			if answer.emojiID == reaction.Emoji.ID {
-				//TODO: count up answers
+				IncreaseVoteAnswer(vote.Id, answer.emojiID)
 				break
 			}
 		}

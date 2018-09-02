@@ -124,3 +124,69 @@ func AddVote(id string, name string, message string, answers []Answer) (error) {
 		return nil
 	})
 }
+
+func IncreaseVoteAnswer(voteID string, emojiID string) (error) {
+	return db.DB.Update(func(tx *bolt.Tx) error {
+		votesBucket := tx.Bucket([]byte("votes"))
+		if votesBucket != nil {
+			return fmt.Errorf("could not find votes bucket")
+		}
+		voteBucket := votesBucket.Bucket([]byte(voteID))
+		if voteBucket != nil {
+			return fmt.Errorf("could not find vote bucket")
+		}
+		answersBucket := voteBucket.Bucket([]byte("answers"))
+		if answersBucket != nil {
+			return fmt.Errorf("could not find answers bucket")
+		}
+		answerBucket := answersBucket.Bucket([]byte(emojiID))
+		if answerBucket != nil {
+			return fmt.Errorf("could not find answer bucket")
+		}
+		count := answerBucket.Get([]byte("count"))
+		if count == nil {
+			answerBucket.Put([]byte("count"), []byte(string(1)))
+		} else {
+			countInt, err := strconv.Atoi(string(count))
+			if err != nil {
+				return fmt.Errorf("vote answer count couldn't be converted")
+			}
+			countInt = countInt + 1
+			answerBucket.Put([]byte("count"), []byte(string(countInt)))
+		}
+		return nil
+	})
+}
+
+func DecreaseVoteAnswer(voteID string, emojiID string) (error) {
+	return db.DB.Update(func(tx *bolt.Tx) error {
+		votesBucket := tx.Bucket([]byte("votes"))
+		if votesBucket != nil {
+			return fmt.Errorf("could not find votes bucket")
+		}
+		voteBucket := votesBucket.Bucket([]byte(voteID))
+		if voteBucket != nil {
+			return fmt.Errorf("could not find vote bucket")
+		}
+		answersBucket := voteBucket.Bucket([]byte("answers"))
+		if answersBucket != nil {
+			return fmt.Errorf("could not find answers bucket")
+		}
+		answerBucket := answersBucket.Bucket([]byte(emojiID))
+		if answerBucket != nil {
+			return fmt.Errorf("could not find answer bucket")
+		}
+		count := answerBucket.Get([]byte("count"))
+		if count != nil {
+			countInt, err := strconv.Atoi(string(count))
+			if err != nil {
+				return fmt.Errorf("vote answer count couldn't be converted")
+			}
+			countInt = countInt - 1
+			if countInt > 0 {
+				answerBucket.Put([]byte("count"), []byte(string(countInt)))
+			}
+		}
+		return nil
+	})
+}
