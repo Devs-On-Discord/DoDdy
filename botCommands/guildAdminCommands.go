@@ -6,6 +6,34 @@ import (
 	"github.com/Devs-On-Discord/DoDdy/guilds"
 )
 
+func setVotesChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	channelId := commandMessage.ChannelID
+	channel, err := session.Channel(channelId)
+	if err != nil {
+		return &commands.CommandError{Message: "Vote channel couldn't be identified " + err.Error(), Color: 0xb30000}
+	}
+	err = guilds.SetVotesChannel(channel.GuildID, channelId)
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	return &commands.CommandReply{Message: "Vote channel set to " + channel.Name, Color: 0x00b300}
+}
+
+func postVote(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	if len(args) < 1 {
+		return &commands.CommandError{Message: "Vote message missing", Color: 0xb30000}
+	}
+	vote := args[0]
+	channels, err := guilds.GetVotesChannels()
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	for _, channelID := range channels {
+		go session.ChannelMessageSend(channelID, vote)
+	}
+	return &commands.CommandReply{Message: "Vote posted", Color: 0x00b300}
+}
+
 func setAnnouncementsChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	channelId := commandMessage.ChannelID
 	channel, err := session.Channel(channelId)

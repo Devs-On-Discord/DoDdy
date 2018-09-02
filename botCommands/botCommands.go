@@ -28,6 +28,8 @@ func (b *BotCommands) RegisterCommands() {
 	b.commands.Register(commands.Command{Name: "setAnnouncementsChannel", Handler: setAnnouncementsChannel})
 	b.commands.Register(commands.Command{Name: "announce announcement", Handler: postAnnouncement})
 	b.commands.Register(commands.Command{Name: "postLastMessageAsAnnouncement", Handler: postLastMessageAsAnnouncement})
+	b.commands.Register(commands.Command{Name: "setVotesChannel", Handler: setVotesChannel})
+	b.commands.Register(commands.Command{Name: "vote", Handler: postVote})
 	b.commands.Register(commands.Command{Name: "setup", Handler: setup})
 }
 
