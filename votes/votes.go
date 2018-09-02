@@ -49,17 +49,12 @@ func (v *Votes) Load() {
 
 func (v *Votes) reactionAdded(session *discordgo.Session, reaction *discordgo.MessageReactionAdd) {
 	if vote, exists := v.Votes[reaction.ChannelID]; exists {
-		valid := false
 		for _, answer := range vote.Answers {
 			if answer.emojiID == reaction.Emoji.ID {
-				valid = true
+				//TODO: count up answers
+				break
 			}
 		}
-		if !valid {
-			err := session.MessageReactionRemove(reaction.ChannelID, reaction.MessageID, reaction.Emoji.ID, reaction.UserID)
-			if err != nil {
-				println("reaction remove error", err.Error())
-			}
-		}
+		session.MessageReactionsRemoveAll(reaction.ChannelID, reaction.MessageID)
 	}
 }
