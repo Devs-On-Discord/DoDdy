@@ -4,11 +4,13 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-var Db *bolt.DB
+// DB is a global reference to the database
+var DB *bolt.DB
 
-func InitDb() {
+// InitDB connects the database to the global DB value
+func InitDB() {
 	var err error
-	Db, err = bolt.Open("doddy.db", 0666, nil)
+	DB, err = bolt.Open("doddy.db", 0666, nil)
 	if err != nil {
 		panic("could not open boltdb: " + err.Error())
 	}

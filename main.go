@@ -6,8 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Devs-On-Discord/DoDdy/db"
 	"github.com/Devs-On-Discord/DoDdy/botcommands"
+	"github.com/Devs-On-Discord/DoDdy/db"
 	"github.com/bwmarrin/discordgo"
 	"github.com/Devs-On-Discord/DoDdy/votes"
 )
@@ -26,9 +26,9 @@ func main() {
 		panic(err.Error())
 	}
 
-	db.InitDb()
+	db.InitDB()
 
-	defer db.Db.Close()
+	defer db.DB.Close()
 
 	commands.Init(bot)
 

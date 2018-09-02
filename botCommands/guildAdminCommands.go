@@ -7,12 +7,12 @@ import (
 )
 
 func setVotesChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	channelId := commandMessage.ChannelID
-	channel, err := session.Channel(channelId)
+	channelID := commandMessage.ChannelID
+	channel, err := session.Channel(channelID)
 	if err != nil {
 		return &commands.CommandError{Message: "Vote channel couldn't be identified " + err.Error(), Color: 0xb30000}
 	}
-	err = guilds.SetVotesChannel(channel.GuildID, channelId)
+	err = guilds.SetVotesChannel(channel.GuildID, channelID)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
@@ -35,12 +35,12 @@ func postVote(session *discordgo.Session, commandMessage *discordgo.MessageCreat
 }
 
 func setAnnouncementsChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	channelId := commandMessage.ChannelID
-	channel, err := session.Channel(channelId)
+	channelID := commandMessage.ChannelID
+	channel, err := session.Channel(channelID)
 	if err != nil {
 		return &commands.CommandError{Message: "Announcement channel couldn't be identified " + err.Error(), Color: 0xb30000}
 	}
-	err = guilds.SetAnnouncementsChannel(channel.GuildID, channelId)
+	err = guilds.SetAnnouncementsChannel(channel.GuildID, channelID)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
@@ -83,8 +83,8 @@ func clearAnnouncements(session *discordgo.Session, commandMessage *discordgo.Me
 }
 
 func postLastMessageAsAnnouncement(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	channelId := commandMessage.ChannelID
-	messages, err := session.ChannelMessages(channelId, 1, commandMessage.Message.ID, "", "")
+	channelID := commandMessage.ChannelID
+	messages, err := session.ChannelMessages(channelID, 1, commandMessage.Message.ID, "", "")
 	if err != nil || len(messages) < 1 {
 		return &commands.CommandError{Message: "Message couldn't be find " + err.Error(), Color: 0xb30000}
 	}
@@ -92,7 +92,7 @@ func postLastMessageAsAnnouncement(session *discordgo.Session, commandMessage *d
 	if message == nil {
 		return &commands.CommandError{Message: "Message couldn't be find " + err.Error(), Color: 0xb30000}
 	}
-	session.ChannelMessageDelete(channelId, message.ID)
+	session.ChannelMessageDelete(channelID, message.ID)
 	announcement := message.Content
 	channels, err := guilds.GetAnnouncementChannels()
 	if err != nil {
@@ -105,17 +105,17 @@ func postLastMessageAsAnnouncement(session *discordgo.Session, commandMessage *d
 }
 
 func setup(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	channelId := commandMessage.ChannelID
-	channel, err := session.Channel(channelId)
+	channelID := commandMessage.ChannelID
+	channel, err := session.Channel(channelID)
 	if err != nil {
 		return &commands.CommandError{Message: "Server couldn't be identified " + err.Error(), Color: 0xb30000}
 	}
-	guildId := channel.GuildID
-	guild, err := session.Guild(guildId)
+	guildID := channel.GuildID
+	guild, err := session.Guild(guildID)
 	if err != nil {
 		return &commands.CommandError{Message: "Server couldn't be identified " + err.Error(), Color: 0xb30000}
 	}
-	err = guilds.Create(guildId, guild.Name)
+	err = guilds.Create(guildID, guild.Name)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
