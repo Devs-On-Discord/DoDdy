@@ -7,7 +7,7 @@ import (
 )
 
 type guild struct {
-	id string
+	id                     string
 	name                   string
 	announcementsChannelID string
 }
@@ -20,11 +20,9 @@ func GetAnnouncementChannels() ([]string, error) {
 			return fmt.Errorf("bot isn't setted up for this guild")
 		}
 		guildsBucket.ForEach(func(k, v []byte) error {
-			println("key " + string(k))
 			guildBucket := guildsBucket.Bucket(k)
 			if guildBucket != nil {
 				announcementsChannelID := guildBucket.Get([]byte("announcementsChannelID"))
-				println("id " + string(announcementsChannelID))
 				if announcementsChannelID != nil {
 					channels = append(channels, string(announcementsChannelID))
 				}
