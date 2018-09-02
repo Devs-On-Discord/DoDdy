@@ -49,6 +49,9 @@ func (v *Votes) Load() {
 }
 
 func (v *Votes) reactionAdded(session *discordgo.Session, reaction *discordgo.MessageReactionAdd) {
+	if session.State.User.ID == reaction.UserID { // Ignore bot reactions
+		return
+	}
 	if vote, exists := v.Votes[reaction.ChannelID]; exists {
 		for _, answer := range vote.Answers {
 			if answer.emojiID == reaction.Emoji.ID {
@@ -61,6 +64,9 @@ func (v *Votes) reactionAdded(session *discordgo.Session, reaction *discordgo.Me
 }
 
 func (v *Votes) reactionRemoved(session *discordgo.Session, reaction *discordgo.MessageReactionRemove) {
+	if session.State.User.ID == reaction.UserID { // Ignore bot reactions
+		return
+	}
 	if vote, exists := v.Votes[reaction.ChannelID]; exists {
 		for _, answer := range vote.Answers {
 			if answer.emojiID == reaction.Emoji.ID {
