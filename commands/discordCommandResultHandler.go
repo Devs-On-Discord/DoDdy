@@ -24,30 +24,34 @@ func (d *DiscordCommandResultHandler) Init(commands *Commands, session *discordg
 			case *CommandReply:
 				go func() {
 					commandMessage := commandResult.commandMessage()
-					message, _ := d.session.ChannelMessageSendEmbed(commandMessage.ChannelID, &discordgo.MessageEmbed{
+					message, err := d.session.ChannelMessageSendEmbed(commandMessage.ChannelID, &discordgo.MessageEmbed{
 						Color: commandResult.color(),
 						Title: commandResult.message(),
 						Footer: &discordgo.MessageEmbedFooter{
 							Text: "Deletion in 10 seconds",
 						},
 					})
-					time.Sleep(10 * time.Second)
-					d.session.ChannelMessageDelete(message.ChannelID, message.ID)
-					d.session.ChannelMessageDelete(commandMessage.ChannelID, commandMessage.ID)
+					if err == nil {
+						time.Sleep(10 * time.Second)
+						d.session.ChannelMessageDelete(message.ChannelID, message.ID)
+						d.session.ChannelMessageDelete(commandMessage.ChannelID, commandMessage.ID)
+					}
 				}()
 			case *CommandError:
 				go func() {
 					commandMessage := commandResult.commandMessage()
-					message, _ := d.session.ChannelMessageSendEmbed(commandMessage.ChannelID, &discordgo.MessageEmbed{
+					message, err := d.session.ChannelMessageSendEmbed(commandMessage.ChannelID, &discordgo.MessageEmbed{
 						Color: commandResult.color(),
 						Title: commandResult.message(),
 						Footer: &discordgo.MessageEmbedFooter{
 							Text: "Deletion in 10 seconds",
 						},
 					})
-					time.Sleep(10 * time.Second)
-					d.session.ChannelMessageDelete(message.ChannelID, message.ID)
-					d.session.ChannelMessageDelete(commandMessage.ChannelID, commandMessage.ID)
+					if err == nil {
+						time.Sleep(10 * time.Second)
+						d.session.ChannelMessageDelete(message.ChannelID, message.ID)
+						d.session.ChannelMessageDelete(commandMessage.ChannelID, commandMessage.ID)
+					}
 				}()
 			}
 		}
