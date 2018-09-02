@@ -9,11 +9,14 @@ import (
 	"github.com/Devs-On-Discord/DoDdy/db"
 	"github.com/Devs-On-Discord/DoDdy/botcommands"
 	"github.com/bwmarrin/discordgo"
+	"github.com/Devs-On-Discord/DoDdy/votes"
 )
 
 const version = "0.0.1"
 
 var commands = botcommands.BotCommands{}
+
+var globalVotes = votes.Votes{}
 
 func main() {
 	fmt.Printf("DoDdy %s starting\n", version)
@@ -28,6 +31,8 @@ func main() {
 	defer db.Db.Close()
 
 	commands.Init(bot)
+
+	globalVotes.Init(bot)
 
 	//TODO: Reimplement prefixes
 	/*if db.View(
