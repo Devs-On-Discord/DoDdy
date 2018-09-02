@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
-
 	bolt "go.etcd.io/bbolt"
+	"fmt"
+	"github.com/Devs-On-Discord/DoDdy/db"
 )
 
 //TODO: remove users on disconnect
@@ -16,7 +16,7 @@ func (u *users) load(id string) user {
 	if exists {
 		return existingUser
 	}
-	db.Update(func(tx *bolt.Tx) error {
+	db.Db.Update(func(tx *bolt.Tx) error {
 		usersBucket, err := tx.CreateBucketIfNotExists([]byte("users"))
 		if err != nil {
 			return fmt.Errorf("could not create or get users bucket: %s", err)

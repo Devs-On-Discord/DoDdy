@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
-import bolt "go.etcd.io/bbolt"
+import (
+	bolt "go.etcd.io/bbolt"
+	"fmt"
+	"github.com/Devs-On-Discord/DoDdy/db"
+)
 
 type user struct {
 	id string
@@ -17,7 +20,7 @@ func (u *user) Insert(usersBucket *bolt.Bucket) error {
 }
 
 func (u *user) Delete() {
-	db.Update(func(tx *bolt.Tx) error {
+	db.Db.Update(func(tx *bolt.Tx) error {
 		usersBucket := tx.Bucket([]byte("users"))
 		if usersBucket == nil {
 			return nil

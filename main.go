@@ -6,17 +6,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	botcommands "github.com/Devs-On-Discord/DoDdy/botcommands"
+	"github.com/Devs-On-Discord/DoDdy/db"
+	"github.com/Devs-On-Discord/DoDdy/botcommands"
 	"github.com/bwmarrin/discordgo"
-	bolt "go.etcd.io/bbolt"
 )
 
 const version = "0.0.1"
-
-// The store is global for access in goroutines, this might create race conditions and lead to loss of data
-// Miyoyo: I can't find anything saying this is goroutine safe or not, I'll assume, for the sake of simplicity.
-//         Could be replaced by a goroutine transaction system
-var db *bolt.DB
 
 var commands = botcommands.BotCommands{}
 
@@ -28,13 +23,11 @@ func main() {
 		panic(err.Error())
 	}
 
-	commands.Init(bot)
+	db.InitDb()
 
-	db, err = bolt.Open("doddy.db", 0666, nil)
-	if err != nil {
-		panic("could not open boltdb: " + err.Error())
-	}
-	defer db.Close()
+	defer db.Db.Close()
+
+	commands.Init(bot)
 
 	//TODO: Reimplement prefixes
 	/*if db.View(

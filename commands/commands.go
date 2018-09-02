@@ -13,13 +13,15 @@ type Commands struct {
 	commands         map[string]Command
 	ResultMessages   chan CommandResultMessage
 	incomingMessages chan *discordgo.MessageCreate
+	session          *discordgo.Session
 }
 
 // Init constructs the Commands object
-func (c *Commands) Init() {
+func (c *Commands) Init(session *discordgo.Session) {
 	c.commands = make(map[string]Command)
 	c.ResultMessages = make(chan CommandResultMessage)
 	c.incomingMessages = make(chan *discordgo.MessageCreate)
+	c.session = session
 	go func() {
 		for {
 			incomingMessage := <-c.incomingMessages
@@ -58,11 +60,11 @@ func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 	commandName := commandParsed[0]
 	if command, exists := c.commands[commandName]; exists {
 		if commandCount < 2 {
-			resultMessage := command.Handler(commandMessage, nil)
+			resultMessage := command.Handler(c.session, commandMessage, nil)
 			resultMessage.setCommandMessage(commandMessage)
 			c.ResultMessages <- resultMessage
 		} else {
-			resultMessage := command.Handler(commandMessage, commandParsed[1:])
+			resultMessage := command.Handler(c.session, commandMessage, commandParsed[1:])
 			resultMessage.setCommandMessage(commandMessage)
 			c.ResultMessages <- resultMessage
 		}

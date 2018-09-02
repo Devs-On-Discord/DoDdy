@@ -14,7 +14,7 @@ type BotCommands struct {
 // Init constructs the BotCommands object
 func (b *BotCommands) Init(session *discordgo.Session) {
 	b.commands = &commands.Commands{}
-	b.commands.Init()
+	b.commands.Init(session)
 	b.discordCommandResultHandler = &commands.DiscordCommandResultHandler{}
 	b.discordCommandResultHandler.Init(b.commands, session)
 	b.RegisterCommands()
@@ -24,6 +24,9 @@ func (b *BotCommands) Init(session *discordgo.Session) {
 // RegisterCommands registers commands with the Commands object
 func (b *BotCommands) RegisterCommands() {
 	b.commands.Register(commands.Command{Name: "help", Handler: helpCommand})
+	b.commands.Register(commands.Command{Name: "setAnnouncementsChannel", Handler: setAnnouncementsChannel})
+	b.commands.Register(commands.Command{Name: "postAnnouncement", Handler: postAnnouncement})
+	b.commands.Register(commands.Command{Name: "setup", Handler: setup})
 }
 
 // Parse is the input sink for commands

@@ -6,6 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+//TODO: change delete time for different commands
 type erasableMessage struct {
 	commandID  string
 	answerID   string
