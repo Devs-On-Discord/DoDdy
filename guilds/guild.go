@@ -12,6 +12,12 @@ type guild struct {
 	name                   string
 	announcementsChannelID string
 	votesChannelID         string
+	votes []guildVote
+}
+
+type guildVote struct {
+	voteID int
+	messageID string
 }
 
 const (
@@ -117,6 +123,36 @@ func Create(guildID string, name string) error {
 		err = guildBucket.Put([]byte("name"), []byte(name))
 		if err != nil {
 			return fmt.Errorf("name couldn't be saved")
+		}
+		return nil
+	})
+}
+
+func AddVote(guildID string, voteID string, messageID string) error {
+	return db.DB.Update(func(tx *bolt.Tx) error {
+		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
+		if err != nil {
+			return fmt.Errorf(bucketNotCreated)
+		}
+		guildBucket := guildsBucket.Bucket([]byte(guildID))
+		if guildBucket == nil {
+			return fmt.Errorf(notSetup)
+		}
+		votesBucket, err := guildBucket.CreateBucketIfNotExists([]byte("votes"))
+		if err != nil {
+			return fmt.Errorf("vote's bucket couldn't be created")
+		}
+		voteBucket, err := votesBucket.CreateBucket([]byte(voteID))
+		if err != nil {
+			return fmt.Errorf("vote bucket couldn't be created")
+		}
+		err = voteBucket.Put([]byte("voteID"), []byte(voteID))
+		if err != nil {
+			return fmt.Errorf("voteID couldn't be saved")
+		}
+		err = voteBucket.Put([]byte("messageID"), []byte(messageID))
+		if err != nil {
+			return fmt.Errorf("messageID couldn't be saved")
 		}
 		return nil
 	})

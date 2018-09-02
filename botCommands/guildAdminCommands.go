@@ -4,6 +4,7 @@ import "github.com/bwmarrin/discordgo"
 import "github.com/Devs-On-Discord/DoDdy/commands"
 import (
 	"github.com/Devs-On-Discord/DoDdy/guilds"
+	"github.com/Devs-On-Discord/DoDdy/votes"
 )
 
 func setVotesChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
@@ -20,16 +21,27 @@ func setVotesChannel(session *discordgo.Session, commandMessage *discordgo.Messa
 }
 
 func postVote(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	if len(args) < 1 {
-		return &commands.CommandError{Message: "Vote message missing", Color: 0xb30000}
+	if len(args) < 3 {
+		return &commands.CommandError{Message: "Vote id, name and message are required", Color: 0xb30000}
 	}
-	vote := args[0]
+	voteId := args[0]
+	voteName := args[1]
+	voteMessage := args[2]
 	channels, err := guilds.GetVotesChannels()
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
 	for _, channelID := range channels {
-		go session.ChannelMessageSend(channelID, vote)
+		go func() {
+			message, err := session.ChannelMessageSend(channelID, voteMessage)
+			if err != nil {
+				channel, err := session.Channel(channelID)
+				if err == nil {
+					guilds.AddVote(channel.GuildID, voteId, message.ID)
+					votes.AddVote(voteId, voteName, voteMessage, make([]votes.Answer, 0))
+				}
+			}
+		}()
 	}
 	return &commands.CommandReply{Message: "Vote posted", Color: 0x00b300}
 }
