@@ -30,6 +30,8 @@ func main() {
 		panic(err.Error())
 	}
 
+	defer bot.Close()
+
 	botcommands.Init(g, bot)
 
 	votes.Init(bot)
@@ -42,5 +44,4 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	fmt.Println("DoDdy ready.\nPress Ctrl+C to exit.")
 	<-sc
-	bot.Close()
 }
