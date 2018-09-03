@@ -30,15 +30,15 @@ func main() {
 		panic(err.Error())
 	}
 
+	if bot.Open() != nil {
+		panic("could not open bot: " + err.Error())
+	}
+
 	defer bot.Close()
 
 	botcommands.Init(g, bot)
 
 	votes.Init(bot)
-
-	if bot.Open() != nil {
-		panic("could not open bot: " + err.Error())
-	}
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
