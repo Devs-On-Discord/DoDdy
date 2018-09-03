@@ -8,7 +8,7 @@ import (
 )
 
 type Guilds struct {
-	db *bolt.DB
+	db       *bolt.DB
 	Prefixes map[string]string
 }
 
