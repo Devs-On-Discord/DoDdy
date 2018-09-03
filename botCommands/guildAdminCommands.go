@@ -7,16 +7,19 @@ import (
 	"github.com/Devs-On-Discord/DoDdy/votes"
 )
 
-func setPrefix(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+type guildAdminCommands struct {
+	guilds *guilds.Guilds
+}
+
+func (g *guildAdminCommands) setPrefix(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	if len(args) < 1 {
-		return &commands.CommandReply{Message: "Prefix is " + Instance.Prefixes[commandMessage.GuildID], Color: 0xb30000}
+		return &commands.CommandReply{Message: "Prefix is " + g.guilds.Prefixes[commandMessage.GuildID], Color: 0xb30000}
 	}
 	prefix := args[0]
-	err := guilds.SetPrefix(commandMessage.GuildID, prefix)
+	err := g.guilds.SetPrefix(commandMessage.GuildID, prefix)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
-	Instance.Prefixes[commandMessage.GuildID] = prefix
 	return &commands.CommandReply{Message: "Bot prefix set to " + prefix, Color: 0x00b300}
 }
 

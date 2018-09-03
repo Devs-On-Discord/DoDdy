@@ -10,21 +10,21 @@ import (
 var Instance BotCommands
 
 // Init constructs the global BotCommands object
-func Init(session *discordgo.Session) {
+func Init(guilds *guilds.Guilds, session *discordgo.Session) {
 	Instance = BotCommands{}
-	Instance.Init(session)
+	Instance.Init(guilds, session)
 }
 
 // BotCommands is an object that encapsulates both Commands and a result handler
 type BotCommands struct {
 	commands                    *commands.Commands
 	discordCommandResultHandler *commands.DiscordCommandResultHandler
-	Prefixes                    map[string]string
+	guilds                      *guilds.Guilds
 }
 
 // Init constructs the BotCommands object
-func (b *BotCommands) Init(session *discordgo.Session) {
-	b.Prefixes, _ = guilds.GetPrefixes()
+func (b *BotCommands) Init(guilds *guilds.Guilds, session *discordgo.Session) {
+	b.guilds = guilds
 	b.commands = &commands.Commands{}
 	b.commands.Init(session)
 	b.discordCommandResultHandler = &commands.DiscordCommandResultHandler{}
@@ -35,6 +35,9 @@ func (b *BotCommands) Init(session *discordgo.Session) {
 
 // RegisterCommands registers commands with the Commands object
 func (b *BotCommands) RegisterCommands() {
+	guildAdminCommands := guildAdminCommands{guilds: b.guilds}
+	b.commands.Register(commands.Command{Name: "prefix", Handler: guildAdminCommands.setPrefix})
+
 	b.commands.Register(commands.Command{Name: "help", Handler: helpCommand})
 	b.commands.Register(commands.Command{Name: "clearAnnouncements", Handler: clearAnnouncements})
 	b.commands.Register(commands.Command{Name: "setAnnouncementsChannel", Handler: setAnnouncementsChannel})
@@ -42,7 +45,6 @@ func (b *BotCommands) RegisterCommands() {
 	b.commands.Register(commands.Command{Name: "postLastMessageAsAnnouncement", Handler: postLastMessageAsAnnouncement})
 	b.commands.Register(commands.Command{Name: "setVotesChannel", Handler: setVotesChannel})
 	b.commands.Register(commands.Command{Name: "vote", Handler: postVote})
-	b.commands.Register(commands.Command{Name: "prefix", Handler: setPrefix})
 	b.commands.Register(commands.Command{Name: "setup", Handler: setup})
 }
 
@@ -60,9 +62,10 @@ func (b *BotCommands) messageHandler(s *discordgo.Session, m *discordgo.MessageC
 		return
 	}
 	valid := false
+	//TODO: support multiple mentions and append all mentions at the bot reply
 	for _, mention := range m.Mentions {
 		if mention.ID == botID {
-			m.Content = m.Content[len(mention.ID)+3:]//<@{botID}>
+			m.Content = m.Content[len(mention.ID)+3:] //<@{botID}>
 			valid = true
 			break
 		}
@@ -70,7 +73,7 @@ func (b *BotCommands) messageHandler(s *discordgo.Session, m *discordgo.MessageC
 	if !valid {
 		input := m.Content
 		if len(input) > 1 {
-			if prefix, exists := b.Prefixes[m.GuildID]; exists {
+			if prefix, exists := b.guilds.Prefixes[m.GuildID]; exists {
 				if input[:1] != prefix {
 					return
 				} else {

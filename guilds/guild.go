@@ -7,6 +7,58 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+type Guilds struct {
+	Prefixes map[string]string
+}
+
+func (g *Guilds) Init() {
+	g.Prefixes, _ = g.GetPrefixes()
+}
+
+// SetPrefix defines the prefix of a single guild
+func (g *Guilds) SetPrefix(guildID string, prefix string) error {
+	err := db.DB.Update(func(tx *bolt.Tx) error {
+		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
+		if err != nil {
+			return fmt.Errorf(bucketNotCreated)
+		}
+		guildBucket := guildsBucket.Bucket([]byte(guildID))
+		if guildBucket == nil {
+			return fmt.Errorf(notSetup)
+		}
+		err = guildBucket.Put([]byte("prefix"), []byte(prefix))
+		if err != nil {
+			return fmt.Errorf("prefix couldn't be saved")
+		}
+		return nil
+	})
+	if err == nil {
+		g.Prefixes[guildID] = prefix
+	}
+	return err
+}
+
+func (g *Guilds) GetPrefixes() (map[string]string, error) {
+	prefixes := make(map[string]string)
+	err := db.DB.View(func(tx *bolt.Tx) error {
+		guildsBucket := tx.Bucket([]byte("guilds"))
+		if guildsBucket != nil {
+			guildsBucket.ForEach(func(k, v []byte) error {
+				guildBucket := guildsBucket.Bucket(k)
+				if guildBucket != nil {
+					prefix := guildBucket.Get([]byte("prefix"))
+					if prefix != nil {
+						prefixes[string(k)] = string(prefix)
+					}
+				}
+				return nil
+			})
+		}
+		return nil
+	})
+	return prefixes, err
+}
+
 type guild struct {
 	id                     string
 	name                   string
@@ -110,46 +162,6 @@ func SetVotesChannel(guildID string, channelID string) error {
 		}
 		return nil
 	})
-}
-
-// SetPrefix defines the prefix of a single guild
-func SetPrefix(guildID string, prefix string) error {
-	return db.DB.Update(func(tx *bolt.Tx) error {
-		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
-		if err != nil {
-			return fmt.Errorf(bucketNotCreated)
-		}
-		guildBucket := guildsBucket.Bucket([]byte(guildID))
-		if guildBucket == nil {
-			return fmt.Errorf(notSetup)
-		}
-		err = guildBucket.Put([]byte("prefix"), []byte(prefix))
-		if err != nil {
-			return fmt.Errorf("prefix couldn't be saved")
-		}
-		return nil
-	})
-}
-
-func GetPrefixes() (map[string]string, error) {
-	prefixes := make(map[string]string)
-	err := db.DB.View(func(tx *bolt.Tx) error {
-		guildsBucket := tx.Bucket([]byte("guilds"))
-		if guildsBucket != nil {
-			guildsBucket.ForEach(func(k, v []byte) error {
-				guildBucket := guildsBucket.Bucket(k)
-				if guildBucket != nil {
-					prefix := guildBucket.Get([]byte("prefix"))
-					if prefix != nil {
-						prefixes[string(k)] = string(prefix)
-					}
-				}
-				return nil
-			})
-		}
-		return nil
-	})
-	return prefixes, err
 }
 
 // Create adds a guild to the database
