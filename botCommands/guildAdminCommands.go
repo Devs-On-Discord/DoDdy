@@ -29,7 +29,7 @@ func setVotesChannel(session *discordgo.Session, commandMessage *discordgo.Messa
 	if err != nil {
 		return &commands.CommandError{Message: "Vote channel couldn't be identified " + err.Error(), Color: 0xb30000}
 	}
-	err = guilds.SetVotesChannel(channel.GuildID, channelID)
+	err = guilds.SetVotesChannel(commandMessage.GuildID, channelID)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}

@@ -8,16 +8,18 @@ import (
 )
 
 type Guilds struct {
+	db *bolt.DB
 	Prefixes map[string]string
 }
 
-func (g *Guilds) Init() {
+func (g *Guilds) Init(db *bolt.DB) {
+	g.db = db
 	g.Prefixes, _ = g.GetPrefixes()
 }
 
 // SetPrefix defines the prefix of a single guild
 func (g *Guilds) SetPrefix(guildID string, prefix string) error {
-	err := db.DB.Update(func(tx *bolt.Tx) error {
+	err := g.db.Update(func(tx *bolt.Tx) error {
 		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
 		if err != nil {
 			return fmt.Errorf(bucketNotCreated)
@@ -40,7 +42,7 @@ func (g *Guilds) SetPrefix(guildID string, prefix string) error {
 
 func (g *Guilds) GetPrefixes() (map[string]string, error) {
 	prefixes := make(map[string]string)
-	err := db.DB.View(func(tx *bolt.Tx) error {
+	err := g.db.View(func(tx *bolt.Tx) error {
 		guildsBucket := tx.Bucket([]byte("guilds"))
 		if guildsBucket != nil {
 			guildsBucket.ForEach(func(k, v []byte) error {

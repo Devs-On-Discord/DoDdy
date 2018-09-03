@@ -18,12 +18,12 @@ const version = "0.0.1"
 func main() {
 	fmt.Printf("DoDdy %s starting\n", version)
 
-	db.Init()
+	dataBase := db.Init()
 
-	defer db.DB.Close()
+	defer dataBase.Close()
 
 	g := &guilds.Guilds{}
-	g.Init()
+	g.Init(dataBase)
 
 	bot, err := discordgo.New("Bot " + testToken)
 	if err != nil {
