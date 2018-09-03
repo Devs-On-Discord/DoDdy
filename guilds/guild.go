@@ -131,6 +131,27 @@ func SetPrefix(guildID string, prefix string) error {
 	})
 }
 
+func GetPrefixes() (map[string]string, error) {
+	prefixes := make(map[string]string)
+	err := db.DB.View(func(tx *bolt.Tx) error {
+		guildsBucket := tx.Bucket([]byte("guilds"))
+		if guildsBucket != nil {
+			guildsBucket.ForEach(func(k, v []byte) error {
+				guildBucket := guildsBucket.Bucket(k)
+				if guildBucket != nil {
+					prefix := guildBucket.Get([]byte("prefix"))
+					if prefix != nil {
+						prefixes[string(k)] = string(prefix)
+					}
+				}
+				return nil
+			})
+		}
+		return nil
+	})
+	return prefixes, err
+}
+
 // Create adds a guild to the database
 func Create(guildID string, name string) error {
 	return db.DB.Update(func(tx *bolt.Tx) error {
