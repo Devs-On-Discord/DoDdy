@@ -2,9 +2,8 @@ package botcommands
 
 import (
 	"github.com/Devs-On-Discord/DoDdy/commands"
-	"github.com/Devs-On-Discord/DoDdy/db"
+	"github.com/Devs-On-Discord/DoDdy/guilds"
 	"github.com/bwmarrin/discordgo"
-	bolt "go.etcd.io/bbolt"
 )
 
 // Instance is a globally accessible BotCommands object
@@ -25,23 +24,7 @@ type BotCommands struct {
 
 // Init constructs the BotCommands object
 func (b *BotCommands) Init(session *discordgo.Session) {
-	b.Prefixes = make(map[string]string)
-	db.DB.View(func(tx *bolt.Tx) error {
-		guildsBucket := tx.Bucket([]byte("guilds"))
-		if guildsBucket != nil {
-			guildsBucket.ForEach(func(k, v []byte) error {
-				guildBucket := guildsBucket.Bucket(k)
-				if guildBucket != nil {
-					prefix := guildBucket.Get([]byte("prefix"))
-					if prefix != nil {
-						b.Prefixes[string(k)] = string(prefix)
-					}
-				}
-				return nil
-			})
-		}
-		return nil
-	})
+	b.Prefixes, _ = guilds.GetPrefixes()
 	b.commands = &commands.Commands{}
 	b.commands.Init(session)
 	b.discordCommandResultHandler = &commands.DiscordCommandResultHandler{}
