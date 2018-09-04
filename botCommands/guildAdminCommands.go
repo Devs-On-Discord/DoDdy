@@ -120,11 +120,11 @@ func (g *guildAdminCommands) postLastMessageAsAnnouncement(session *discordgo.Se
 	channelID := commandMessage.ChannelID
 	messages, err := session.ChannelMessages(channelID, 1, commandMessage.Message.ID, "", "")
 	if err != nil || len(messages) < 1 {
-		return &commands.CommandError{Message: "Message couldn't be find " + err.Error(), Color: 0xb30000}
+		return &commands.CommandError{Message: "Message couldn't be found " + err.Error(), Color: 0xb30000}
 	}
 	message := messages[0]
 	if message == nil {
-		return &commands.CommandError{Message: "Message couldn't be find " + err.Error(), Color: 0xb30000}
+		return &commands.CommandError{Message: "Message couldn't be found " + err.Error(), Color: 0xb30000}
 	}
 	session.ChannelMessageDelete(channelID, message.ID)
 	announcement := message.Content
