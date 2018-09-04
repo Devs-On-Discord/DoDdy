@@ -27,13 +27,17 @@ func (g *guildAdminCommands) setPrefix(session *discordgo.Session, commandMessag
 	return &commands.CommandReply{Message: "Bot prefix set to " + prefix, Color: 0x00b300}
 }
 
-func setVotesChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+func (g *guildAdminCommands) setVotesChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	channelID := commandMessage.ChannelID
 	channel, err := session.Channel(channelID)
 	if err != nil {
 		return &commands.CommandError{Message: "Vote channel couldn't be identified " + err.Error(), Color: 0xb30000}
 	}
-	err = guilds.SetVotesChannel(commandMessage.GuildID, channelID)
+	guild, err := g.guilds.Guild(commandMessage.GuildID)
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	err = guild.SetVotesChannel(channelID)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
@@ -41,19 +45,14 @@ func setVotesChannel(session *discordgo.Session, commandMessage *discordgo.Messa
 }
 
 //TODO: only create vote when it got successfully posted on all discord servers
-func postVote(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	if len(args) < 3 {
 		return &commands.CommandError{Message: "Vote id, name and message are required", Color: 0xb30000}
 	}
 	voteID := args[0]
 	voteName := args[1]
 	voteMessage := args[2]
-	channels, err := guilds.GetVotesChannels()
-	if err != nil {
-		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
-	}
-	votes.AddVote(voteID, voteName, voteMessage, make([]votes.Answer, 0))
-	for _, channelID := range channels {
+	for _, guild := range g.guilds.LoadGuilds().Guilds {
 		go func(channelID string) {
 			message, err := session.ChannelMessageSend(channelID, voteMessage)
 			if err == nil {
@@ -66,52 +65,49 @@ func postVote(session *discordgo.Session, commandMessage *discordgo.MessageCreat
 					votes.Instance.Votes[channelID] = votes.Vote{Id: voteID, Name: voteName, Message: voteMessage, Answers: make([]votes.Answer, 0)}
 				}
 			}
-		}(channelID)
+		}(guild.VotesChannelID)
 	}
+	votes.AddVote(voteID, voteName, voteMessage, make([]votes.Answer, 0))
 	return &commands.CommandReply{Message: "Vote posted", Color: 0x00b300}
 }
 
-func setAnnouncementsChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+func (g *guildAdminCommands) setAnnouncementsChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	channelID := commandMessage.ChannelID
 	channel, err := session.Channel(channelID)
 	if err != nil {
 		return &commands.CommandError{Message: "Announcement channel couldn't be identified " + err.Error(), Color: 0xb30000}
 	}
-	err = guilds.SetAnnouncementsChannel(channel.GuildID, channelID)
+	guild, err := g.guilds.Guild(commandMessage.GuildID)
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	err = guild.SetAnnouncementsChannel(channelID)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
 	return &commands.CommandReply{Message: "Announcement channel set to " + channel.Name, Color: 0x00b300}
 }
 
-func postAnnouncement(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+func (g *guildAdminCommands) postAnnouncement(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	if len(args) < 1 {
 		return &commands.CommandError{Message: "Announcement message missing", Color: 0xb30000}
 	}
 	announcement := args[0]
-	channels, err := guilds.GetAnnouncementChannels()
-	if err != nil {
-		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
-	}
-	for _, channelID := range channels {
-		go session.ChannelMessageSend(channelID, announcement)
+	for _, guild := range g.guilds.LoadGuilds().Guilds {
+		go session.ChannelMessageSend(guild.AnnouncementsChannelID, announcement)
 	}
 	return &commands.CommandReply{Message: "Announcement posted", Color: 0x00b300}
 }
 
-func clearAnnouncements(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	channels, err := guilds.GetAnnouncementChannels()
-	if err != nil {
-		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
-	}
-	for _, channelID := range channels {
-		messages, err := session.ChannelMessages(channelID, 100, "", "", "")
+func (g *guildAdminCommands) clearAnnouncements(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	for _, guild := range g.guilds.LoadGuilds().Guilds {
+		messages, err := session.ChannelMessages(guild.AnnouncementsChannelID, 100, "", "", "")
 		if err == nil {
 			messageIDs := make([]string, len(messages))
 			for i, message := range messages {
 				messageIDs[i] = message.ID
 			}
-			session.ChannelMessagesBulkDelete(channelID, messageIDs)
+			session.ChannelMessagesBulkDelete(guild.AnnouncementsChannelID, messageIDs)
 		} else {
 			println(err.Error())
 		}
@@ -119,7 +115,7 @@ func clearAnnouncements(session *discordgo.Session, commandMessage *discordgo.Me
 	return &commands.CommandReply{Message: "Announcements cleared", Color: 0x00b300}
 }
 
-func postLastMessageAsAnnouncement(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+func (g *guildAdminCommands) postLastMessageAsAnnouncement(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	channelID := commandMessage.ChannelID
 	messages, err := session.ChannelMessages(channelID, 1, commandMessage.Message.ID, "", "")
 	if err != nil || len(messages) < 1 {
@@ -131,12 +127,8 @@ func postLastMessageAsAnnouncement(session *discordgo.Session, commandMessage *d
 	}
 	session.ChannelMessageDelete(channelID, message.ID)
 	announcement := message.Content
-	channels, err := guilds.GetAnnouncementChannels()
-	if err != nil {
-		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
-	}
-	for _, channelID := range channels {
-		session.ChannelMessageSend(channelID, announcement)
+	for _, guild := range g.guilds.LoadGuilds().Guilds {
+		go session.ChannelMessageSend(guild.AnnouncementsChannelID, announcement)
 	}
 	return &commands.CommandReply{Message: "Announcement posted", Color: 0x00b300}
 }

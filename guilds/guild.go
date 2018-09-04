@@ -18,43 +18,61 @@ var (
 )
 
 type Guilds struct {
-	db       *bolt.DB
-	Prefixes map[string]string
-	guilds   map[string]*Guild
+	db     *bolt.DB
+	Guilds map[string]*Guild
 }
 
 func (g *Guilds) Init(db *bolt.DB) {
 	g.db = db
-	g.Prefixes, _ = g.GetPrefixes()
-	g.guilds = make(map[string]*Guild)
+	g.Guilds = make(map[string]*Guild)
+}
+
+func (g *Guilds) loadGuild(guildsBucket *bolt.Bucket, guildId string) (*Guild) {
+	guildBucket := guildsBucket.Bucket([]byte(guildId))
+	if guildBucket != nil {
+		guildCursor := guildBucket.Cursor()
+		guild := &Guild{db: g.db, id: string(guildId), Prefix: ""}
+		for k, v := guildCursor.First(); k != nil; k, v = guildCursor.Next() {
+			if bytes.Equal(k, guildName) {
+				guild.name = string(v)
+			} else if bytes.Equal(k, guildPrefix) {
+				guild.Prefix = string(v)
+			} else if bytes.Equal(k, guildAnnouncementsChannelID) {
+				guild.AnnouncementsChannelID = string(v)
+			} else if bytes.Equal(k, guildVotesChannelID) {
+				guild.VotesChannelID = string(v)
+			} else if bytes.Equal(k, guildVotes) {
+				//TODO: load votes
+			}
+		}
+		g.Guilds[guild.id] = guild
+		return guild
+	}
+	return nil
+}
+
+func (g *Guilds) LoadGuilds() (*Guilds) {
+	g.db.View(func(tx *bolt.Tx) error {
+		guildsBucket := tx.Bucket(guilds)
+		guildsCursor := guildsBucket.Cursor()
+		for k, _ := guildsCursor.First(); k != nil; k, _ = guildsCursor.Next() {
+			if _, exists := g.Guilds[string(k)]; !exists {
+				g.loadGuild(guildsBucket, string(k))
+			}
+		}
+		return nil
+	})
+	return g
 }
 
 func (g *Guilds) Guild(id string) (*Guild, error) {
-	if guild, exists := g.guilds[id]; exists {
+	if guild, exists := g.Guilds[id]; exists {
 		return guild, nil
 	} else {
 		err := g.db.View(func(tx *bolt.Tx) error {
 			guildsBucket := tx.Bucket(guilds)
 			if guildsBucket != nil {
-				guildBucket := guildsBucket.Bucket([]byte(id))
-				if guildBucket != nil {
-					guildCursor := guildBucket.Cursor()
-					guild = &Guild{db: g.db, id: id, Prefix: ""}
-					for k, v := guildCursor.First(); k != nil; k, v = guildCursor.Next() {
-						if bytes.Equal(k, guildName) {
-							guild.name = string(v)
-						} else if bytes.Equal(k, guildPrefix) {
-							guild.Prefix = string(v)
-						} else if bytes.Equal(k, guildAnnouncementsChannelID) {
-							guild.announcementsChannelID = string(v)
-						} else if bytes.Equal(k, guildVotesChannelID) {
-							guild.votesChannelID = string(v)
-						} else if bytes.Equal(k, guildVotes) {
-							//TODO: load votes
-						}
-					}
-					g.guilds[guild.id] = guild
-				}
+				guild = g.loadGuild(guildsBucket, id)
 			}
 			return nil
 		})
@@ -100,35 +118,30 @@ func (g *Guild) SetPrefix(prefix string) (error) {
 	return err
 }
 
-func (g *Guilds) GetPrefixes() (map[string]string, error) {
-	prefixes := make(map[string]string)
-	err := g.db.View(func(tx *bolt.Tx) error {
-		guildsBucket := tx.Bucket([]byte("guilds"))
-		if guildsBucket != nil {
-			guildsBucket.ForEach(func(k, v []byte) error {
-				guildBucket := guildsBucket.Bucket(k)
-				if guildBucket != nil {
-					prefix := guildBucket.Get([]byte("prefix"))
-					if prefix != nil {
-						prefixes[string(k)] = string(prefix)
-					}
-				}
-				return nil
-			})
-		}
-		return nil
-	})
-	return prefixes, err
+func (g *Guild) SetAnnouncementsChannel(channelID string) error {
+	err := g.set(guildAnnouncementsChannelID, []byte(channelID))
+	if err == nil {
+		g.AnnouncementsChannelID = channelID
+	}
+	return err
+}
+
+func (g *Guild) SetVotesChannel(channelID string) error {
+	err := g.set(guildVotesChannelID, []byte(channelID))
+	if err == nil {
+		g.VotesChannelID = channelID
+	}
+	return err
 }
 
 type Guild struct {
+	db                     *bolt.DB
 	id                     string
 	name                   string
 	Prefix                 string
-	announcementsChannelID string
-	votesChannelID         string
+	AnnouncementsChannelID string
+	VotesChannelID         string
 	votes                  []GuildVote
-	db                     *bolt.DB
 }
 
 // GuildVote contains a vote and it's location
@@ -142,90 +155,6 @@ const (
 	notSetup         = "bot isn't set up for this guild"
 	bucketNotCreated = "guild's bucket couldn't be created"
 )
-
-// GetAnnouncementChannels returns the anouncement channels for every guild
-func GetAnnouncementChannels() ([]string, error) {
-	channels := make([]string, 0)
-	err := db.DB.View(func(tx *bolt.Tx) error {
-		guildsBucket := tx.Bucket([]byte("guilds"))
-		if guildsBucket == nil {
-			return fmt.Errorf(notSetup)
-		}
-		guildsBucket.ForEach(func(k, v []byte) error {
-			guildBucket := guildsBucket.Bucket(k)
-			if guildBucket != nil {
-				announcementsChannelID := guildBucket.Get([]byte("announcementsChannelID"))
-				if announcementsChannelID != nil {
-					channels = append(channels, string(announcementsChannelID))
-				}
-			}
-			return nil
-		})
-		return nil
-	})
-	return channels, err
-}
-
-// SetAnnouncementsChannel sets the anouncement channels for a single guild
-func SetAnnouncementsChannel(guildID string, channelID string) error {
-	return db.DB.Update(func(tx *bolt.Tx) error {
-		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
-		if err != nil {
-			return fmt.Errorf(bucketNotCreated)
-		}
-		guildBucket := guildsBucket.Bucket([]byte(guildID))
-		if guildBucket == nil {
-			return fmt.Errorf(notSetup)
-		}
-		err = guildBucket.Put([]byte("announcementsChannelID"), []byte(channelID))
-		if err != nil {
-			return fmt.Errorf("announcements channel ID couldn't be saved")
-		}
-		return nil
-	})
-}
-
-// GetVotesChannels returns the vote channels for every guild
-func GetVotesChannels() ([]string, error) {
-	channels := make([]string, 0)
-	err := db.DB.View(func(tx *bolt.Tx) error {
-		guildsBucket := tx.Bucket([]byte("guilds"))
-		if guildsBucket == nil {
-			return fmt.Errorf(notSetup)
-		}
-		guildsBucket.ForEach(func(k, v []byte) error {
-			guildBucket := guildsBucket.Bucket(k)
-			if guildBucket != nil {
-				votesChannelID := guildBucket.Get([]byte("votesChannelID"))
-				if votesChannelID != nil {
-					channels = append(channels, string(votesChannelID))
-				}
-			}
-			return nil
-		})
-		return nil
-	})
-	return channels, err
-}
-
-// SetVotesChannel sets the vote channel for a specific guild
-func SetVotesChannel(guildID string, channelID string) error {
-	return db.DB.Update(func(tx *bolt.Tx) error {
-		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
-		if err != nil {
-			return fmt.Errorf(bucketNotCreated)
-		}
-		guildBucket := guildsBucket.Bucket([]byte(guildID))
-		if guildBucket == nil {
-			return fmt.Errorf(notSetup)
-		}
-		err = guildBucket.Put([]byte("votesChannelID"), []byte(channelID))
-		if err != nil {
-			return fmt.Errorf("votes channel ID couldn't be saved")
-		}
-		return nil
-	})
-}
 
 // Create adds a guild to the database
 func Create(guildID string, name string) error {

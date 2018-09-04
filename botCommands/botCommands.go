@@ -37,14 +37,14 @@ func (b *BotCommands) Init(guilds *guilds.Guilds, session *discordgo.Session) {
 func (b *BotCommands) RegisterCommands() {
 	guildAdminCommands := guildAdminCommands{guilds: b.guilds}
 	b.commands.Register(commands.Command{Name: "prefix", Handler: guildAdminCommands.setPrefix})
+	b.commands.Register(commands.Command{Name: "setAnnouncementsChannel", Handler: guildAdminCommands.setAnnouncementsChannel})
+	b.commands.Register(commands.Command{Name: "announce announcement", Handler: guildAdminCommands.postAnnouncement})
+	b.commands.Register(commands.Command{Name: "clearAnnouncements", Handler: guildAdminCommands.clearAnnouncements})
+	b.commands.Register(commands.Command{Name: "postLastMessageAsAnnouncement", Handler: guildAdminCommands.postLastMessageAsAnnouncement})
+	b.commands.Register(commands.Command{Name: "setVotesChannel", Handler: guildAdminCommands.setVotesChannel})
+	b.commands.Register(commands.Command{Name: "vote", Handler: guildAdminCommands.postVote})
 
 	b.commands.Register(commands.Command{Name: "help", Handler: helpCommand})
-	b.commands.Register(commands.Command{Name: "clearAnnouncements", Handler: clearAnnouncements})
-	b.commands.Register(commands.Command{Name: "setAnnouncementsChannel", Handler: setAnnouncementsChannel})
-	b.commands.Register(commands.Command{Name: "announce announcement", Handler: postAnnouncement})
-	b.commands.Register(commands.Command{Name: "postLastMessageAsAnnouncement", Handler: postLastMessageAsAnnouncement})
-	b.commands.Register(commands.Command{Name: "setVotesChannel", Handler: setVotesChannel})
-	b.commands.Register(commands.Command{Name: "vote", Handler: postVote})
 	b.commands.Register(commands.Command{Name: "setup", Handler: setup})
 }
 
