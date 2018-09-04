@@ -1,14 +1,15 @@
 package botcommands
 
-import "github.com/bwmarrin/discordgo"
-import "github.com/Devs-On-Discord/DoDdy/commands"
 import (
+	"github.com/Devs-On-Discord/DoDdy/commands"
 	"github.com/Devs-On-Discord/DoDdy/guilds"
 	"github.com/Devs-On-Discord/DoDdy/votes"
+	"github.com/bwmarrin/discordgo"
 )
 
 type guildAdminCommands struct {
 	guilds *guilds.Guilds
+	votes  *votes.Votes
 }
 
 func (g *guildAdminCommands) setPrefix(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
@@ -62,7 +63,7 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 					if err != nil {
 						println(err.Error())
 					}
-					votes.Instance.Votes[channelID] = votes.Vote{Id: voteID, Name: voteName, Message: voteMessage, Answers: make([]votes.Answer, 0)}
+					g.votes.Votes[channelID] = votes.Vote{Id: voteID, Name: voteName, Message: voteMessage, Answers: make([]votes.Answer, 0)}
 				}
 			}
 		}(guild.VotesChannelID)

@@ -3,21 +3,17 @@ package votes
 import (
 	"github.com/Devs-On-Discord/DoDdy/guilds"
 	"github.com/bwmarrin/discordgo"
+	bolt "go.etcd.io/bbolt"
 )
 
-var Instance Votes
-
-func Init(session *discordgo.Session) {
-	Instance = Votes{}
-	Instance.Init(session)
-}
-
 type Votes struct {
+	db      *bolt.DB
 	session *discordgo.Session
 	Votes   map[string]Vote
 }
 
-func (v *Votes) Init(session *discordgo.Session) {
+func (v *Votes) Init(db *bolt.DB, session *discordgo.Session) {
+	v.db = db
 	v.session = session
 	v.session.AddHandler(v.reactionAdded)
 	v.session.AddHandler(v.reactionRemoved)
