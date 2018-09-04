@@ -60,7 +60,7 @@ func (v *Votes) Init(db *bolt.DB, session *discordgo.Session) {
 	v.fillChannelVotes()
 }
 
-func (v *Votes) Create(id string, name string, message string, answers map[string]*Answer, guilds map[string]*GuildVote) (error) {
+func (v *Votes) Create(id string, name string, message string, answers map[string]*Answer, guilds map[string]*GuildVote) error {
 	err := v.db.Update(func(tx *bolt.Tx) error {
 		votesBucket, err := tx.CreateBucketIfNotExists(votes)
 		if err != nil {
@@ -83,7 +83,7 @@ func (v *Votes) Create(id string, name string, message string, answers map[strin
 			return err
 		}
 		for _, answer := range answers {
-			voteAnswerBucket, err :=voteAnswersBucket.CreateBucketIfNotExists([]byte(answer.emojiID))
+			voteAnswerBucket, err := voteAnswersBucket.CreateBucketIfNotExists([]byte(answer.emojiID))
 			if err != nil {
 				return err
 			}
@@ -97,7 +97,7 @@ func (v *Votes) Create(id string, name string, message string, answers map[strin
 			}
 		}
 		for guildID, guild := range guilds {
-			voteGuildBucket, err :=voteAnswersBucket.CreateBucketIfNotExists([]byte(guildID))
+			voteGuildBucket, err := voteAnswersBucket.CreateBucketIfNotExists([]byte(guildID))
 			if err != nil {
 				return err
 			}
@@ -120,7 +120,7 @@ func (v *Votes) Create(id string, name string, message string, answers map[strin
 	return err
 }
 
-func (v *Votes) loadVote(votesBucket *bolt.Bucket, id string) (*Vote) {
+func (v *Votes) loadVote(votesBucket *bolt.Bucket, id string) *Vote {
 	voteBucket := votesBucket.Bucket([]byte(id))
 	if voteBucket != nil {
 		voteCursor := voteBucket.Cursor()

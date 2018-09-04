@@ -80,7 +80,8 @@ func (b *BotCommands) RegisterCommands() {
 		Description: "Modifies basic configuration settings",
 		Handler:     guildAdminCommands.setup,
 	})
-	b.commands.Register(commands.Command{Name: "help",
+	b.commands.Register(commands.Command{
+		Name:        "help",
 		Description: "Begins a vote in this node's voting channel.",
 		Handler:     helpCommands.helpCommand,
 	})

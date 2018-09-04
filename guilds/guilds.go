@@ -180,6 +180,7 @@ func (g *Guild) SetVotesChannel(channelID string) error {
 	}
 	return err
 }
+
 /*
 // AddVote adds a single vote to a single guild
 //TODO: migrate to votes
