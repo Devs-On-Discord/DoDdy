@@ -28,7 +28,7 @@ func (h *helpCommands) helpCommand(session *discordgo.Session, commandMessage *d
 	_, err = session.ChannelMessageSend(userChannel.ID, helpText)
 	if err != nil {
 		return &commands.CommandError{
-			Message: "Help couldn't be send as an dm " + err.Error(),
+			Message: "Can't send help via DM " + err.Error(),
 			Color:   0xb30000,
 		}
 	}
@@ -40,7 +40,7 @@ func (h *helpCommands) helpCommand(session *discordgo.Session, commandMessage *d
 		}
 	}
 	return &commands.CommandReply{
-		Message: "Help has been send as dm",
+		Message: "Help sent via DM",
 		Color:   0x00b300,
 	}
 }
