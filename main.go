@@ -23,9 +23,6 @@ func main() {
 
 	defer dataBase.Close()
 
-	g := &guilds.Guilds{}
-	g.Init(dataBase)
-
 	bot, err := discordgo.New("Bot " + testToken)
 	if err != nil {
 		panic(err.Error())
@@ -37,9 +34,13 @@ func main() {
 
 	defer bot.Close()
 
-	botcommands.Init(g, bot)
+	g := &guilds.Guilds{}
+	g.Init(dataBase)
 
-	votes.Init(bot)
+	v := &votes.Votes{}
+	v.Init(dataBase, bot)
+
+	botcommands.Init(g, v, bot)
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)

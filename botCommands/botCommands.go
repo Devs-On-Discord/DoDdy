@@ -3,6 +3,7 @@ package botcommands
 import (
 	"github.com/Devs-On-Discord/DoDdy/commands"
 	"github.com/Devs-On-Discord/DoDdy/guilds"
+	"github.com/Devs-On-Discord/DoDdy/votes"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -10,9 +11,9 @@ import (
 var Instance BotCommands
 
 // Init constructs the global BotCommands object
-func Init(guilds *guilds.Guilds, session *discordgo.Session) {
+func Init(guilds *guilds.Guilds, votes *votes.Votes, session *discordgo.Session) {
 	Instance = BotCommands{}
-	Instance.Init(guilds, session)
+	Instance.Init(guilds, votes, session)
 }
 
 // BotCommands is an object that encapsulates both Commands and a result handler
@@ -20,11 +21,13 @@ type BotCommands struct {
 	commands                    *commands.Commands
 	discordCommandResultHandler *commands.DiscordCommandResultHandler
 	guilds                      *guilds.Guilds
+	votes                       *votes.Votes
 }
 
 // Init constructs the BotCommands object
-func (b *BotCommands) Init(guilds *guilds.Guilds, session *discordgo.Session) {
+func (b *BotCommands) Init(guilds *guilds.Guilds, votes *votes.Votes, session *discordgo.Session) {
 	b.guilds = guilds
+	b.votes = votes
 	b.commands = &commands.Commands{}
 	b.commands.Init(session)
 	b.discordCommandResultHandler = &commands.DiscordCommandResultHandler{}
@@ -35,7 +38,7 @@ func (b *BotCommands) Init(guilds *guilds.Guilds, session *discordgo.Session) {
 
 // RegisterCommands registers commands with the Commands object
 func (b *BotCommands) RegisterCommands() {
-	guildAdminCommands := guildAdminCommands{guilds: b.guilds}
+	guildAdminCommands := guildAdminCommands{guilds: b.guilds, votes: b.votes}
 	b.commands.Register(commands.Command{Name: "prefix", Handler: guildAdminCommands.setPrefix})
 	b.commands.Register(commands.Command{Name: "setAnnouncementsChannel", Handler: guildAdminCommands.setAnnouncementsChannel})
 	b.commands.Register(commands.Command{Name: "announce announcement", Handler: guildAdminCommands.postAnnouncement})
