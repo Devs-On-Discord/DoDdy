@@ -19,7 +19,6 @@ var (
 	voteAnswerCount    = []byte("count")
 )
 
-//TODO: cache an more performance oriented struct inside Votes that is an map with an channelID as an key and GuildVote as an value to faster identify votes on reaction add
 type Votes struct {
 	db      *bolt.DB
 	session *discordgo.Session
