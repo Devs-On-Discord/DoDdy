@@ -8,6 +8,7 @@ type Handle func(session *discordgo.Session, commandMessage *discordgo.MessageCr
 //TODO: add permissions
 // Command encapsulates a command name and it's handler
 type Command struct {
-	Name    string
-	Handler Handle
+	Name        string
+	Handler     Handle
+	Description string
 }

@@ -8,16 +8,17 @@ import (
 )
 
 // Commands is an object containing all commands that can be called, it converts discordgo commands to a single thread each
+// Commands contains registered commands ready to be called
 // ResultMessages is the return channel for successful commands
 type Commands struct {
-	commands       map[string]Command
+	Commands       map[string]Command
 	ResultMessages chan CommandResultMessage
 	session        *discordgo.Session
 }
 
 // Init constructs the Commands object
 func (c *Commands) Init(session *discordgo.Session) {
-	c.commands = make(map[string]Command)
+	c.Commands = make(map[string]Command)
 	c.ResultMessages = make(chan CommandResultMessage)
 	c.session = session
 }
@@ -29,7 +30,7 @@ func (c *Commands) Register(command Command) {
 		return
 	}
 	for _, commandName := range commandNameSplit {
-		c.commands[strings.ToLower(commandName)] = command
+		c.Commands[strings.ToLower(commandName)] = command
 	}
 }
 
@@ -51,7 +52,7 @@ func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 		}
 	}
 	commandName := commandParsed[0]
-	if command, exists := c.commands[strings.ToLower(commandName)]; exists {
+	if command, exists := c.Commands[strings.ToLower(commandName)]; exists {
 		if commandCount < 2 {
 			resultMessage := command.Handler(c.session, commandMessage, nil)
 			resultMessage.setCommandMessage(commandMessage)
@@ -64,7 +65,7 @@ func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 	} else {
 		c.ResultMessages <- &CommandError{
 			CommandMessage: commandMessage,
-			Message:        "Command doesn't exists: " + commandName,
+			Message:        "Command doesn't exist: " + commandName,
 			Color:          0xb30000,
 		}
 	}
