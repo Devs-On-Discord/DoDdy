@@ -24,6 +24,28 @@ type Guilds struct {
 	Guilds map[string]*Guild
 }
 
+// Guild contains cached data from the database, as well as an access to said database
+type Guild struct {
+	db                     *bolt.DB
+	id                     string
+	name                   string
+	Prefix                 string
+	AnnouncementsChannelID string
+	VotesChannelID         string
+}
+
+// GuildVote contains a vote and it's location
+type GuildVote struct {
+	VoteID    string
+	MessageID string
+	ChannelID string
+}
+
+const (
+	notSetup         = "bot isn't set up for this guild"
+	bucketNotCreated = "guild's bucket couldn't be created"
+)
+
 // Init constructs the Guilds object
 func (g *Guilds) Init(db *bolt.DB) {
 	g.db = db
@@ -168,28 +190,6 @@ func (g *Guild) SetVotesChannel(channelID string) error {
 	}
 	return err
 }
-
-// Guild contains cached data from the database, as well as an access to said database
-type Guild struct {
-	db                     *bolt.DB
-	id                     string
-	name                   string
-	Prefix                 string
-	AnnouncementsChannelID string
-	VotesChannelID         string
-}
-
-// GuildVote contains a vote and it's location
-type GuildVote struct {
-	VoteID    string
-	MessageID string
-	ChannelID string
-}
-
-const (
-	notSetup         = "bot isn't set up for this guild"
-	bucketNotCreated = "guild's bucket couldn't be created"
-)
 
 // AddVote adds a single vote to a single guild
 func AddVote(guildID string, voteID string, messageID string, channelID string) error {
