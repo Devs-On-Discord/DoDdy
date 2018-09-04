@@ -133,12 +133,12 @@ func (g *guildAdminCommands) postLastMessageAsAnnouncement(session *discordgo.Se
 	return &commands.CommandReply{Message: "Announcement posted", Color: 0x00b300}
 }
 
-func setup(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+func (g *guildAdminCommands) setup(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	guild, err := session.Guild(commandMessage.GuildID)
 	if err != nil {
 		return &commands.CommandError{Message: "Server couldn't be identified " + err.Error(), Color: 0xb30000}
 	}
-	err = guilds.Create(commandMessage.GuildID, guild.Name)
+	err = g.guilds.Create(commandMessage.GuildID, guild.Name)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}

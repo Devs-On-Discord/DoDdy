@@ -7,6 +7,8 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+//TODO: save votes channel ids to votes -> vote -> channels -> guildId -> channelId: {channelId}, messageID: {messageId}
+
 var (
 	guilds                      = []byte("guilds")
 	guildId                     = []byte("id")
@@ -25,6 +27,33 @@ type Guilds struct {
 func (g *Guilds) Init(db *bolt.DB) {
 	g.db = db
 	g.Guilds = make(map[string]*Guild)
+}
+
+func (g *Guilds) Create(id string, name string) (error) {
+	err := db.DB.Update(func(tx *bolt.Tx) error {
+		guildsBucket, err := tx.CreateBucketIfNotExists([]byte(guilds))
+		if err != nil {
+			return fmt.Errorf(bucketNotCreated)
+		}
+		guildBucket, err := guildsBucket.CreateBucket([]byte(id))
+		if err != nil {
+			return fmt.Errorf(bucketNotCreated)
+		}
+		err = guildBucket.Put(guildName, []byte(name))
+		if err != nil {
+			return fmt.Errorf("name couldn't be saved")
+		}
+		err = guildBucket.Put(guildPrefix, []byte("!"))
+		if err != nil {
+			return fmt.Errorf("prefix couldn't be saved")
+		}
+		return nil
+	})
+	if err == nil {
+		guild := &Guild{db: g.db, id: id, name: name}
+		g.Guilds[id] = guild
+	}
+	return err
 }
 
 func (g *Guilds) loadGuild(guildsBucket *bolt.Bucket, guildId string) (*Guild) {
@@ -155,29 +184,6 @@ const (
 	notSetup         = "bot isn't set up for this guild"
 	bucketNotCreated = "guild's bucket couldn't be created"
 )
-
-// Create adds a guild to the database
-func Create(guildID string, name string) error {
-	return db.DB.Update(func(tx *bolt.Tx) error {
-		guildsBucket, err := tx.CreateBucketIfNotExists([]byte(guilds))
-		if err != nil {
-			return fmt.Errorf(bucketNotCreated)
-		}
-		guildBucket, err := guildsBucket.CreateBucket([]byte(guildID))
-		if err != nil {
-			return fmt.Errorf(bucketNotCreated)
-		}
-		err = guildBucket.Put([]byte("name"), []byte(name))
-		if err != nil {
-			return fmt.Errorf("name couldn't be saved")
-		}
-		err = guildBucket.Put([]byte("prefix"), []byte("!"))
-		if err != nil {
-			return fmt.Errorf("prefix couldn't be saved")
-		}
-		return nil
-	})
-}
 
 // AddVote adds a single vote to a single guild
 func AddVote(guildID string, voteID string, messageID string, channelID string) error {

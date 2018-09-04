@@ -43,9 +43,8 @@ func (b *BotCommands) RegisterCommands() {
 	b.commands.Register(commands.Command{Name: "postLastMessageAsAnnouncement", Handler: guildAdminCommands.postLastMessageAsAnnouncement})
 	b.commands.Register(commands.Command{Name: "setVotesChannel", Handler: guildAdminCommands.setVotesChannel})
 	b.commands.Register(commands.Command{Name: "vote", Handler: guildAdminCommands.postVote})
-
+	b.commands.Register(commands.Command{Name: "setup", Handler: guildAdminCommands.setup})
 	b.commands.Register(commands.Command{Name: "help", Handler: helpCommand})
-	b.commands.Register(commands.Command{Name: "setup", Handler: setup})
 }
 
 // Parse is the input sink for commands
