@@ -3,6 +3,7 @@ package guilds
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/Devs-On-Discord/DoDdy/db"
 	bolt "go.etcd.io/bbolt"
 )
@@ -17,17 +18,20 @@ var (
 	guildVotesChannelID         = []byte("votesChannelID")
 )
 
+// Guilds is an object able to access the database, and possesses a list of guilds
 type Guilds struct {
 	db     *bolt.DB
 	Guilds map[string]*Guild
 }
 
+// Init constructs the Guilds object
 func (g *Guilds) Init(db *bolt.DB) {
 	g.db = db
 	g.Guilds = make(map[string]*Guild)
 }
 
-func (g *Guilds) Create(id string, name string) (error) {
+// Create adds a guild to the database, and associates it to a name
+func (g *Guilds) Create(id string, name string) error {
 	err := g.db.Update(func(tx *bolt.Tx) error {
 		guildsBucket, err := tx.CreateBucketIfNotExists([]byte(guilds))
 		if err != nil {
@@ -54,11 +58,11 @@ func (g *Guilds) Create(id string, name string) (error) {
 	return err
 }
 
-func (g *Guilds) loadGuild(guildsBucket *bolt.Bucket, guildId string) (*Guild) {
-	guildBucket := guildsBucket.Bucket([]byte(guildId))
+func (g *Guilds) loadGuild(guildsBucket *bolt.Bucket, guildID string) *Guild {
+	guildBucket := guildsBucket.Bucket([]byte(guildID))
 	if guildBucket != nil {
 		guildCursor := guildBucket.Cursor()
-		guild := &Guild{db: g.db, id: string(guildId), Prefix: ""}
+		guild := &Guild{db: g.db, id: string(guildID), Prefix: ""}
 		for k, v := guildCursor.First(); k != nil; k, v = guildCursor.Next() {
 			if bytes.Equal(k, guildName) {
 				guild.name = string(v)
@@ -76,7 +80,8 @@ func (g *Guilds) loadGuild(guildsBucket *bolt.Bucket, guildId string) (*Guild) {
 	return nil
 }
 
-func (g *Guilds) LoadGuilds() (*Guilds) {
+// LoadGuilds caches the guilds from the database
+func (g *Guilds) LoadGuilds() *Guilds {
 	g.db.View(func(tx *bolt.Tx) error {
 		guildsBucket := tx.Bucket(guilds)
 		guildsCursor := guildsBucket.Cursor()
@@ -90,19 +95,21 @@ func (g *Guilds) LoadGuilds() (*Guilds) {
 	return g
 }
 
+// Guild returns a cached guild instance, or pulls it from the database
 func (g *Guilds) Guild(id string) (*Guild, error) {
-	if guild, exists := g.Guilds[id]; exists {
+	guild, exists := g.Guilds[id]
+	if exists {
 		return guild, nil
-	} else {
-		err := g.db.View(func(tx *bolt.Tx) error {
-			guildsBucket := tx.Bucket(guilds)
-			if guildsBucket != nil {
-				guild = g.loadGuild(guildsBucket, id)
-			}
-			return nil
-		})
-		return guild, err
 	}
+	err := g.db.View(func(tx *bolt.Tx) error {
+		guildsBucket := tx.Bucket(guilds)
+		if guildsBucket != nil {
+			guild = g.loadGuild(guildsBucket, id)
+		}
+		return nil
+	})
+	return guild, err
+
 }
 
 func (g *Guild) bucket(tx *bolt.Tx) (*bolt.Bucket, error) {
@@ -120,7 +127,7 @@ func (g *Guild) bucket(tx *bolt.Tx) (*bolt.Bucket, error) {
 	return guildBucket, nil
 }
 
-func (g *Guild) set(key []byte, value []byte) (error) {
+func (g *Guild) set(key []byte, value []byte) error {
 	err := g.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := g.bucket(tx)
 		if err != nil {
@@ -135,7 +142,8 @@ func (g *Guild) set(key []byte, value []byte) (error) {
 	return err
 }
 
-func (g *Guild) SetPrefix(prefix string) (error) {
+// SetPrefix defines the prefix of a single guild
+func (g *Guild) SetPrefix(prefix string) error {
 	err := g.set(guildPrefix, []byte(prefix))
 	if err == nil {
 		g.Prefix = prefix
@@ -143,6 +151,7 @@ func (g *Guild) SetPrefix(prefix string) (error) {
 	return err
 }
 
+// SetAnnouncementsChannel defines the announcement channel for a single guild
 func (g *Guild) SetAnnouncementsChannel(channelID string) error {
 	err := g.set(guildAnnouncementsChannelID, []byte(channelID))
 	if err == nil {
@@ -151,6 +160,7 @@ func (g *Guild) SetAnnouncementsChannel(channelID string) error {
 	return err
 }
 
+// SetVotesChannel defines the voting channel for a single guild
 func (g *Guild) SetVotesChannel(channelID string) error {
 	err := g.set(guildVotesChannelID, []byte(channelID))
 	if err == nil {
@@ -159,6 +169,7 @@ func (g *Guild) SetVotesChannel(channelID string) error {
 	return err
 }
 
+// Guild contains cached data from the database, as well as an access to said database
 type Guild struct {
 	db                     *bolt.DB
 	id                     string
