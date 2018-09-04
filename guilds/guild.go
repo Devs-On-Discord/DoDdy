@@ -7,16 +7,14 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-//TODO: save votes channel ids to votes -> vote -> channels -> guildId -> channelId: {channelId}, messageID: {messageId}
+//TODO: save votes channel ids to votes -> vote -> guilds -> guildId -> channelId: {channelId}, messageID: {messageId}
 
 var (
 	guilds                      = []byte("guilds")
-	guildId                     = []byte("id")
 	guildName                   = []byte("name")
 	guildPrefix                 = []byte("prefix")
 	guildAnnouncementsChannelID = []byte("announcementsChannelID")
 	guildVotesChannelID         = []byte("votesChannelID")
-	guildVotes                  = []byte("votes")
 )
 
 type Guilds struct {
@@ -30,7 +28,7 @@ func (g *Guilds) Init(db *bolt.DB) {
 }
 
 func (g *Guilds) Create(id string, name string) (error) {
-	err := db.DB.Update(func(tx *bolt.Tx) error {
+	err := g.db.Update(func(tx *bolt.Tx) error {
 		guildsBucket, err := tx.CreateBucketIfNotExists([]byte(guilds))
 		if err != nil {
 			return fmt.Errorf(bucketNotCreated)
@@ -70,8 +68,6 @@ func (g *Guilds) loadGuild(guildsBucket *bolt.Bucket, guildId string) (*Guild) {
 				guild.AnnouncementsChannelID = string(v)
 			} else if bytes.Equal(k, guildVotesChannelID) {
 				guild.VotesChannelID = string(v)
-			} else if bytes.Equal(k, guildVotes) {
-				//TODO: load votes
 			}
 		}
 		g.Guilds[guild.id] = guild
@@ -170,7 +166,6 @@ type Guild struct {
 	Prefix                 string
 	AnnouncementsChannelID string
 	VotesChannelID         string
-	votes                  []GuildVote
 }
 
 // GuildVote contains a vote and it's location
