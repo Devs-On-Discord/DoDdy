@@ -3,8 +3,6 @@ package guilds
 import (
 	"bytes"
 	"fmt"
-
-	"github.com/Devs-On-Discord/DoDdy/db"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -32,13 +30,6 @@ type Guild struct {
 	Prefix                 string
 	AnnouncementsChannelID string
 	VotesChannelID         string
-}
-
-// GuildVote contains a vote and it's location
-type GuildVote struct {
-	VoteID    string
-	MessageID string
-	ChannelID string
 }
 
 const (
@@ -189,8 +180,9 @@ func (g *Guild) SetVotesChannel(channelID string) error {
 	}
 	return err
 }
-
+/*
 // AddVote adds a single vote to a single guild
+//TODO: migrate to votes
 func AddVote(guildID string, voteID string, messageID string, channelID string) error {
 	return db.DB.Update(func(tx *bolt.Tx) error {
 		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
@@ -226,6 +218,7 @@ func AddVote(guildID string, voteID string, messageID string, channelID string) 
 }
 
 // GetVotes returns every single vote from every single guild
+//TODO: migrate to votes
 func GetVotes() ([]GuildVote, error) {
 	votes := make([]GuildVote, 0)
 	err := db.DB.View(func(tx *bolt.Tx) error {
@@ -264,4 +257,4 @@ func GetVotes() ([]GuildVote, error) {
 		return err
 	})
 	return votes, err
-}
+}*/

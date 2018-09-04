@@ -5,6 +5,7 @@ import (
 	"github.com/Devs-On-Discord/DoDdy/guilds"
 	"github.com/Devs-On-Discord/DoDdy/votes"
 	"github.com/bwmarrin/discordgo"
+	"sync"
 )
 
 type guildAdminCommands struct {
@@ -53,22 +54,34 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 	voteID := args[0]
 	voteName := args[1]
 	voteMessage := args[2]
-	for _, guild := range g.guilds.LoadGuilds().Guilds {
+
+	loadedGuilds := g.guilds.LoadGuilds().Guilds
+
+	var wg sync.WaitGroup
+	wg.Add(len(loadedGuilds))
+
+	guildVotes := make(map[string]*votes.GuildVote)
+
+	go func() {
+		wg.Wait()
+		err := g.votes.Create(voteID, voteName, voteMessage, make(map[string]*votes.Answer), guildVotes)
+		if err != nil {
+			//TODO: handle
+		}
+	}()
+
+	for _, guild := range loadedGuilds {
 		go func(channelID string) {
+			defer wg.Done()
 			message, err := session.ChannelMessageSend(channelID, voteMessage)
 			if err == nil {
 				channel, err := session.Channel(channelID)
 				if err == nil {
-					err = guilds.AddVote(channel.GuildID, voteID, message.ID, channelID)
-					if err != nil {
-						println(err.Error())
-					}
-					g.votes.Votes[channelID] = votes.Vote{Id: voteID, Name: voteName, Message: voteMessage, Answers: make([]votes.Answer, 0)}
+					guildVotes[channel.GuildID] = &votes.GuildVote{ChannelID: channelID, MessageID: message.ID}
 				}
 			}
 		}(guild.VotesChannelID)
 	}
-	votes.AddVote(voteID, voteName, voteMessage, make([]votes.Answer, 0))
 	return &commands.CommandReply{Message: "Vote posted", Color: 0x00b300}
 }
 

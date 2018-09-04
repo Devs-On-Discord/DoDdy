@@ -28,7 +28,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	if bot.Open() != nil {
+	if err = bot.Open(); err != nil {
 		panic("could not open bot: " + err.Error())
 	}
 
