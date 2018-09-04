@@ -77,7 +77,7 @@ func GetVotes() ([]Vote, error) {
 	return votes, err
 }
 
-func AddVote(id string, name string, message string, answers []Answer) (error) {
+func AddVote(id string, name string, message string, answers []Answer) error {
 	return db.DB.Update(func(tx *bolt.Tx) error {
 		votesBucket, err := tx.CreateBucketIfNotExists([]byte("votes"))
 		if err != nil {
@@ -125,7 +125,7 @@ func AddVote(id string, name string, message string, answers []Answer) (error) {
 	})
 }
 
-func IncreaseVoteAnswer(voteID string, emojiID string) (error) {
+func IncreaseVoteAnswer(voteID string, emojiID string) error {
 	return db.DB.Update(func(tx *bolt.Tx) error {
 		votesBucket := tx.Bucket([]byte("votes"))
 		if votesBucket != nil {
@@ -158,7 +158,7 @@ func IncreaseVoteAnswer(voteID string, emojiID string) (error) {
 	})
 }
 
-func DecreaseVoteAnswer(voteID string, emojiID string) (error) {
+func DecreaseVoteAnswer(voteID string, emojiID string) error {
 	return db.DB.Update(func(tx *bolt.Tx) error {
 		votesBucket := tx.Bucket([]byte("votes"))
 		if votesBucket != nil {
