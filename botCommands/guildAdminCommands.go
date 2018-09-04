@@ -8,6 +8,21 @@ import (
 	"sync"
 )
 
+/*
+user
+node mod with group (androiddev) (add channels to bot features)
+node admin with group (androiddev) (add channels to bot features)
+hub admins (add channels to bot features)
+hub mods (add channels to bot features)
+bot devs (add / remove channels to bot features)
+
+make each role generatable single
+and make existing roles as node roles
+
+bot on join crease setup channel "doddy-setup"
+when channel exists throw error
+*/
+
 type guildAdminCommands struct {
 	guilds *guilds.Guilds
 	votes  *votes.Votes
