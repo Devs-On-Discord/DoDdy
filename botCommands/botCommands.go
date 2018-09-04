@@ -36,15 +36,16 @@ func (b *BotCommands) Init(guilds *guilds.Guilds, session *discordgo.Session) {
 // RegisterCommands registers commands with the Commands object
 func (b *BotCommands) RegisterCommands() {
 	guildAdminCommands := guildAdminCommands{guilds: b.guilds}
-	b.commands.Register(commands.Command{Name: "prefix", Handler: guildAdminCommands.setPrefix})
-	b.commands.Register(commands.Command{Name: "setAnnouncementsChannel", Handler: guildAdminCommands.setAnnouncementsChannel})
-	b.commands.Register(commands.Command{Name: "announce announcement", Handler: guildAdminCommands.postAnnouncement})
-	b.commands.Register(commands.Command{Name: "clearAnnouncements", Handler: guildAdminCommands.clearAnnouncements})
-	b.commands.Register(commands.Command{Name: "postLastMessageAsAnnouncement", Handler: guildAdminCommands.postLastMessageAsAnnouncement})
-	b.commands.Register(commands.Command{Name: "setVotesChannel", Handler: guildAdminCommands.setVotesChannel})
-	b.commands.Register(commands.Command{Name: "vote", Handler: guildAdminCommands.postVote})
-	b.commands.Register(commands.Command{Name: "setup", Handler: guildAdminCommands.setup})
-	b.commands.Register(commands.Command{Name: "help", Handler: helpCommand})
+	helpCommands := helpCommands{&b.commands.Commands}
+	b.commands.Register(commands.Command{Name: "prefix", Handler: guildAdminCommands.setPrefix, Description: "Changes / Displays the prefix."})
+	b.commands.Register(commands.Command{Name: "setAnnouncementsChannel", Handler: guildAdminCommands.setAnnouncementsChannel, Description: "Redefines this node's announcement channel."})
+	b.commands.Register(commands.Command{Name: "announce announcement", Handler: guildAdminCommands.postAnnouncement, Description: "Post an announcement in this node."})
+	b.commands.Register(commands.Command{Name: "clearAnnouncements", Handler: guildAdminCommands.clearAnnouncements, Description: "Empties this node's announcement channel."})
+	b.commands.Register(commands.Command{Name: "postLastMessageAsAnnouncement", Handler: guildAdminCommands.postLastMessageAsAnnouncement, Description: "Repost the last message sent in this channel as an announcement"})
+	b.commands.Register(commands.Command{Name: "setVotesChannel", Handler: guildAdminCommands.setVotesChannel, Description: "Redefines this node's voting channel."})
+	b.commands.Register(commands.Command{Name: "survey vote", Handler: guildAdminCommands.postVote, Description: "Starts a DoD-wide survey."})
+	b.commands.Register(commands.Command{Name: "setup", Handler: guildAdminCommands.setup, Description: "Modifies basic configuration settings"})
+	b.commands.Register(commands.Command{Name: "help", Handler: helpCommands.helpCommand, Description: "Begins a vote in this node's voting channel."})
 }
 
 // Parse is the input sink for commands

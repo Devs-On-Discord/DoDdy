@@ -1,17 +1,23 @@
 package botcommands
 
-import "github.com/bwmarrin/discordgo"
-import "github.com/Devs-On-Discord/DoDdy/commands"
+import (
+	"fmt"
 
-func helpCommand(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	helpText := "setup\n" +
-		"setAnnouncementsChannel\n" +
-		"postAnnouncement\n" +
-		"postLastMessageAsAnnouncement\n" +
-		"clearAnnouncements\n" +
-		"setVotesChannel\n" +
-		"vote\n" +
-		"prefix"
+	"github.com/Devs-On-Discord/DoDdy/commands"
+	"github.com/bwmarrin/discordgo"
+)
+
+type helpCommands struct {
+	Commands *map[string]commands.Command
+}
+
+func (h *helpCommands) helpCommand(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	var helpText string
+
+	for _, j := range *h.Commands {
+		helpText = fmt.Sprintf("%s%s: %s\n", helpText, j.Name, j.Description)
+	}
+
 	userChannel, err := session.UserChannelCreate(commandMessage.Author.ID)
 	if err != nil {
 		return &commands.CommandError{
