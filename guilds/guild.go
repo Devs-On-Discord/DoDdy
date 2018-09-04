@@ -119,19 +119,18 @@ func (g *Guilds) LoadGuilds() *Guilds {
 
 // Guild returns a cached guild instance, or pulls it from the database
 func (g *Guilds) Guild(id string) (*Guild, error) {
-	guild, exists := g.Guilds[id]
-	if exists {
+	if guild, exists := g.Guilds[id]; exists {
 		return guild, nil
+	} else {
+		err := g.db.View(func(tx *bolt.Tx) error {
+			guildsBucket := tx.Bucket(guilds)
+			if guildsBucket != nil {
+				guild = g.loadGuild(guildsBucket, id)
+			}
+			return nil
+		})
+		return guild, err
 	}
-	err := g.db.View(func(tx *bolt.Tx) error {
-		guildsBucket := tx.Bucket(guilds)
-		if guildsBucket != nil {
-			guild = g.loadGuild(guildsBucket, id)
-		}
-		return nil
-	})
-	return guild, err
-
 }
 
 func (g *Guild) bucket(tx *bolt.Tx) (*bolt.Bucket, error) {
