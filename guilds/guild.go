@@ -54,7 +54,6 @@ func (g *Guilds) Guild(id string) (*Guild, error) {
 						}
 					}
 					g.guilds[guild.id] = guild
-					println("guild loaded", guild)
 				}
 			}
 			return nil
@@ -78,18 +77,23 @@ func (g *Guild) bucket(tx *bolt.Tx) (*bolt.Bucket, error) {
 	return guildBucket, nil
 }
 
-func (g *Guild) SetPrefix(prefix string) (error) {
+func (g *Guild) set(key []byte, value []byte) (error) {
 	err := g.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := g.bucket(tx)
 		if err != nil {
 			return err
 		}
-		err = bucket.Put(guildPrefix, []byte(prefix))
+		err = bucket.Put(key, value)
 		if err != nil {
-			return fmt.Errorf("prefix couldn't be saved")
+			return fmt.Errorf("%s couldn't be saved", string(key))
 		}
 		return nil
 	})
+	return err
+}
+
+func (g *Guild) SetPrefix(prefix string) (error) {
+	err := g.set(guildPrefix, []byte(prefix))
 	if err == nil {
 		g.Prefix = prefix
 	}
