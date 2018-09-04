@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/Devs-On-Discord/DoDdy/db"
-	"github.com/Devs-On-Discord/DoDdy/guilds"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/Devs-On-Discord/DoDdy/db"
+	"github.com/Devs-On-Discord/DoDdy/guilds"
 
 	"github.com/Devs-On-Discord/DoDdy/botCommands"
 	"github.com/Devs-On-Discord/DoDdy/votes"
