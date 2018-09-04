@@ -225,7 +225,6 @@ func (v *Votes) reactionAdded(session *discordgo.Session, reaction *discordgo.Me
 	if session.State.User.ID == reaction.UserID { // Ignore bot reactions
 		return
 	}
-	println("channelVotes", len(v.channelVotes))
 	if vote, exists := v.channelVotes[reaction.ChannelID]; exists {
 		for _, answer := range vote.Answers {
 			if answer.emojiID == reaction.Emoji.ID {
