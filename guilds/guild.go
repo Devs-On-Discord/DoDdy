@@ -1,41 +1,97 @@
 package guilds
 
 import (
+	"bytes"
 	"fmt"
-
 	"github.com/Devs-On-Discord/DoDdy/db"
 	bolt "go.etcd.io/bbolt"
+)
+
+var (
+	guilds                      = []byte("guilds")
+	guildId                     = []byte("id")
+	guildName                   = []byte("name")
+	guildPrefix                 = []byte("prefix")
+	guildAnnouncementsChannelID = []byte("announcementsChannelID")
+	guildVotesChannelID         = []byte("votesChannelID")
+	guildVotes                  = []byte("votes")
 )
 
 type Guilds struct {
 	db       *bolt.DB
 	Prefixes map[string]string
+	guilds   map[string]*Guild
 }
 
 func (g *Guilds) Init(db *bolt.DB) {
 	g.db = db
 	g.Prefixes, _ = g.GetPrefixes()
+	g.guilds = make(map[string]*Guild)
 }
 
-// SetPrefix defines the prefix of a single guild
-func (g *Guilds) SetPrefix(guildID string, prefix string) error {
+func (g *Guilds) Guild(id string) (*Guild, error) {
+	if guild, exists := g.guilds[id]; exists {
+		return guild, nil
+	} else {
+		err := g.db.View(func(tx *bolt.Tx) error {
+			guildsBucket := tx.Bucket(guilds)
+			if guildsBucket != nil {
+				guildBucket := guildsBucket.Bucket([]byte(id))
+				if guildBucket != nil {
+					guildCursor := guildBucket.Cursor()
+					guild = &Guild{db: g.db, id: id, Prefix: ""}
+					for k, v := guildCursor.First(); k != nil; k, v = guildCursor.Next() {
+						if bytes.Equal(k, guildName) {
+							guild.name = string(v)
+						} else if bytes.Equal(k, guildPrefix) {
+							guild.Prefix = string(v)
+						} else if bytes.Equal(k, guildAnnouncementsChannelID) {
+							guild.announcementsChannelID = string(v)
+						} else if bytes.Equal(k, guildVotesChannelID) {
+							guild.votesChannelID = string(v)
+						} else if bytes.Equal(k, guildVotes) {
+							//TODO: load votes
+						}
+					}
+					g.guilds[guild.id] = guild
+					println("guild loaded", guild)
+				}
+			}
+			return nil
+		})
+		return guild, err
+	}
+}
+
+func (g *Guild) bucket(tx *bolt.Tx) (*bolt.Bucket, error) {
+	guildsBucket := tx.Bucket(guilds)
+	if guildsBucket == nil {
+		println("guildsBucket==nil")
+		return nil, fmt.Errorf(bucketNotCreated)
+	}
+	guildBucket := guildsBucket.Bucket([]byte(g.id))
+	if guildBucket == nil {
+		println("id=" + g.id)
+		println("guildBucket==nil")
+		return nil, fmt.Errorf(notSetup)
+	}
+	return guildBucket, nil
+}
+
+func (g *Guild) SetPrefix(prefix string) (error) {
 	err := g.db.Update(func(tx *bolt.Tx) error {
-		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
+		bucket, err := g.bucket(tx)
 		if err != nil {
-			return fmt.Errorf(bucketNotCreated)
+			return err
 		}
-		guildBucket := guildsBucket.Bucket([]byte(guildID))
-		if guildBucket == nil {
-			return fmt.Errorf(notSetup)
-		}
-		err = guildBucket.Put([]byte("prefix"), []byte(prefix))
+		err = bucket.Put(guildPrefix, []byte(prefix))
 		if err != nil {
 			return fmt.Errorf("prefix couldn't be saved")
 		}
 		return nil
 	})
 	if err == nil {
-		g.Prefixes[guildID] = prefix
+		g.Prefix = prefix
 	}
 	return err
 }
@@ -61,13 +117,14 @@ func (g *Guilds) GetPrefixes() (map[string]string, error) {
 	return prefixes, err
 }
 
-type guild struct {
+type Guild struct {
 	id                     string
 	name                   string
-	prefix                 string
+	Prefix                 string
 	announcementsChannelID string
 	votesChannelID         string
 	votes                  []GuildVote
+	db                     *bolt.DB
 }
 
 // GuildVote contains a vote and it's location
@@ -169,7 +226,7 @@ func SetVotesChannel(guildID string, channelID string) error {
 // Create adds a guild to the database
 func Create(guildID string, name string) error {
 	return db.DB.Update(func(tx *bolt.Tx) error {
-		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
+		guildsBucket, err := tx.CreateBucketIfNotExists([]byte(guilds))
 		if err != nil {
 			return fmt.Errorf(bucketNotCreated)
 		}

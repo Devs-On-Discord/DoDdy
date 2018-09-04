@@ -12,11 +12,15 @@ type guildAdminCommands struct {
 }
 
 func (g *guildAdminCommands) setPrefix(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	guild, err := g.guilds.Guild(commandMessage.GuildID)
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
 	if len(args) < 1 {
-		return &commands.CommandReply{Message: "Prefix is " + g.guilds.Prefixes[commandMessage.GuildID], Color: 0xb30000}
+		return &commands.CommandReply{Message: "Prefix is " + guild.Prefix, Color: 0xb30000}
 	}
 	prefix := args[0]
-	err := g.guilds.SetPrefix(commandMessage.GuildID, prefix)
+	err = guild.SetPrefix(prefix)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
