@@ -11,26 +11,29 @@ import (
 // Commands contains registered commands ready to be called
 // ResultMessages is the return channel for successful commands
 type Commands struct {
-	Commands       map[string]Command
-	ResultMessages chan CommandResultMessage
-	session        *discordgo.Session
+	RegisteredCommands []*Command
+	commands           map[string]Command
+	ResultMessages     chan CommandResultMessage
+	session            *discordgo.Session
 }
 
 // Init constructs the Commands object
 func (c *Commands) Init(session *discordgo.Session) {
-	c.Commands = make(map[string]Command)
+	c.RegisteredCommands = make([]*Command, 0)
+	c.commands = make(map[string]Command)
 	c.ResultMessages = make(chan CommandResultMessage)
 	c.session = session
 }
 
 // Register associates a Command name to a Handler
 func (c *Commands) Register(command Command) {
+	c.RegisteredCommands = append(c.RegisteredCommands, &command)
 	commandNameSplit := strings.Split(command.Name, " ")
 	if len(commandNameSplit) < 1 {
 		return
 	}
 	for _, commandName := range commandNameSplit {
-		c.Commands[strings.ToLower(commandName)] = command
+		c.commands[strings.ToLower(commandName)] = command
 	}
 }
 
@@ -52,7 +55,7 @@ func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 		}
 	}
 	commandName := commandParsed[0]
-	if command, exists := c.Commands[strings.ToLower(commandName)]; exists {
+	if command, exists := c.commands[strings.ToLower(commandName)]; exists {
 		if commandCount < 2 {
 			resultMessage := command.Handler(c.session, commandMessage, nil)
 			resultMessage.setCommandMessage(commandMessage)

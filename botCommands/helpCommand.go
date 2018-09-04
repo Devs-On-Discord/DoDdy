@@ -8,14 +8,14 @@ import (
 )
 
 type helpCommands struct {
-	commands *map[string]commands.Command
+	commands *[]*commands.Command
 }
 
 func (h *helpCommands) helpCommand(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	var helpText string
 
-	for _, j := range *h.commands {
-		helpText = fmt.Sprintf("%s%s: %s\n", helpText, j.Name, j.Description)
+	for _, command := range *h.commands {
+		helpText = fmt.Sprintf("%s%s: %s\n", helpText, command.Name, command.Description)
 	}
 
 	userChannel, err := session.UserChannelCreate(commandMessage.Author.ID)
