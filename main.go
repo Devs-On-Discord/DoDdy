@@ -7,8 +7,6 @@ import (
 	"syscall"
 
 	"github.com/Devs-On-Discord/DoDdy/botCommands"
-	"github.com/Devs-On-Discord/DoDdy/guilds"
-	"github.com/Devs-On-Discord/DoDdy/votes"
 )
 
 const version = "0.0.1"
@@ -26,14 +24,18 @@ func main() {
 
 	defer bot.Close()
 
-	g := &guilds.Guilds{}
+	g := &Guilds{}
 	g.Init(db.db)
 
-	v := &votes.Votes{}
+	v := &Votes{}
 	v.Init(db.db, bot.session)
 
-	commands := botcommands.BotCommands{}
-	commands.Init(g, v, bot.session)
+	botCommands := &botcommands.BotCommands{}
+	botCommands.Init(bot.session)
+	botCommands.Commands.Validator = commandValidator{guilds: g}
+	botCommands.Commands.Identifier = commandIdentifier{guilds: g}
+
+	RegisterCommands(g, v, botCommands)
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)

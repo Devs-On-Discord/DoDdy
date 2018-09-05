@@ -1,16 +1,15 @@
-package botcommands
+package main
 
 import (
 	"github.com/Devs-On-Discord/DoDdy/commands"
-	"github.com/Devs-On-Discord/DoDdy/guilds"
 	"github.com/bwmarrin/discordgo"
 )
 
-type botCommandValidator struct {
-	guilds *guilds.Guilds
+type commandValidator struct {
+	guilds *Guilds
 }
 
-func (v botCommandValidator) Validate(command *commands.Command, session *discordgo.Session, message *discordgo.MessageCreate) bool {
+func (v commandValidator) Validate(command *commands.Command, session *discordgo.Session, message *discordgo.MessageCreate) bool {
 	if guild, err := v.guilds.Guild(message.GuildID); err != nil {
 		return false
 	} else {

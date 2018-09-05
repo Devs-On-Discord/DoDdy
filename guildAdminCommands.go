@@ -1,11 +1,9 @@
-package botcommands
+package main
 
 import (
 	"bytes"
 	"github.com/Devs-On-Discord/DoDdy/commands"
-	"github.com/Devs-On-Discord/DoDdy/guilds"
 	"github.com/Devs-On-Discord/DoDdy/roles"
-	"github.com/Devs-On-Discord/DoDdy/votes"
 	"github.com/bwmarrin/discordgo"
 	"sync"
 )
@@ -26,8 +24,8 @@ when channel exists throw error
 */
 
 type guildAdminCommands struct {
-	guilds *guilds.Guilds
-	votes  *votes.Votes
+	guilds *Guilds
+	votes  *Votes
 }
 
 func (g *guildAdminCommands) getRoles(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
@@ -126,11 +124,11 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 	var wg sync.WaitGroup
 	wg.Add(len(loadedGuilds))
 
-	guildVotes := make(map[string]*votes.GuildVote)
+	guildVotes := make(map[string]*GuildVote)
 
 	go func() {
 		wg.Wait()
-		err := g.votes.Create(voteID, voteName, voteMessage, make(map[string]*votes.Answer), guildVotes)
+		err := g.votes.Create(voteID, voteName, voteMessage, make(map[string]*Answer), guildVotes)
 		if err != nil {
 			//TODO: handle
 		}
@@ -143,7 +141,7 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 			if err == nil {
 				channel, err := session.Channel(channelID)
 				if err == nil {
-					guildVotes[channel.GuildID] = &votes.GuildVote{ChannelID: channelID, MessageID: message.ID}
+					guildVotes[channel.GuildID] = &GuildVote{ChannelID: channelID, MessageID: message.ID}
 				}
 			}
 		}(guild.VotesChannelID)

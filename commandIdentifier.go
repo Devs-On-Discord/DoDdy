@@ -1,15 +1,14 @@
-package botcommands
+package main
 
 import (
-	"github.com/Devs-On-Discord/DoDdy/guilds"
 	"github.com/bwmarrin/discordgo"
 )
 
-type botCommandIdentifier struct {
-	guilds *guilds.Guilds
+type commandIdentifier struct {
+	guilds *Guilds
 }
 
-func (i botCommandIdentifier) Identify(s *discordgo.Session, m *discordgo.MessageCreate) bool {
+func (i commandIdentifier) Identify(s *discordgo.Session, m *discordgo.MessageCreate) bool {
 	botID := s.State.User.ID
 	if m.Author.ID == botID {
 		return false

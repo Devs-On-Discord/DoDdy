@@ -1,4 +1,4 @@
-package botcommands
+package main
 
 import (
 	"bytes"

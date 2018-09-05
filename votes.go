@@ -1,4 +1,4 @@
-package votes
+package main
 
 import (
 	"bytes"
@@ -19,6 +19,9 @@ var (
 	voteAnswerCount    = []byte("count")
 )
 
+//TODO: override message with messageID and channelID with editing when same id is used
+//TODO: add single server votes
+//TODO: add initial reactions for each answer to an vote message
 type Votes struct {
 	db      *bolt.DB
 	session *discordgo.Session

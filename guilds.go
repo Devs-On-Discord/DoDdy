@@ -1,4 +1,4 @@
-package guilds
+package main
 
 import (
 	"bytes"
