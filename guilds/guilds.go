@@ -92,8 +92,8 @@ func (g *Guilds) loadGuild(guildsBucket *bolt.Bucket, guildID string) *Guild {
 			} else if bytes.Equal(k, guildRoles) {
 				rolesBucket := guildBucket.Bucket(guildRoles)
 				if rolesBucket != nil {
-					roleCursor := rolesBucket.Cursor()
-					for k, v := roleCursor.First(); k != nil; k, v = roleCursor.Next() {
+					rolesCursor := rolesBucket.Cursor()
+					for k, v := rolesCursor.First(); k != nil; k, v = rolesCursor.Next() {
 						roleInt, err := strconv.Atoi(string(k))
 						if err == nil {
 							if role, exists := roles.RoleInt[roleInt]; exists {
@@ -149,8 +149,6 @@ func (g *Guild) bucket(tx *bolt.Tx) (*bolt.Bucket, error) {
 	}
 	guildBucket := guildsBucket.Bucket([]byte(g.id))
 	if guildBucket == nil {
-		println("id=" + g.id)
-		println("guildBucket==nil")
 		return nil, fmt.Errorf(notSetup)
 	}
 	return guildBucket, nil
@@ -206,7 +204,7 @@ func (g *Guild) SetRole(name string, id string) (error) {
 				return err
 			}
 			if rolesBucket, err := bucket.CreateBucketIfNotExists(guildRoles); err == nil {
-				err = rolesBucket.Put([]byte(string(role)), []byte(id))
+				err = rolesBucket.Put([]byte(strconv.Itoa(int(role))), []byte(id))
 				if err != nil {
 					return err
 				}

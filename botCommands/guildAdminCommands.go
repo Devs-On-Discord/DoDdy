@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/Devs-On-Discord/DoDdy/commands"
 	"github.com/Devs-On-Discord/DoDdy/guilds"
+	"github.com/Devs-On-Discord/DoDdy/roles"
 	"github.com/Devs-On-Discord/DoDdy/votes"
 	"github.com/bwmarrin/discordgo"
 	"sync"
@@ -35,8 +36,12 @@ func (g *guildAdminCommands) getRoles(session *discordgo.Session, commandMessage
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
 	var buffer bytes.Buffer
-	for role, id := range guild.Roles {
-		buffer.WriteString("role: " + role.String() + " " + id + "\n")
+	for name, id := range roles.CommandRoleNames {
+		if role, exists := guild.Roles[id]; exists {
+			buffer.WriteString("role: " + name + " " + role + "\n")
+		} else {
+			buffer.WriteString("role: " + name + " not set\n")
+		}
 	}
 	return &commands.CommandReply{Message: buffer.String(), Color: 0x00b300}
 }
