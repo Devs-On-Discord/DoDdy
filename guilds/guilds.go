@@ -8,8 +8,6 @@ import (
 	"strconv"
 )
 
-//TODO: save votes channel ids to votes -> vote -> guilds -> guildId -> channelId: {channelId}, messageID: {messageId}
-
 var (
 	guilds                      = []byte("guilds")
 	guildName                   = []byte("name")

@@ -81,6 +81,10 @@ func (v *Votes) Create(id string, name string, message string, answers map[strin
 		if err != nil {
 			return err
 		}
+		voteGuildsBucket, err := voteBucket.CreateBucketIfNotExists(voteGuilds)
+		if err != nil {
+			return err
+		}
 		for _, answer := range answers {
 			voteAnswerBucket, err := voteAnswersBucket.CreateBucketIfNotExists([]byte(answer.emojiID))
 			if err != nil {
@@ -96,7 +100,7 @@ func (v *Votes) Create(id string, name string, message string, answers map[strin
 			}
 		}
 		for guildID, guild := range guilds {
-			voteGuildBucket, err := voteAnswersBucket.CreateBucketIfNotExists([]byte(guildID))
+			voteGuildBucket, err := voteGuildsBucket.CreateBucketIfNotExists([]byte(guildID))
 			if err != nil {
 				return err
 			}
@@ -123,7 +127,7 @@ func (v *Votes) loadVote(votesBucket *bolt.Bucket, id string) *Vote {
 	voteBucket := votesBucket.Bucket([]byte(id))
 	if voteBucket != nil {
 		voteCursor := voteBucket.Cursor()
-		vote := &Vote{db: v.db, ID: string(id), Answers: make(map[string]*Answer)}
+		vote := &Vote{db: v.db, ID: string(id), Answers: make(map[string]*Answer), Guilds: make(map[string]*GuildVote)}
 		for k, v := voteCursor.First(); k != nil; k, v = voteCursor.Next() {
 			if bytes.Equal(k, voteName) {
 				vote.Name = string(v)
