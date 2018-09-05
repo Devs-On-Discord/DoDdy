@@ -1,6 +1,7 @@
 package botcommands
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/Devs-On-Discord/DoDdy/commands"
@@ -12,12 +13,10 @@ type helpCommands struct {
 }
 
 func (h *helpCommands) helpCommand(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	var helpText string
-
+	var buffer bytes.Buffer
 	for _, command := range *h.commands {
-		helpText = fmt.Sprintf("%s%s: %s\n", helpText, command.Name, command.Description)
+		buffer.WriteString(fmt.Sprintf("%s: %s\n", command.Name, command.Description))
 	}
-
 	userChannel, err := session.UserChannelCreate(commandMessage.Author.ID)
 	if err != nil {
 		return &commands.CommandError{
@@ -25,7 +24,7 @@ func (h *helpCommands) helpCommand(session *discordgo.Session, commandMessage *d
 			Color:   0xb30000,
 		}
 	}
-	_, err = session.ChannelMessageSend(userChannel.ID, helpText)
+	_, err = session.ChannelMessageSend(userChannel.ID, buffer.String())
 	if err != nil {
 		return &commands.CommandError{
 			Message: "Can't send help via DM " + err.Error(),
