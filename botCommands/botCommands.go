@@ -30,6 +30,7 @@ func (b *BotCommands) Init(guilds *guilds.Guilds, votes *votes.Votes, session *d
 	b.votes = votes
 	b.commands = &commands.Commands{}
 	b.commands.Init(session)
+	b.commands.Validator = botCommandValidator{}
 	b.discordCommandResultHandler = &commands.DiscordCommandResultHandler{}
 	b.discordCommandResultHandler.Init(b.commands, session)
 	b.RegisterCommands()
@@ -81,6 +82,16 @@ func (b *BotCommands) RegisterCommands() {
 		Handler:     guildAdminCommands.setup,
 	})
 	b.commands.Register(commands.Command{
+		Name:        "role",
+		Description: "Specify roles",
+		Handler:     guildAdminCommands.setRole,
+	})
+	b.commands.Register(commands.Command{
+		Name:        "roles",
+		Description: "Get roles",
+		Handler:     guildAdminCommands.getRoles,
+	})
+	b.commands.Register(commands.Command{
 		Name:        "help",
 		Description: "Begins a vote in this node's voting channel.",
 		Handler:     helpCommands.helpCommand,
@@ -88,8 +99,8 @@ func (b *BotCommands) RegisterCommands() {
 }
 
 // Parse is the input sink for commands
-func (b *BotCommands) Parse(message *discordgo.MessageCreate) {
-	b.commands.Parse(message)
+func (b *BotCommands) Parse(session *discordgo.Session, message *discordgo.MessageCreate) {
+	b.commands.Parse(session, message)
 }
 
 func (b *BotCommands) messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -125,5 +136,5 @@ func (b *BotCommands) messageHandler(s *discordgo.Session, m *discordgo.MessageC
 			return
 		}
 	}
-	b.Parse(m)
+	b.Parse(s, m)
 }

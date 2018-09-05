@@ -3,7 +3,9 @@ package guilds
 import (
 	"bytes"
 	"fmt"
+	"github.com/Devs-On-Discord/DoDdy/roles"
 	bolt "go.etcd.io/bbolt"
+	"strconv"
 )
 
 //TODO: save votes channel ids to votes -> vote -> guilds -> guildId -> channelId: {channelId}, messageID: {messageId}
@@ -14,6 +16,7 @@ var (
 	guildPrefix                 = []byte("prefix")
 	guildAnnouncementsChannelID = []byte("announcementsChannelID")
 	guildVotesChannelID         = []byte("votesChannelID")
+	guildRoles                  = []byte("roles")
 )
 
 // Guilds is an object able to access the database, and possesses a list of guilds
@@ -30,6 +33,7 @@ type Guild struct {
 	Prefix                 string
 	AnnouncementsChannelID string
 	VotesChannelID         string
+	Roles                  map[roles.Role]string // Value: guild specific role id
 }
 
 const (
@@ -65,7 +69,7 @@ func (g *Guilds) Create(id string, name string) error {
 		return nil
 	})
 	if err == nil {
-		guild := &Guild{db: g.db, id: id, name: name}
+		guild := &Guild{db: g.db, id: id, name: name, Roles: make(map[roles.Role]string)}
 		g.Guilds[id] = guild
 	}
 	return err
@@ -75,7 +79,7 @@ func (g *Guilds) loadGuild(guildsBucket *bolt.Bucket, guildID string) *Guild {
 	guildBucket := guildsBucket.Bucket([]byte(guildID))
 	if guildBucket != nil {
 		guildCursor := guildBucket.Cursor()
-		guild := &Guild{db: g.db, id: string(guildID), Prefix: ""}
+		guild := &Guild{db: g.db, id: string(guildID), Prefix: "", Roles: make(map[roles.Role]string)}
 		for k, v := guildCursor.First(); k != nil; k, v = guildCursor.Next() {
 			if bytes.Equal(k, guildName) {
 				guild.name = string(v)
@@ -85,6 +89,19 @@ func (g *Guilds) loadGuild(guildsBucket *bolt.Bucket, guildID string) *Guild {
 				guild.AnnouncementsChannelID = string(v)
 			} else if bytes.Equal(k, guildVotesChannelID) {
 				guild.VotesChannelID = string(v)
+			} else if bytes.Equal(k, guildRoles) {
+				rolesBucket := guildBucket.Bucket(guildRoles)
+				if rolesBucket != nil {
+					roleCursor := rolesBucket.Cursor()
+					for k, v := roleCursor.First(); k != nil; k, v = roleCursor.Next() {
+						roleInt, err := strconv.Atoi(string(k))
+						if err == nil {
+							if role, exists := roles.RoleInt[roleInt]; exists {
+								guild.Roles[role] = string(v)
+							}
+						}
+					}
+				}
 			}
 		}
 		g.Guilds[guild.id] = guild
@@ -181,81 +198,28 @@ func (g *Guild) SetVotesChannel(channelID string) error {
 	return err
 }
 
-/*
-// AddVote adds a single vote to a single guild
-//TODO: migrate to votes
-func AddVote(guildID string, voteID string, messageID string, channelID string) error {
-	return db.DB.Update(func(tx *bolt.Tx) error {
-		guildsBucket, err := tx.CreateBucketIfNotExists([]byte("guilds"))
-		if err != nil {
-			return fmt.Errorf(bucketNotCreated)
-		}
-		guildBucket := guildsBucket.Bucket([]byte(guildID))
-		if guildBucket == nil {
-			return fmt.Errorf(notSetup)
-		}
-		votesBucket, err := guildBucket.CreateBucketIfNotExists([]byte("votes"))
-		if err != nil {
-			return fmt.Errorf("vote's bucket couldn't be created")
-		}
-		voteBucket, err := votesBucket.CreateBucket([]byte(voteID))
-		if err != nil {
-			return fmt.Errorf("vote bucket couldn't be created")
-		}
-		err = voteBucket.Put([]byte("voteID"), []byte(voteID))
-		if err != nil {
-			return fmt.Errorf("voteID couldn't be saved")
-		}
-		err = voteBucket.Put([]byte("messageID"), []byte(messageID))
-		if err != nil {
-			return fmt.Errorf("messageID couldn't be saved")
-		}
-		err = voteBucket.Put([]byte("channelID"), []byte(channelID))
-		if err != nil {
-			return fmt.Errorf("channelID couldn't be saved")
-		}
-		return nil
-	})
-}
-
-// GetVotes returns every single vote from every single guild
-//TODO: migrate to votes
-func GetVotes() ([]GuildVote, error) {
-	votes := make([]GuildVote, 0)
-	err := db.DB.View(func(tx *bolt.Tx) error {
-		guildsBucket := tx.Bucket([]byte("guilds"))
-		if guildsBucket == nil {
-			return fmt.Errorf(notSetup)
-		}
-		err := guildsBucket.ForEach(func(k, v []byte) error {
-			guildBucket := guildsBucket.Bucket(k)
-			if guildBucket != nil {
-				votesBucket := guildBucket.Bucket([]byte("votes"))
-				if votesBucket != nil {
-					votesBucket.ForEach(func(k, v []byte) error {
-						voteBucket := votesBucket.Bucket([]byte(k))
-						if voteBucket != nil {
-							voteID := voteBucket.Get([]byte("voteID"))
-							if voteID == nil {
-								return nil
-							}
-							messageID := voteBucket.Get([]byte("messageID"))
-							if messageID == nil {
-								return nil
-							}
-							channelID := voteBucket.Get([]byte("channelID"))
-							if channelID == nil {
-								return nil
-							}
-							votes = append(votes, GuildVote{VoteID: string(voteID), MessageID: string(messageID), ChannelID: string(channelID)})
-						}
-						return nil
-					})
+func (g *Guild) SetRole(name string, id string) (error) {
+	if role, exists := roles.CommandRoleNames[name]; exists {
+		err := g.db.Update(func(tx *bolt.Tx) error {
+			bucket, err := g.bucket(tx)
+			if err != nil {
+				return err
+			}
+			if rolesBucket, err := bucket.CreateBucketIfNotExists(guildRoles); err == nil {
+				err = rolesBucket.Put([]byte(string(role)), []byte(id))
+				if err != nil {
+					return err
 				}
+			} else {
+				return err
 			}
 			return nil
 		})
+		if err == nil {
+			g.Roles[role] = id
+		}
 		return err
-	})
-	return votes, err
-}*/
+	} else {
+		return fmt.Errorf("role %s doesn't exists\nEnter !roles to see possible names.", string(name))
+	}
+}

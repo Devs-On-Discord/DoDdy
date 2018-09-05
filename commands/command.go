@@ -1,6 +1,9 @@
 package commands
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"github.com/Devs-On-Discord/DoDdy/roles"
+	"github.com/bwmarrin/discordgo"
+)
 
 // Handle is the function signature used by handling commands
 type Handle func(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) CommandResultMessage
@@ -10,5 +13,6 @@ type Handle func(session *discordgo.Session, commandMessage *discordgo.MessageCr
 type Command struct {
 	Name        string
 	Description string
+	Rank        roles.Role
 	Handler     Handle
 }

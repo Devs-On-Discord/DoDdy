@@ -1,6 +1,7 @@
 package botcommands
 
 import (
+	"bytes"
 	"github.com/Devs-On-Discord/DoDdy/commands"
 	"github.com/Devs-On-Discord/DoDdy/guilds"
 	"github.com/Devs-On-Discord/DoDdy/votes"
@@ -26,6 +27,39 @@ when channel exists throw error
 type guildAdminCommands struct {
 	guilds *guilds.Guilds
 	votes  *votes.Votes
+}
+
+func (g *guildAdminCommands) getRoles(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	guild, err := g.guilds.Guild(commandMessage.GuildID)
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	var buffer bytes.Buffer
+	for role, id := range guild.Roles {
+		buffer.WriteString("role: " + role.String() + " " + id + "\n")
+	}
+	return &commands.CommandReply{Message: buffer.String(), Color: 0x00b300}
+}
+
+func (g *guildAdminCommands) setRole(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	if len(commandMessage.MentionRoles) != 1 {
+		return &commands.CommandError{Message: "Needs an single role mention", Color: 0xb30000}
+	}
+	if len(args) < 1 {
+		return &commands.CommandError{Message: "Needs role name and role mention", Color: 0xb30000}
+	}
+	roleName := args[0]
+	roleID := commandMessage.MentionRoles[0]
+	guild, err := g.guilds.Guild(commandMessage.GuildID)
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	} else {
+		err = guild.SetRole(roleName, roleID)
+		if err != nil {
+			return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+		}
+	}
+	return &commands.CommandReply{Message: "Role set", Color: 0x00b300}
 }
 
 func (g *guildAdminCommands) setPrefix(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {

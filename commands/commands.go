@@ -15,6 +15,7 @@ type Commands struct {
 	commands           map[string]Command
 	ResultMessages     chan CommandResultMessage
 	session            *discordgo.Session
+	Validator          CommandValidator
 }
 
 // Init constructs the Commands object
@@ -37,7 +38,7 @@ func (c *Commands) Register(command Command) {
 	}
 }
 
-func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
+func (c *Commands) parse(session *discordgo.Session, commandMessage *discordgo.MessageCreate) {
 	commandParsed, err := shlex.Split(commandMessage.Content, true)
 	if err != nil {
 		c.ResultMessages <- &CommandError{
@@ -45,6 +46,7 @@ func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 			Message:        "Error happened " + err.Error(),
 			Color:          0xb30000,
 		}
+		return
 	}
 	commandCount := len(commandParsed)
 	if commandCount < 1 {
@@ -53,9 +55,19 @@ func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 			Message:        "Invalid Command",
 			Color:          0xb30000,
 		}
+		return
 	}
 	commandName := commandParsed[0]
 	if command, exists := c.commands[strings.ToLower(commandName)]; exists {
+		valid := c.Validator.Validate(&command, session, commandMessage)
+		if !valid {
+			c.ResultMessages <- &CommandError{
+				CommandMessage: commandMessage,
+				Message:        "No permissions to execute this command",
+				Color:          0xb30000,
+			}
+			return
+		}
 		if commandCount < 2 {
 			resultMessage := command.Handler(c.session, commandMessage, nil)
 			resultMessage.setCommandMessage(commandMessage)
@@ -75,6 +87,6 @@ func (c *Commands) parse(commandMessage *discordgo.MessageCreate) {
 }
 
 // Parse is the input sink for commands
-func (c *Commands) Parse(commandMessage *discordgo.MessageCreate) {
-	go c.parse(commandMessage)
+func (c *Commands) Parse(session *discordgo.Session, commandMessage *discordgo.MessageCreate) {
+	go c.parse(session, commandMessage)
 }
