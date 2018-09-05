@@ -16,6 +16,7 @@ type Commands struct {
 	ResultMessages     chan CommandResultMessage
 	session            *discordgo.Session
 	Validator          CommandValidator
+	Identifier         CommandIdentifier
 }
 
 // Init constructs the Commands object
@@ -38,7 +39,10 @@ func (c *Commands) Register(command Command) {
 	}
 }
 
-func (c *Commands) parse(session *discordgo.Session, commandMessage *discordgo.MessageCreate) {
+func (c *Commands) processMessage(session *discordgo.Session, commandMessage *discordgo.MessageCreate) {
+	if !c.Identifier.Identify(session, commandMessage) {
+		return
+	}
 	commandParsed, err := shlex.Split(commandMessage.Content, true)
 	if err != nil {
 		c.ResultMessages <- &CommandError{
@@ -86,7 +90,6 @@ func (c *Commands) parse(session *discordgo.Session, commandMessage *discordgo.M
 	}
 }
 
-// Parse is the input sink for commands
-func (c *Commands) Parse(session *discordgo.Session, commandMessage *discordgo.MessageCreate) {
-	go c.parse(session, commandMessage)
+func (c *Commands) ProcessMessage(session *discordgo.Session, commandMessage *discordgo.MessageCreate) {
+	go c.processMessage(session, commandMessage)
 }

@@ -23,14 +23,16 @@ func (b *BotCommands) Init(guilds *guilds.Guilds, votes *votes.Votes, session *d
 	b.commands = &commands.Commands{}
 	b.commands.Init(session)
 	b.commands.Validator = botCommandValidator{guilds: guilds}
+	b.commands.Identifier = botCommandIdentifier{guilds: guilds}
 	b.discordCommandResultHandler = &commands.DiscordCommandResultHandler{}
 	b.discordCommandResultHandler.Init(b.commands, session)
 	b.RegisterCommands()
-	session.AddHandler(b.messageHandler)
+	session.AddHandler(b.commands.ProcessMessage)
 }
 
 // RegisterCommands registers commands with the Commands object
 func (b *BotCommands) RegisterCommands() {
+	//TODO: command !nodes that lists all guilds and there online count, maybe its possible to just embed an guild like in an invite
 	guildAdminCommands := guildAdminCommands{guilds: b.guilds, votes: b.votes}
 	helpCommands := helpCommands{b.commands}
 	b.commands.Register(commands.Command{
@@ -99,45 +101,4 @@ func (b *BotCommands) RegisterCommands() {
 		Role:        roles.NodeMod,
 		Handler:     helpCommands.helpCommand,
 	})
-}
-
-// Parse is the input sink for commands
-func (b *BotCommands) Parse(session *discordgo.Session, message *discordgo.MessageCreate) {
-	b.commands.Parse(session, message)
-}
-
-func (b *BotCommands) messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
-	botID := s.State.User.ID
-	if m.Author.ID == botID {
-		return
-	}
-	if len(m.Content) == 0 {
-		return
-	}
-	valid := false
-	//TODO: support multiple mentions and append all mentions at the bot reply
-	for _, mention := range m.Mentions {
-		if mention.ID == botID {
-			m.Content = m.Content[len(mention.ID)+3:] //<@{botID}>
-			valid = true
-			break
-		}
-	}
-	if !valid {
-		input := m.Content
-		if len(input) > 1 {
-			guild, err := b.guilds.Guild(m.GuildID)
-			if err != nil {
-				return
-			}
-			if guild.Prefix == input[:1] {
-				m.Content = m.Content[1:]
-			} else {
-				return
-			}
-		} else {
-			return
-		}
-	}
-	b.Parse(s, m)
 }
