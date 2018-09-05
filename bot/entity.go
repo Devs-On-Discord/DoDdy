@@ -54,6 +54,26 @@ func (e entity) Get(key string) interface{} {
 	return nil
 }
 
+func (e entity) GetString(key string) string {
+	if data := e.Get(key); data != nil {
+		switch data.(type) {
+		case string:
+			return data.(string)
+		}
+	}
+	return ""
+}
+
+func (e entity) GetInt(key string) int {
+	if data := e.Get(key); data != nil {
+		switch data.(type) {
+		case int:
+			return data.(int)
+		}
+	}
+	return 0
+}
+
 func (e entity) Update(keys []string) {
 	Db.Update(func(tx *bolt.Tx) error {
 		if entitiesBucket, err := tx.CreateBucketIfNotExists([]byte(e.name)); err == nil {
