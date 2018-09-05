@@ -1,15 +1,6 @@
 package main
 
-import (
-	"fmt"
-
-	"github.com/Devs-On-Discord/DoDdy/db"
-	bolt "go.etcd.io/bbolt"
-)
-
-type user struct {
-	id string
-}
+/*import "fmt"
 
 func (u *user) Insert(usersBucket *bolt.Bucket) error {
 	userBucket, err := usersBucket.CreateBucket([]byte(u.id))
@@ -33,3 +24,4 @@ func (u *user) Delete() {
 		return nil
 	})
 }
+*/

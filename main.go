@@ -6,12 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Devs-On-Discord/DoDdy/db"
-	"github.com/Devs-On-Discord/DoDdy/guilds"
-
 	"github.com/Devs-On-Discord/DoDdy/botCommands"
+	"github.com/Devs-On-Discord/DoDdy/guilds"
 	"github.com/Devs-On-Discord/DoDdy/votes"
-	"github.com/bwmarrin/discordgo"
 )
 
 const version = "0.0.1"
@@ -19,28 +16,23 @@ const version = "0.0.1"
 func main() {
 	fmt.Printf("DoDdy %s starting\n", version)
 
-	dataBase := db.Init()
+	db := db{}
+	db.Init()
 
-	defer dataBase.Close()
+	defer db.Close()
 
-	bot, err := discordgo.New("Bot " + testToken)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	if err = bot.Open(); err != nil {
-		panic("could not open bot: " + err.Error())
-	}
+	bot := bot{}
+	bot.Init()
 
 	defer bot.Close()
 
 	g := &guilds.Guilds{}
-	g.Init(dataBase)
+	g.Init(db.db)
 
 	v := &votes.Votes{}
-	v.Init(dataBase, bot)
+	v.Init(db.db, bot.session)
 
-	botcommands.Init(g, v, bot)
+	botcommands.Init(g, v, bot.session)
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
