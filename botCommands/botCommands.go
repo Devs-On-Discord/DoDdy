@@ -8,15 +8,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// Instance is a globally accessible BotCommands object
-var Instance BotCommands
-
-// Init constructs the global BotCommands object
-func Init(guilds *guilds.Guilds, votes *votes.Votes, session *discordgo.Session) {
-	Instance = BotCommands{}
-	Instance.Init(guilds, votes, session)
-}
-
 // BotCommands is an object that encapsulates both Commands and a result handler
 type BotCommands struct {
 	commands                    *commands.Commands

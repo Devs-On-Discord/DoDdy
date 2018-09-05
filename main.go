@@ -32,7 +32,8 @@ func main() {
 	v := &votes.Votes{}
 	v.Init(db.db, bot.session)
 
-	botcommands.Init(g, v, bot.session)
+	commands := botcommands.BotCommands{}
+	commands.Init(g, v, bot.session)
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
