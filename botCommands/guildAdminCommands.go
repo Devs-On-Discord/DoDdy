@@ -35,10 +35,22 @@ func (g *guildAdminCommands) getRoles(session *discordgo.Session, commandMessage
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
+	guildRoles, err := session.GuildRoles(commandMessage.GuildID)
+	if err != nil {
+		return &commands.CommandError{Message: "Error in fetching server roles " + err.Error(), Color: 0xb30000}
+	}
+
 	var buffer bytes.Buffer
 	for name, id := range roles.CommandRoleNames {
 		if role, exists := guild.Roles[id]; exists {
-			buffer.WriteString("role: " + name + " " + role + "\n")
+			roleName := role
+			for _, guildRole := range guildRoles {
+				if guildRole.ID == role {
+					roleName = guildRole.Name
+					break
+				}
+			}
+			buffer.WriteString("role: " + name + " " + roleName + "\n")
 		} else {
 			buffer.WriteString("role: " + name + " not set\n")
 		}
