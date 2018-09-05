@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
-	"github.com/Devs-On-Discord/DoDdy/commands"
-	"github.com/Devs-On-Discord/DoDdy/roles"
+	"github.com/Devs-On-Discord/DoDdy/bot/commands"
+	"github.com/Devs-On-Discord/DoDdy/bot/roles"
 	"github.com/bwmarrin/discordgo"
 	"sync"
 )

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/Devs-On-Discord/DoDdy/commands"
+	"github.com/Devs-On-Discord/DoDdy/bot/commands"
 	"os"
 	"os/signal"
 	"syscall"

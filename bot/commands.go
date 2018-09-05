@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/Devs-On-Discord/DoDdy/commands"
-	"github.com/Devs-On-Discord/DoDdy/roles"
+	"github.com/Devs-On-Discord/DoDdy/bot/commands"
+	"github.com/Devs-On-Discord/DoDdy/bot/roles"
 )
 
 func RegisterCommands(g *Guilds, v *Votes, botCommands *commands.Commands) {

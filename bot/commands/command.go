@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/Devs-On-Discord/DoDdy/roles"
+	"github.com/Devs-On-Discord/DoDdy/bot/roles"
 	"github.com/bwmarrin/discordgo"
 )
 

@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/Devs-On-Discord/DoDdy/roles"
+	"github.com/Devs-On-Discord/DoDdy/bot/roles"
 	bolt "go.etcd.io/bbolt"
 	"strconv"
 )

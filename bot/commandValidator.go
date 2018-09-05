@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Devs-On-Discord/DoDdy/commands"
+	"github.com/Devs-On-Discord/DoDdy/bot/commands"
 	"github.com/bwmarrin/discordgo"
 )
 

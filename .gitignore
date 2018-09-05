@@ -13,7 +13,7 @@ debug
 *.out
 
 # Keyfile
-secret.go
+bot/secret.go
 firebase.json
 
 # Database
