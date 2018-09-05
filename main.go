@@ -33,7 +33,7 @@ func main() {
 	botCommands.Init(bot.session)
 	botCommands.Validator = commandValidator{guilds: g}
 	botCommands.Identifier = commandIdentifier{guilds: g}
-	discordCommandResultHandler := &commands.DiscordCommandResultHandler{}
+	discordCommandResultHandler := &commands.CommandResultHandler{}
 	discordCommandResultHandler.Init(botCommands, bot.session)
 
 	RegisterCommands(g, v, botCommands)

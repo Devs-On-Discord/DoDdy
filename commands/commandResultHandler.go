@@ -8,13 +8,13 @@ import (
 
 // DiscordCommandResultHandler is a master object containing everything related to handling incoming commands
 // as well as responding to them, and deleting answers 10 seconds later
-type DiscordCommandResultHandler struct {
+type CommandResultHandler struct {
 	commands *Commands
 	session  *discordgo.Session
 }
 
 // Init constructs the DiscordCommandResultHandler and launches the handling goroutines
-func (d *DiscordCommandResultHandler) Init(commands *Commands, session *discordgo.Session) {
+func (d *CommandResultHandler) Init(commands *Commands, session *discordgo.Session) {
 	d.commands = commands
 	d.session = session
 	go func() {
