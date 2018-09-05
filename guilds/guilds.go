@@ -196,7 +196,7 @@ func (g *Guild) SetVotesChannel(channelID string) error {
 	return err
 }
 
-func (g *Guild) SetRole(name string, id string) (error) {
+func (g *Guild) SetRole(name string, id string) error {
 	if role, exists := roles.CommandRoleNames[name]; exists {
 		err := g.db.Update(func(tx *bolt.Tx) error {
 			bucket, err := g.bucket(tx)

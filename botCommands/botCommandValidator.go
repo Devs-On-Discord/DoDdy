@@ -8,7 +8,7 @@ import (
 type botCommandValidator struct {
 }
 
-func (v botCommandValidator) Validate(command *commands.Command, session *discordgo.Session, message *discordgo.MessageCreate) (bool) {
+func (v botCommandValidator) Validate(command *commands.Command, session *discordgo.Session, message *discordgo.MessageCreate) bool {
 
 	return true
 }
