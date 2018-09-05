@@ -13,6 +13,6 @@ type Handle func(session *discordgo.Session, commandMessage *discordgo.MessageCr
 type Command struct {
 	Name        string
 	Description string
-	Rank        roles.Role
+	Role        roles.Role
 	Handler     Handle
 }
