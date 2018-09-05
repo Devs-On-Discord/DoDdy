@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/Devs-On-Discord/DoDdy/commands"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/Devs-On-Discord/DoDdy/botCommands"
 )
 
 const version = "0.0.1"
@@ -30,10 +29,12 @@ func main() {
 	v := &Votes{}
 	v.Init(db.db, bot.session)
 
-	botCommands := &botcommands.BotCommands{}
+	botCommands := &commands.Commands{}
 	botCommands.Init(bot.session)
-	botCommands.Commands.Validator = commandValidator{guilds: g}
-	botCommands.Commands.Identifier = commandIdentifier{guilds: g}
+	botCommands.Validator = commandValidator{guilds: g}
+	botCommands.Identifier = commandIdentifier{guilds: g}
+	discordCommandResultHandler := &commands.DiscordCommandResultHandler{}
+	discordCommandResultHandler.Init(botCommands, bot.session)
 
 	RegisterCommands(g, v, botCommands)
 

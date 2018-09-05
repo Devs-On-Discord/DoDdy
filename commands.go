@@ -1,15 +1,14 @@
 package main
 
 import (
-	"github.com/Devs-On-Discord/DoDdy/botCommands"
 	"github.com/Devs-On-Discord/DoDdy/commands"
 	"github.com/Devs-On-Discord/DoDdy/roles"
 )
 
-func RegisterCommands(g *Guilds, v *Votes, botCommands *botcommands.BotCommands) {
+func RegisterCommands(g *Guilds, v *Votes, botCommands *commands.Commands) {
 	//TODO: command !nodes that lists all guilds and there online count, maybe its possible to just embed an guild like in an invite
 	guildAdminCommands := guildAdminCommands{guilds: g, votes: v}
-	helpCommands := helpCommands{botCommands.Commands}
+	helpCommands := helpCommands{botCommands}
 	botCommands.Register(commands.Command{
 		Name:        "prefix",
 		Description: "Changes / Displays the prefix.",

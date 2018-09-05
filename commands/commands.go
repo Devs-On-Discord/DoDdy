@@ -25,6 +25,7 @@ func (c *Commands) Init(session *discordgo.Session) {
 	c.commands = make(map[string]Command)
 	c.ResultMessages = make(chan CommandResultMessage)
 	c.session = session
+	session.AddHandler(c.ProcessMessage)
 }
 
 // Register associates a Command name to a Handler
