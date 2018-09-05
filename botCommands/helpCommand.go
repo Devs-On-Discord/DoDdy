@@ -9,12 +9,12 @@ import (
 )
 
 type helpCommands struct {
-	commands *[]*commands.Command
+	commands *commands.Commands
 }
 
 func (h *helpCommands) helpCommand(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	var buffer bytes.Buffer
-	for _, command := range *h.commands {
+	for _, command := range h.commands.RegisteredCommands {
 		buffer.WriteString(fmt.Sprintf("%s: %s\n", command.Name, command.Description))
 	}
 	userChannel, err := session.UserChannelCreate(commandMessage.Author.ID)

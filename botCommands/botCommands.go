@@ -41,7 +41,7 @@ func (b *BotCommands) Init(guilds *guilds.Guilds, votes *votes.Votes, session *d
 // RegisterCommands registers commands with the Commands object
 func (b *BotCommands) RegisterCommands() {
 	guildAdminCommands := guildAdminCommands{guilds: b.guilds, votes: b.votes}
-	helpCommands := helpCommands{&b.commands.RegisteredCommands}
+	helpCommands := helpCommands{b.commands}
 	b.commands.Register(commands.Command{
 		Name:        "prefix",
 		Description: "Changes / Displays the prefix.",
