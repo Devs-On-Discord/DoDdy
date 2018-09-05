@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	bolt "go.etcd.io/bbolt"
-	"reflect"
 	"strconv"
 )
 
@@ -78,7 +76,6 @@ func (e entity) dbSet(key string, bucket *bolt.Bucket) {
 	if value == nil {
 		bucket.Delete([]byte(key))
 	} else {
-		fmt.Println(reflect.TypeOf(value))
 		switch value.(type) {
 		case string:
 			bucket.Put([]byte(key), []byte(value.(string)))
