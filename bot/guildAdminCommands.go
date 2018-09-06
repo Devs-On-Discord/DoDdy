@@ -24,9 +24,8 @@ when channel exists throw error
 */
 
 type guildAdminCommands struct {
-	guilds  *Guilds
-	votes   *votes
-	guilds2 *guilds2
+	votes  *votes
+	guilds *guilds
 }
 
 func (g guildAdminCommands) Commands() []*commands.Command {
@@ -36,12 +35,6 @@ func (g guildAdminCommands) Commands() []*commands.Command {
 			Description: "Changes / Displays the prefix.",
 			Role:        int(NodeMod),
 			Handler:     g.setPrefix,
-		},
-		{
-			Name:        "setAnnouncementsChannel",
-			Description: "Redefines this node's announcement channel.",
-			Role:        int(NodeMod),
-			Handler:     g.setAnnouncementsChannel,
 		},
 		{
 			Name:        "announce announcement",
@@ -60,18 +53,6 @@ func (g guildAdminCommands) Commands() []*commands.Command {
 			Description: "Repost the last message sent in this channel as an announcement",
 			Role:        int(NodeMod),
 			Handler:     g.postLastMessageAsAnnouncement,
-		},
-		{
-			Name:        "setVotesChannel",
-			Description: "Redefines this node's voting channel.",
-			Role:        int(NodeMod),
-			Handler:     g.setVotesChannel,
-		},
-		{
-			Name:        "setVotesChannel",
-			Description: "Redefines this node's voting channel.",
-			Role:        int(NodeMod),
-			Handler:     g.setVotesChannel,
 		},
 		{
 			Name:        "survey vote",
@@ -97,6 +78,18 @@ func (g guildAdminCommands) Commands() []*commands.Command {
 			Role:        int(NodeMod),
 			Handler:     g.getRoles,
 		},
+		{
+			Name:        "channel",
+			Description: "Specify channels",
+			Role:        int(NodeMod),
+			Handler:     g.setChannel,
+		},
+		{
+			Name:        "channels",
+			Description: "Get channels",
+			Role:        int(NodeMod),
+			Handler:     g.getChannels,
+		},
 	}
 }
 
@@ -106,7 +99,7 @@ func (g *guildAdminCommands) getRoles(session *discordgo.Session, commandMessage
 		return &commands.CommandError{Message: "Error in fetching server roles " + err.Error(), Color: 0xb30000}
 	}
 
-	guildPtr, err := g.guilds2.Entity(commandMessage.GuildID)
+	guildPtr, err := g.guilds.Entity(commandMessage.GuildID)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
@@ -140,6 +133,81 @@ func (g *guildAdminCommands) getRoles(session *discordgo.Session, commandMessage
 	return &commands.CommandReply{Message: buffer.String(), Color: 0x00b300}
 }
 
+func (g *guildAdminCommands) setChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	if len(args) < 2 {
+		return &commands.CommandError{Message: "Needs channel name and channel mention", Color: 0xb30000}
+	}
+	channelName := args[0]
+	channelMention := args[1]
+	channelID := channelMention[2 : len(channelMention)-1]
+	guildPtr, err := g.guilds.Entity(commandMessage.GuildID)
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	guild := *guildPtr
+	rawChannels, err := guild.Get("channels")
+	if err != nil {
+		switch err.(type) {
+		case *entityDataNotFoundError:
+			rawChannels = map[Channel]string{}
+		default:
+			return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+		}
+	}
+	channels := rawChannels.(map[Channel]string)
+	if commandChannel, exists := CommandChannelNames[channelName]; exists {
+		channels[commandChannel] = channelID
+	} else {
+		return &commands.CommandError{Message: "Unknown channel name " + channelName, Color: 0xb30000}
+	}
+	guild.Set("channels", channels)
+	if err := guild.Update([]string{"channels"}); err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	g.guilds.Update(guild)
+	return &commands.CommandReply{Message: "channel set", Color: 0x00b300}
+}
+
+func (g *guildAdminCommands) getChannels(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	guildChannels, err := session.GuildChannels(commandMessage.GuildID)
+	if err != nil {
+		return &commands.CommandError{Message: "Error in fetching server roles " + err.Error(), Color: 0xb30000}
+	}
+
+	guildPtr, err := g.guilds.Entity(commandMessage.GuildID)
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	guild := *guildPtr
+	rawChannels, err := guild.Get("channels")
+	if err != nil {
+		switch err.(type) {
+		case *entityDataNotFoundError:
+			rawChannels = map[Channel]string{}
+		default:
+			return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+		}
+	}
+	channels := rawChannels.(map[Channel]string)
+
+	var buffer bytes.Buffer
+	for name, id := range CommandChannelNames {
+		if channel, exists := channels[id]; exists {
+			channelName := channel
+			for _, guildRole := range guildChannels {
+				if guildRole.ID == channel {
+					channelName = guildRole.Name
+					break
+				}
+			}
+			buffer.WriteString("channel: " + name + " " + channelName + "\n")
+		} else {
+			buffer.WriteString("channel: " + name + " not set\n")
+		}
+	}
+	return &commands.CommandReply{Message: buffer.String(), Color: 0x00b300}
+}
+
 func (g *guildAdminCommands) setRole(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	if len(commandMessage.MentionRoles) != 1 {
 		return &commands.CommandError{Message: "Needs an single role mention", Color: 0xb30000}
@@ -149,17 +217,19 @@ func (g *guildAdminCommands) setRole(session *discordgo.Session, commandMessage 
 	}
 	roleName := args[0]
 	roleID := commandMessage.MentionRoles[0]
-	guildPtr, err := g.guilds2.Entity(commandMessage.GuildID)
+	guildPtr, err := g.guilds.Entity(commandMessage.GuildID)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
 	guild := *guildPtr
 	rawRoles, err := guild.Get("roles")
-	switch err.(type) {
-	case *entityDataNotFoundError:
-		rawRoles = map[Role]string{}
-	default:
-		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	if err != nil {
+		switch err.(type) {
+		case *entityDataNotFoundError:
+			rawRoles = map[Role]string{}
+		default:
+			return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+		}
 	}
 	roles := rawRoles.(map[Role]string)
 	if commandRole, exists := CommandRoleNames[roleName]; exists {
@@ -171,12 +241,12 @@ func (g *guildAdminCommands) setRole(session *discordgo.Session, commandMessage 
 	if err := guild.Update([]string{"roles"}); err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
-	g.guilds2.Update(guild)
+	g.guilds.Update(guild)
 	return &commands.CommandReply{Message: "Role set", Color: 0x00b300}
 }
 
 func (g *guildAdminCommands) setPrefix(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	guildPtr, err := g.guilds2.Entity(commandMessage.GuildID)
+	guildPtr, err := g.guilds.Entity(commandMessage.GuildID)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
@@ -191,28 +261,11 @@ func (g *guildAdminCommands) setPrefix(session *discordgo.Session, commandMessag
 	prefix := args[0]
 	guild.Set("prefix", prefix)
 	guild.Update([]string{"prefix"})
-	g.guilds2.Update(guild)
+	g.guilds.Update(guild)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
 	return &commands.CommandReply{Message: "Bot prefix set to " + prefix, Color: 0x00b300}
-}
-
-func (g *guildAdminCommands) setVotesChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	channelID := commandMessage.ChannelID
-	channel, err := session.Channel(channelID)
-	if err != nil {
-		return &commands.CommandError{Message: "Vote channel couldn't be identified " + err.Error(), Color: 0xb30000}
-	}
-	guild, err := g.guilds.Guild(commandMessage.GuildID)
-	if err != nil {
-		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
-	}
-	err = guild.SetVotesChannel(channelID)
-	if err != nil {
-		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
-	}
-	return &commands.CommandReply{Message: "Vote channel set to " + channel.Name, Color: 0x00b300}
 }
 
 //TODO: only create vote when it got successfully posted on all discord servers
@@ -224,10 +277,10 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 	voteName := args[1]
 	voteMessage := args[2]
 
-	loadedGuilds := g.guilds.LoadGuilds().Guilds
+	loadedEntities := g.guilds.Entities().entities
 
 	var wg sync.WaitGroup
-	wg.Add(len(loadedGuilds))
+	wg.Add(len(loadedEntities))
 
 	voteGuilds := map[string]Entity{}
 
@@ -245,41 +298,30 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 		g.votes.Update(vote)
 	}()
 
-	for _, guild := range loadedGuilds {
-		go func(channelID string) {
-			defer wg.Done()
-			message, err := session.ChannelMessageSend(channelID, voteMessage)
-			if err == nil {
-				channel, err := session.Channel(channelID)
-				if err == nil {
-					voteGuild := &voteGuild{}
-					voteGuild.Init()
-					voteGuild.id = channel.GuildID
-					voteGuild.Set("channelID", channelID)
-					voteGuild.Set("messageID", message.ID)
-					voteGuilds[channel.GuildID] = voteGuild
-				}
+	for _, guild := range loadedEntities {
+		rawChannels, err := (*guild).Get("channels")
+		if err == nil {
+			channels := rawChannels.(map[Channel]string)
+			if channelID, exists := channels[Votes]; exists {
+				go func(channelID string) {
+					defer wg.Done()
+					message, err := session.ChannelMessageSend(channelID, voteMessage)
+					if err == nil {
+						channel, err := session.Channel(channelID)
+						if err == nil {
+							voteGuild := &voteGuild{}
+							voteGuild.Init()
+							voteGuild.id = channel.GuildID
+							voteGuild.Set("channelID", channelID)
+							voteGuild.Set("messageID", message.ID)
+							voteGuilds[channel.GuildID] = voteGuild
+						}
+					}
+				}(channelID)
 			}
-		}(guild.VotesChannelID)
+		}
 	}
 	return &commands.CommandReply{Message: "Vote posted", Color: 0x00b300}
-}
-
-func (g *guildAdminCommands) setAnnouncementsChannel(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	channelID := commandMessage.ChannelID
-	channel, err := session.Channel(channelID)
-	if err != nil {
-		return &commands.CommandError{Message: "Announcement channel couldn't be identified " + err.Error(), Color: 0xb30000}
-	}
-	guild, err := g.guilds.Guild(commandMessage.GuildID)
-	if err != nil {
-		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
-	}
-	err = guild.SetAnnouncementsChannel(channelID)
-	if err != nil {
-		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
-	}
-	return &commands.CommandReply{Message: "Announcement channel set to " + channel.Name, Color: 0x00b300}
 }
 
 func (g *guildAdminCommands) postAnnouncement(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
@@ -287,23 +329,37 @@ func (g *guildAdminCommands) postAnnouncement(session *discordgo.Session, comman
 		return &commands.CommandError{Message: "Announcement message missing", Color: 0xb30000}
 	}
 	announcement := args[0]
-	for _, guild := range g.guilds.LoadGuilds().Guilds {
-		go session.ChannelMessageSend(guild.AnnouncementsChannelID, announcement)
+	for _, guildEntity := range g.guilds.Entities().entities {
+		guild := (*guildEntity).(*guild)
+		rawChannels, err := guild.Get("channels")
+		if err == nil {
+			channels := rawChannels.(map[Channel]string)
+			if channelID, exists := channels[Announcements]; exists {
+				go session.ChannelMessageSend(channelID, announcement)
+			}
+		}
 	}
 	return &commands.CommandReply{Message: "Announcement posted", Color: 0x00b300}
 }
 
 func (g *guildAdminCommands) clearAnnouncements(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	for _, guild := range g.guilds.LoadGuilds().Guilds {
-		messages, err := session.ChannelMessages(guild.AnnouncementsChannelID, 100, "", "", "")
+	for _, guildEntity := range g.guilds.Entities().entities {
+		guild := (*guildEntity).(*guild)
+		rawChannels, err := guild.Get("channels")
 		if err == nil {
-			messageIDs := make([]string, len(messages))
-			for i, message := range messages {
-				messageIDs[i] = message.ID
+			channels := rawChannels.(map[Channel]string)
+			if channelID, exists := channels[Announcements]; exists {
+				messages, err := session.ChannelMessages(channelID, 100, "", "", "")
+				if err == nil {
+					messageIDs := make([]string, len(messages))
+					for i, message := range messages {
+						messageIDs[i] = message.ID
+					}
+					go session.ChannelMessagesBulkDelete(channelID, messageIDs)
+				} else {
+					println(err.Error())
+				}
 			}
-			session.ChannelMessagesBulkDelete(guild.AnnouncementsChannelID, messageIDs)
-		} else {
-			println(err.Error())
 		}
 	}
 	return &commands.CommandReply{Message: "Announcements cleared", Color: 0x00b300}
@@ -321,8 +377,15 @@ func (g *guildAdminCommands) postLastMessageAsAnnouncement(session *discordgo.Se
 	}
 	session.ChannelMessageDelete(channelID, message.ID)
 	announcement := message.Content
-	for _, guild := range g.guilds.LoadGuilds().Guilds {
-		go session.ChannelMessageSend(guild.AnnouncementsChannelID, announcement)
+	for _, guildEntity := range g.guilds.Entities().entities {
+		guild := (*guildEntity).(*guild)
+		rawChannels, err := guild.Get("channels")
+		if err == nil {
+			channels := rawChannels.(map[Channel]string)
+			if channelID, exists := channels[Announcements]; exists {
+				go session.ChannelMessageSend(channelID, announcement)
+			}
+		}
 	}
 	return &commands.CommandReply{Message: "Announcement posted", Color: 0x00b300}
 }
@@ -340,7 +403,7 @@ func (g *guildAdminCommands) setup(session *discordgo.Session, commandMessage *d
 	if err := newGuild.Update(nil); err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
-	g.guilds2.Update(newGuild)
+	g.guilds.Update(newGuild)
 
 	return &commands.CommandReply{Message: "setup", Color: 0x00b300}
 }

@@ -24,21 +24,18 @@ func main() {
 
 	defer bot.Close()
 
-	g := &Guilds{}
-	g.Init(db.db)
-
-	g2 := &guilds2{}
-	g2.Init()
+	g := &guilds{}
+	g.Init()
 
 	v := &votes{}
 	v.Init(bot.session)
 
 	botCommands := &commands.Commands{}
 	botCommands.Init(bot.session)
-	botCommands.Validator = commandValidator{guilds: g2}
-	botCommands.Identifier = commandIdentifier{guilds: g2}
+	botCommands.Validator = commandValidator{guilds: g}
+	botCommands.Identifier = commandIdentifier{guilds: g}
 	botCommands.ResultHandler = commandResultHandler{}
-	botCommands.RegisterGroup(guildAdminCommands{guilds: g, votes: v, guilds2: g2})
+	botCommands.RegisterGroup(guildAdminCommands{guilds: g, votes: v})
 	botCommands.RegisterGroup(helpCommands{botCommands})
 
 	sc := make(chan os.Signal, 1)

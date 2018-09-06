@@ -5,7 +5,7 @@ import (
 )
 
 type commandIdentifier struct {
-	guilds *guilds2
+	guilds *guilds
 }
 
 func (i commandIdentifier) Identify(s *discordgo.Session, m *discordgo.MessageCreate) bool {

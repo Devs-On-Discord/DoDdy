@@ -6,7 +6,7 @@ import (
 )
 
 type commandValidator struct {
-	guilds *guilds2
+	guilds *guilds
 }
 
 func (v commandValidator) Validate(command *commands.Command, session *discordgo.Session, message *discordgo.MessageCreate) bool {

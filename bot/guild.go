@@ -33,17 +33,42 @@ func (g *guild) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} 
 			}
 			return roles
 		}
+	case "channels":
+		if channelsBucket := bucket.Bucket([]byte(key)); channelsBucket != nil {
+			channels := map[Channel]string{}
+			channelsCursor := channelsBucket.Cursor()
+			for k, v := channelsCursor.First(); k != nil; k, v = channelsCursor.Next() {
+				if channelInt, err := strconv.Atoi(string(k)); err == nil {
+					if channel, exists := ChannelInt[channelInt]; exists {
+						channels[channel] = string(v)
+					}
+				}
+			}
+			return channels
+		}
 	}
 	return nil
 }
 
 func (g *guild) OnSave(key string, val interface{}, bucket *bolt.Bucket) error {
-	if key == "roles" {
+	switch key {
+	case "roles":
 		roles := val.(map[Role]string)
 		if rolesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
 			var err error
 			for role, roleId := range roles {
 				err = rolesBucket.Put([]byte(strconv.Itoa(int(role))), []byte(roleId))
+			}
+			return err
+		} else {
+			return err
+		}
+	case "channels":
+		channels := val.(map[Channel]string)
+		if channelsBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+			var err error
+			for channel, channelId := range channels {
+				err = channelsBucket.Put([]byte(strconv.Itoa(int(channel))), []byte(channelId))
 			}
 			return err
 		} else {
