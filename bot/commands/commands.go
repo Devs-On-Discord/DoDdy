@@ -13,19 +13,26 @@ import (
 type Commands struct {
 	RegisteredCommands []*Command
 	commands           map[string]*Command
-	ResultMessages     chan CommandResultMessage
+	resultMessages     chan CommandResultMessage
 	session            *discordgo.Session
 	Validator          CommandValidator
 	Identifier         CommandIdentifier
+	ResultHandler      CommandResultHandler
 }
 
 // Init constructs the Commands object
 func (c *Commands) Init(session *discordgo.Session) {
 	c.RegisteredCommands = make([]*Command, 0)
 	c.commands = map[string]*Command{}
-	c.ResultMessages = make(chan CommandResultMessage)
+	c.resultMessages = make(chan CommandResultMessage)
 	c.session = session
 	session.AddHandler(c.ProcessMessage)
+	go func() {
+		for {
+			resultMessage := <-c.resultMessages
+			c.ResultHandler.Handle(c.session, resultMessage.GetCommandMessage(), resultMessage)
+		}
+	}()
 }
 
 // Register associates a Command name to a Handler
@@ -52,7 +59,7 @@ func (c *Commands) processMessage(session *discordgo.Session, commandMessage *di
 	}
 	commandParsed, err := shlex.Split(commandMessage.Content, true)
 	if err != nil {
-		c.ResultMessages <- &CommandError{
+		c.resultMessages <- &CommandError{
 			CommandMessage: commandMessage,
 			Message:        "Error happened " + err.Error(),
 			Color:          0xb30000,
@@ -61,7 +68,7 @@ func (c *Commands) processMessage(session *discordgo.Session, commandMessage *di
 	}
 	commandCount := len(commandParsed)
 	if commandCount < 1 {
-		c.ResultMessages <- &CommandError{
+		c.resultMessages <- &CommandError{
 			CommandMessage: commandMessage,
 			Message:        "Invalid Command",
 			Color:          0xb30000,
@@ -72,7 +79,7 @@ func (c *Commands) processMessage(session *discordgo.Session, commandMessage *di
 	if command, exists := c.commands[strings.ToLower(commandName)]; exists {
 		valid := c.Validator.Validate(command, session, commandMessage)
 		if !valid {
-			c.ResultMessages <- &CommandError{
+			c.resultMessages <- &CommandError{
 				CommandMessage: commandMessage,
 				Message:        "No permissions to execute this command",
 				Color:          0xb30000,
@@ -82,14 +89,14 @@ func (c *Commands) processMessage(session *discordgo.Session, commandMessage *di
 		if commandCount < 2 {
 			resultMessage := command.Handler(c.session, commandMessage, nil)
 			resultMessage.setCommandMessage(commandMessage)
-			c.ResultMessages <- resultMessage
+			c.resultMessages <- resultMessage
 		} else {
 			resultMessage := command.Handler(c.session, commandMessage, commandParsed[1:])
 			resultMessage.setCommandMessage(commandMessage)
-			c.ResultMessages <- resultMessage
+			c.resultMessages <- resultMessage
 		}
 	} else {
-		c.ResultMessages <- &CommandError{
+		c.resultMessages <- &CommandError{
 			CommandMessage: commandMessage,
 			Message:        "Command doesn't exist: " + commandName,
 			Color:          0xb30000,
