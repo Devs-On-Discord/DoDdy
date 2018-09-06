@@ -329,9 +329,8 @@ func (g *guildAdminCommands) postAnnouncement(session *discordgo.Session, comman
 		return &commands.CommandError{Message: "Announcement message missing", Color: 0xb30000}
 	}
 	announcement := args[0]
-	for _, guildEntity := range g.guilds.Entities().entities {
-		guild := (*guildEntity).(*guild)
-		rawChannels, err := guild.Get("channels")
+	for _, guild := range g.guilds.Entities().entities {
+		rawChannels, err := (*guild).Get("channels")
 		if err == nil {
 			channels := rawChannels.(map[Channel]string)
 			if channelID, exists := channels[Announcements]; exists {
@@ -377,9 +376,8 @@ func (g *guildAdminCommands) postLastMessageAsAnnouncement(session *discordgo.Se
 	}
 	session.ChannelMessageDelete(channelID, message.ID)
 	announcement := message.Content
-	for _, guildEntity := range g.guilds.Entities().entities {
-		guild := (*guildEntity).(*guild)
-		rawChannels, err := guild.Get("channels")
+	for _, guild := range g.guilds.Entities().entities {
+		rawChannels, err := (*guild).Get("channels")
 		if err == nil {
 			channels := rawChannels.(map[Channel]string)
 			if channelID, exists := channels[Announcements]; exists {
