@@ -8,6 +8,7 @@ import (
 type Entity interface {
 	Init()
 	Id() string
+	SetId(id string)
 	Name() string
 	Data() map[string]interface{}
 	Set(key string, val interface{})
@@ -16,6 +17,7 @@ type Entity interface {
 	Load()
 	Delete()
 	SetOnLoad(func(key string, val []byte, bucket *bolt.Bucket) interface{})
+	LoadBucket(bucket *bolt.Bucket)
 }
 
 type entity struct {
@@ -31,6 +33,10 @@ func (e *entity) Init() {
 
 func (e entity) Id() string {
 	return e.id
+}
+
+func (e *entity) SetId(id string) {
+	e.id = id
 }
 
 func (e entity) Name() string {
@@ -72,6 +78,26 @@ func (e entity) GetInt(key string) int {
 		}
 	}
 	return 0
+}
+
+func (e entity) GetEntity(key string) *entity {
+	if data := e.Get(key); data != nil {
+		switch data.(type) {
+		case *entity:
+			return data.(*entity)
+		}
+	}
+	return nil
+}
+
+func (e entity) GetEntities(key string) []*entity {
+	if data := e.Get(key); data != nil {
+		switch data.(type) {
+		case []*entity:
+			return data.([]*entity)
+		}
+	}
+	return nil
 }
 
 func (e entity) Update(keys []string) {

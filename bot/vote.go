@@ -2,17 +2,18 @@ package main
 
 import bolt "go.etcd.io/bbolt"
 
-type vote2 struct {
+type vote struct {
 	entity
 }
 
-func (v *vote2) Init() {
+func (v *vote) Init() {
 	v.entity.Init()
 	v.name = "vote"
 	v.onLoad = v.OnLoad
 }
 
-func (v *vote2) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} {
+func (v *vote) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} {
+	println("onLoad vote", key)
 	switch key {
 	case "name", "message":
 		return string(val)
