@@ -206,13 +206,11 @@ func (e *entity) Load() error {
 		if entitiesBucket := tx.Bucket([]byte(e.name)); entitiesBucket != nil {
 			if entityBucket := entitiesBucket.Bucket([]byte(e.id)); entityBucket != nil {
 				e.LoadBucket(entityBucket)
-			} else {
-				return &bucketNotFoundError{e.name + "-" + e.id}
+				return nil
 			}
-		} else {
-			return &bucketNotFoundError{e.name}
+			return &bucketNotFoundError{e.name + "-" + e.id}
 		}
-		return nil
+		return &bucketNotFoundError{e.name}
 	})
 }
 
@@ -222,11 +220,9 @@ func (e *entity) SetOnLoad(onLoad func(key string, val []byte, bucket *bolt.Buck
 
 func (e entity) Delete() error {
 	return DB.Update(func(tx *bolt.Tx) error {
-		entitiesBucket := tx.Bucket([]byte(e.name))
-		if entitiesBucket == nil {
-			return &bucketNotFoundError{e.name}
+		if entitiesBucket := tx.Bucket([]byte(e.name)); entitiesBucket != nil {
+			return entitiesBucket.DeleteBucket([]byte(e.id))
 		}
-		err := entitiesBucket.DeleteBucket([]byte(e.id))
-		return err
+		return &bucketNotFoundError{e.name}
 	})
 }
