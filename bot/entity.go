@@ -33,7 +33,7 @@ func (e *entity) Init() {
 	e.data = map[string]interface{}{}
 }
 
-func (e entity) ID() string {
+func (e entity) Id() string {
 	return e.id
 }
 
