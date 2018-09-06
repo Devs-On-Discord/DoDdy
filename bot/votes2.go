@@ -7,8 +7,14 @@ type votes2 struct {
 func (v *votes2) Init() {
 	v.entityCache.Init()
 	v.name = "vote"
+	v.onCreate = v.CreateEntity
 	v.Entities()
 	//TODO: prepare channel cache
+}
+
+func (v *votes2) CreateEntity() Entity {
+	vote := &vote{}
+	return vote
 }
 
 /*func (v *votes2) OnCreate() *Entity {

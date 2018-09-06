@@ -26,13 +26,13 @@ func (c *Commands) Init(session *discordgo.Session) {
 	c.commands = map[string]*Command{}
 	c.resultMessages = make(chan CommandResultMessage)
 	c.session = session
-	session.AddHandler(c.ProcessMessage)
 	go func() {
 		for {
 			resultMessage := <-c.resultMessages
 			c.ResultHandler.Handle(c.session, resultMessage.GetCommandMessage(), resultMessage)
 		}
 	}()
+	session.AddHandler(c.ProcessMessage)
 }
 
 // Register associates a Command name to a Handler

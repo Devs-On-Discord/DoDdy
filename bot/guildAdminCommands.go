@@ -26,6 +26,7 @@ when channel exists throw error
 type guildAdminCommands struct {
 	guilds *Guilds
 	votes  *Votes
+	votes2 *votes2
 }
 
 func (g guildAdminCommands) Commands() []*commands.Command {
@@ -203,6 +204,13 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 		if err != nil {
 			//TODO: handle
 		}
+		vote := &vote{}
+		vote.Init()
+		vote.id = voteID
+		vote.Set("name", voteName)
+		vote.Set("message", voteMessage)
+		vote.Update(nil)
+		g.votes2.Update(vote)
 	}()
 
 	for _, guild := range loadedGuilds {
