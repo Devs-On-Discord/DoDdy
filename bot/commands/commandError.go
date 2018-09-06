@@ -14,15 +14,15 @@ func (c *CommandError) setCommandMessage(commandMessage *discordgo.MessageCreate
 	c.CommandMessage = commandMessage
 }
 
-func (c *CommandError) commandMessage() *discordgo.MessageCreate {
+func (c *CommandError) GetCommandMessage() *discordgo.MessageCreate {
 	return c.CommandMessage
 }
 
-func (c *CommandError) message() string {
+func (c *CommandError) GetMessage() string {
 	return c.Message
 }
 
-func (c *CommandError) color() int {
+func (c *CommandError) GetColor() int {
 	return c.Color
 }
 
