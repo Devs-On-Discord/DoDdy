@@ -2,6 +2,8 @@ package main
 
 type votes2 struct {
 	entityCache
+	// Is there for faster calculations in reaction add, remove
+	channelVotes map[string]*vote // Key: channelID
 }
 
 func (v *votes2) Init() {
@@ -9,7 +11,7 @@ func (v *votes2) Init() {
 	v.name = "vote"
 	v.onCreate = v.CreateEntity
 	v.Entities()
-	//TODO: prepare channel cache
+	v.fillChannelVotes()
 }
 
 func (v *votes2) CreateEntity() Entity {
@@ -17,8 +19,18 @@ func (v *votes2) CreateEntity() Entity {
 	return vote
 }
 
-/*func (v *votes2) OnCreate() *Entity {
-	vote := vote2{}
-	entity := Entity(vote)
-	return &entity
-}*/
+func (v *votes2) fillChannelVotesForVote(vote *vote) {
+	if guilds := vote.GetEntitiesMap("guild"); guilds != nil {
+		for _, guild := range guilds {
+			v.channelVotes[guild.GetString("channelID")] = vote
+		}
+	}
+}
+
+func (v *votes2) fillChannelVotes() {
+	for _, entityPtr := range v.entities {
+		entity := *entityPtr
+		vote := entity.(*vote)
+		v.fillChannelVotesForVote(vote)
+	}
+}

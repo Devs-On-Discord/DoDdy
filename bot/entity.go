@@ -14,12 +14,15 @@ type Entity interface {
 	Name() string
 	Data() map[string]interface{}
 	Set(key string, val interface{})
+	GetString(key string) string
+	GetInt(key string) int
 	Get(key string) interface{}
 	Update(keys []string)
 	Load()
 	Delete()
 	SetOnLoad(func(key string, val []byte, bucket *bolt.Bucket) interface{})
 	LoadBucket(bucket *bolt.Bucket)
+	dbSetAll(bucket *bolt.Bucket)
 }
 
 type entity struct {
@@ -82,21 +85,31 @@ func (e entity) GetInt(key string) int {
 	return 0
 }
 
-func (e entity) GetEntity(key string) *entity {
+func (e entity) GetEntity(key string) *Entity {
 	if data := e.Get(key); data != nil {
 		switch data.(type) {
-		case *entity:
-			return data.(*entity)
+		case *Entity:
+			return data.(*Entity)
 		}
 	}
 	return nil
 }
 
-func (e entity) GetEntities(key string) []*entity {
+func (e entity) GetEntities(key string) []*Entity {
 	if data := e.Get(key); data != nil {
 		switch data.(type) {
-		case []*entity:
-			return data.([]*entity)
+		case []*Entity:
+			return data.([]*Entity)
+		}
+	}
+	return nil
+}
+
+func (e entity) GetEntitiesMap(key string) map[string]Entity {
+	if data := e.Get(key); data != nil {
+		switch data.(type) {
+		case map[string]Entity:
+			return data.(map[string]Entity)
 		}
 	}
 	return nil
@@ -129,15 +142,27 @@ func (e entity) dbSet(key string, bucket *bolt.Bucket) {
 			bucket.Put([]byte(key), []byte(value.(string)))
 		case int:
 			bucket.Put([]byte(key), []byte(strconv.Itoa(value.(int))))
-		case *entity:
-			entity := value.(*entity)
-			if entityBucket, err := bucket.CreateBucketIfNotExists([]byte(entity.name)); err == nil {
-				entity.dbSetAll(entityBucket)
-			}
-		case []*entity:
-			for _, entity := range value.([]*entity) {
-				if entityBucket, err := bucket.CreateBucketIfNotExists([]byte(entity.name)); err == nil {
+		case Entity:
+			entity := value.(Entity)
+			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+				if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
 					entity.dbSetAll(entityBucket)
+				}
+			}
+		case []Entity:
+			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+				for _, entity := range value.([]Entity) {
+					if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
+						entity.dbSetAll(entityBucket)
+					}
+				}
+			}
+		case map[string]Entity:
+			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+				for key, entity := range value.(map[string]Entity) {
+					if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+						entity.dbSetAll(entityBucket)
+					}
 				}
 			}
 		}
