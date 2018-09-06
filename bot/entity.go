@@ -40,6 +40,7 @@ type Entity interface {
 	Load() error
 	Delete() error
 	SetOnLoad(func(key string, val []byte, bucket *bolt.Bucket) interface{})
+	SetOnSave(func(key string, val interface{}, bucket *bolt.Bucket) error)
 	LoadBucket(bucket *bolt.Bucket)
 	dbSetAll(bucket *bolt.Bucket) error
 }
@@ -49,10 +50,13 @@ type entity struct {
 	name   string
 	data   map[string]interface{}
 	onLoad func(key string, val []byte, bucket *bolt.Bucket) interface{}
+	onSave func(key string, val interface{}, bucket *bolt.Bucket) error
 }
 
 func (e *entity) Init() {
 	e.data = map[string]interface{}{}
+	e.onLoad = e.onDefaultLoad
+	e.onSave = e.onDefaultSave
 }
 
 func (e entity) ID() string {
@@ -228,6 +232,8 @@ func (e entity) dbSet(key string, bucket *bolt.Bucket) error {
 			} else {
 				return err
 			}
+		default:
+			return e.onSave(key, value, bucket)
 		}
 		return nil
 	}
@@ -266,6 +272,10 @@ func (e *entity) SetOnLoad(onLoad func(key string, val []byte, bucket *bolt.Buck
 	e.onLoad = onLoad
 }
 
+func (e *entity) SetOnSave(onSave func(key string, val interface{}, bucket *bolt.Bucket) error) {
+	e.onSave = onSave
+}
+
 func (e entity) Delete() error {
 	return DB.Update(func(tx *bolt.Tx) error {
 		if entitiesBucket := tx.Bucket([]byte(e.name)); entitiesBucket != nil {
@@ -273,4 +283,30 @@ func (e entity) Delete() error {
 		}
 		return &bucketNotFoundError{e.name}
 	})
+}
+
+func (e entity) loadNestedBucketEntityMap(key string, bucket *bolt.Bucket, createEntity func() Entity) map[string]Entity {
+	nestedEntities := map[string]Entity{}
+	if nestedEntitiesBucket := bucket.Bucket([]byte(key)); nestedEntitiesBucket != nil {
+		nestedEntitiesCursor := nestedEntitiesBucket.Cursor()
+		for k, _ := nestedEntitiesCursor.First(); k != nil; k, _ = nestedEntitiesCursor.Next() {
+			if nestedEntityBucket := nestedEntitiesBucket.Bucket(k); nestedEntityBucket != nil {
+				nestedEntity := createEntity()
+				nestedEntity.Init()
+				nestedEntity.SetID(string(k))
+				nestedEntity.LoadBucket(nestedEntityBucket)
+				nestedEntities[nestedEntity.ID()] = nestedEntity
+			}
+		}
+		return nestedEntities
+	}
+	return nil
+}
+
+func (e entity) onDefaultLoad(key string, val []byte, bucket *bolt.Bucket) interface{} {
+	return nil
+}
+
+func (e entity) onDefaultSave(key string, val interface{}, bucket *bolt.Bucket) error {
+	return nil
 }

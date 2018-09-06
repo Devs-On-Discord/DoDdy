@@ -24,8 +24,9 @@ when channel exists throw error
 */
 
 type guildAdminCommands struct {
-	guilds *Guilds
-	votes  *votes2
+	guilds  *Guilds
+	votes   *votes
+	guilds2 *guilds2
 }
 
 func (g guildAdminCommands) Commands() []*commands.Command {
@@ -100,18 +101,30 @@ func (g guildAdminCommands) Commands() []*commands.Command {
 }
 
 func (g *guildAdminCommands) getRoles(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	guild, err := g.guilds.Guild(commandMessage.GuildID)
-	if err != nil {
-		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
-	}
 	guildRoles, err := session.GuildRoles(commandMessage.GuildID)
 	if err != nil {
 		return &commands.CommandError{Message: "Error in fetching server roles " + err.Error(), Color: 0xb30000}
 	}
 
+	guildPtr, err := g.guilds2.Entity(commandMessage.GuildID)
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	guild := *guildPtr
+	rawRoles, err := guild.Get("roles")
+	if err != nil {
+		switch err.(type) {
+		case *entityDataNotFoundError:
+			rawRoles = map[Role]string{}
+		default:
+			return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+		}
+	}
+	roles := rawRoles.(map[Role]string)
+
 	var buffer bytes.Buffer
 	for name, id := range CommandRoleNames {
-		if role, exists := guild.Roles[id]; exists {
+		if role, exists := roles[id]; exists {
 			roleName := role
 			for _, guildRole := range guildRoles {
 				if guildRole.ID == role {
@@ -136,28 +149,49 @@ func (g *guildAdminCommands) setRole(session *discordgo.Session, commandMessage 
 	}
 	roleName := args[0]
 	roleID := commandMessage.MentionRoles[0]
-	guild, err := g.guilds.Guild(commandMessage.GuildID)
+	guildPtr, err := g.guilds2.Entity(commandMessage.GuildID)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
-	err = guild.SetRole(roleName, roleID)
-	if err != nil {
+	guild := *guildPtr
+	rawRoles, err := guild.Get("roles")
+	switch err.(type) {
+	case *entityDataNotFoundError:
+		rawRoles = map[Role]string{}
+	default:
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
-
+	roles := rawRoles.(map[Role]string)
+	if commandRole, exists := CommandRoleNames[roleName]; exists {
+		roles[commandRole] = roleID
+	} else {
+		return &commands.CommandError{Message: "Unknown role name " + roleName, Color: 0xb30000}
+	}
+	guild.Set("roles", roles)
+	if err := guild.Update([]string{"roles"}); err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+	g.guilds2.Update(guild)
 	return &commands.CommandReply{Message: "Role set", Color: 0x00b300}
 }
 
 func (g *guildAdminCommands) setPrefix(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	guild, err := g.guilds.Guild(commandMessage.GuildID)
+	guildPtr, err := g.guilds2.Entity(commandMessage.GuildID)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
+	guild := *guildPtr
 	if len(args) < 1 {
-		return &commands.CommandReply{Message: "Prefix is " + guild.Prefix, Color: 0xb30000}
+		if prefix, err := guild.GetString("prefix"); err == nil {
+			return &commands.CommandReply{Message: "Prefix is " + prefix, Color: 0xb30000}
+		} else {
+			return &commands.CommandReply{Message: err.Error(), Color: 0xb30000}
+		}
 	}
 	prefix := args[0]
-	err = guild.SetPrefix(prefix)
+	guild.Set("prefix", prefix)
+	guild.Update([]string{"prefix"})
+	g.guilds2.Update(guild)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
@@ -294,13 +328,19 @@ func (g *guildAdminCommands) postLastMessageAsAnnouncement(session *discordgo.Se
 }
 
 func (g *guildAdminCommands) setup(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	guild, err := session.Guild(commandMessage.GuildID)
+	sessionGuild, err := session.Guild(commandMessage.GuildID)
 	if err != nil {
 		return &commands.CommandError{Message: "Server couldn't be identified " + err.Error(), Color: 0xb30000}
 	}
-	err = g.guilds.Create(commandMessage.GuildID, guild.Name)
-	if err != nil {
+	newGuild := &guild{}
+	newGuild.Init()
+	newGuild.id = commandMessage.GuildID
+	newGuild.Set("name", sessionGuild.Name)
+	newGuild.Set("prefix", "!")
+	if err := newGuild.Update(nil); err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
 	}
+	g.guilds2.Update(newGuild)
+
 	return &commands.CommandReply{Message: "setup", Color: 0x00b300}
 }

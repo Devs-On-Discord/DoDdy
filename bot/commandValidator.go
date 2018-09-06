@@ -6,28 +6,32 @@ import (
 )
 
 type commandValidator struct {
-	guilds *Guilds
+	guilds *guilds2
 }
 
 func (v commandValidator) Validate(command *commands.Command, session *discordgo.Session, message *discordgo.MessageCreate) bool {
-	guild, err := v.guilds.Guild(message.GuildID)
-	if err != nil {
-		return false
-	}
 	member, err := session.GuildMember(message.GuildID, message.Author.ID)
 	if err != nil {
 		return false
 	}
-	commandRole := RoleInt[command.Role]
-	for role, id := range guild.Roles {
-		for _, memberRole := range member.Roles {
-			if id == memberRole {
-				if role >= commandRole {
-					return true
+	guildPtr, err := v.guilds.Entity(message.GuildID)
+	if err != nil {
+		//TODO: check if member role is an high one to accept the first commands without setting the roles, for example !setup
+		return false
+	}
+	guild := *guildPtr
+	if rawRoles, err := guild.Get("roles"); err == nil {
+		roles := rawRoles.(map[Role]string)
+		commandRole := RoleInt[command.Role]
+		for role, id := range roles {
+			for _, memberRole := range member.Roles {
+				if id == memberRole {
+					if role >= commandRole {
+						return true
+					}
 				}
 			}
 		}
 	}
-
 	return true
 }

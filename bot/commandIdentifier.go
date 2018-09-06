@@ -5,7 +5,7 @@ import (
 )
 
 type commandIdentifier struct {
-	guilds *Guilds
+	guilds *guilds2
 }
 
 func (i commandIdentifier) Identify(s *discordgo.Session, m *discordgo.MessageCreate) bool {
@@ -23,10 +23,13 @@ func (i commandIdentifier) Identify(s *discordgo.Session, m *discordgo.MessageCr
 		}
 	}
 	if len(m.Content) > 1 {
-		if guild, err := i.guilds.Guild(m.GuildID); err == nil {
-			if guild.Prefix == m.Content[:1] {
-				m.Content = m.Content[1:]
-				return true
+		if guildPtr, err := i.guilds.Entity(m.GuildID); err == nil {
+			guild := *guildPtr
+			if prefix, err := guild.GetString("prefix"); err == nil {
+				if prefix == m.Content[:1] {
+					m.Content = m.Content[1:]
+					return true
+				}
 			}
 		}
 	}

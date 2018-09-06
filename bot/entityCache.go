@@ -8,7 +8,7 @@ import bolt "go.etcd.io/bbolt"
 type EntityCache interface {
 	Init()
 	Name() string
-	Entity(id string) *Entity
+	Entity(id string) (*Entity, error)
 }
 
 type entityCache struct {
@@ -28,16 +28,16 @@ func (c entityCache) Name() string {
 	return c.name
 }
 
-func (c *entityCache) Entity(id string) *Entity {
+func (c *entityCache) Entity(id string) (*Entity, error) {
 	if entity, exists := c.entities[id]; exists {
-		return entity
+		return entity, nil
 	}
 	entity := c.onCreate()
 	entity.Init()
 	entity.SetID(id)
-	entity.Load()
+	err := entity.Load()
 	c.Update(entity)
-	return &entity
+	return &entity, err
 }
 
 func (c *entityCache) Entities() *entityCache {
