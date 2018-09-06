@@ -9,8 +9,8 @@ import (
 // Entity is an interface to the underlying entity object
 type Entity interface {
 	Init()
-	Id() string
-	SetId(id string)
+	ID() string
+	SetID(id string)
 	Name() string
 	Data() map[string]interface{}
 	Set(key string, val interface{})
@@ -33,11 +33,11 @@ func (e *entity) Init() {
 	e.data = map[string]interface{}{}
 }
 
-func (e entity) Id() string {
+func (e entity) ID() string {
 	return e.id
 }
 
-func (e *entity) SetId(id string) {
+func (e *entity) SetID(id string) {
 	e.id = id
 }
 

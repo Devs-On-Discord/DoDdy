@@ -32,7 +32,7 @@ func (c *entityCache) Entity(id string) *Entity {
 	}
 	entity := c.onCreate()
 	entity.Init()
-	entity.SetId(id)
+	entity.SetID(id)
 	entity.Load()
 	c.Update(entity)
 	return &entity
@@ -47,7 +47,7 @@ func (c *entityCache) Entities() *entityCache {
 					id := string(k)
 					entity := c.onCreate()
 					entity.Init()
-					entity.SetId(id)
+					entity.SetID(id)
 					entity.LoadBucket(entityBucket)
 					c.Update(entity)
 				}
@@ -59,7 +59,7 @@ func (c *entityCache) Entities() *entityCache {
 }
 
 func (c *entityCache) Update(entity Entity) {
-	c.entities[entity.Id()] = &entity
+	c.entities[entity.ID()] = &entity
 }
 
 func (c *entityCache) createEntity() Entity {
