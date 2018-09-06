@@ -9,6 +9,7 @@ type votes2 struct {
 func (v *votes2) Init() {
 	v.entityCache.Init()
 	v.name = "vote"
+	v.channelVotes = map[string]*vote{}
 	v.onCreate = v.CreateEntity
 	v.Entities()
 	v.fillChannelVotes()

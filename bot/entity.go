@@ -17,12 +17,12 @@ type Entity interface {
 	GetString(key string) string
 	GetInt(key string) int
 	Get(key string) interface{}
-	Update(keys []string)
-	Load()
-	Delete()
+	Update(keys []string) error
+	Load() error
+	Delete() error
 	SetOnLoad(func(key string, val []byte, bucket *bolt.Bucket) interface{})
 	LoadBucket(bucket *bolt.Bucket)
-	dbSetAll(bucket *bolt.Bucket)
+	dbSetAll(bucket *bolt.Bucket) error
 }
 
 type entity struct {
@@ -115,64 +115,82 @@ func (e entity) GetEntitiesMap(key string) map[string]Entity {
 	return nil
 }
 
-func (e entity) Update(keys []string) {
-	DB.Update(func(tx *bolt.Tx) error {
+func (e entity) Update(keys []string) error {
+	return DB.Update(func(tx *bolt.Tx) error {
 		if entitiesBucket, err := tx.CreateBucketIfNotExists([]byte(e.name)); err == nil {
 			if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(e.id)); err == nil {
 				if keys != nil { // Only update the provided keys when keys are provided
 					for _, key := range keys {
-						e.dbSet(key, entityBucket)
+						err = e.dbSet(key, entityBucket)
 					}
+					return err
 				} else {
-					e.dbSetAll(entityBucket)
+					return e.dbSetAll(entityBucket)
 				}
+			} else {
+				return err
 			}
+		} else {
+			return err
 		}
 		return nil
 	})
 }
 
-func (e entity) dbSet(key string, bucket *bolt.Bucket) {
+func (e entity) dbSet(key string, bucket *bolt.Bucket) error {
 	value := e.Get(key)
 	if value == nil {
-		bucket.Delete([]byte(key))
+		return bucket.Delete([]byte(key))
 	} else {
 		switch value.(type) {
 		case string:
-			bucket.Put([]byte(key), []byte(value.(string)))
+			return bucket.Put([]byte(key), []byte(value.(string)))
 		case int:
-			bucket.Put([]byte(key), []byte(strconv.Itoa(value.(int))))
+			return bucket.Put([]byte(key), []byte(strconv.Itoa(value.(int))))
 		case Entity:
 			entity := value.(Entity)
 			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
 				if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
 					entity.dbSetAll(entityBucket)
+				} else {
+					return err
 				}
+			} else {
+				return err
 			}
 		case []Entity:
 			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
 				for _, entity := range value.([]Entity) {
 					if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
-						entity.dbSetAll(entityBucket)
+						err = entity.dbSetAll(entityBucket)
 					}
 				}
+				return err
+			} else {
+				return err
 			}
 		case map[string]Entity:
 			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
 				for key, entity := range value.(map[string]Entity) {
 					if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-						entity.dbSetAll(entityBucket)
+						err = entity.dbSetAll(entityBucket)
 					}
 				}
+				return err
+			} else {
+				return err
 			}
 		}
+		return nil
 	}
 }
 
-func (e entity) dbSetAll(bucket *bolt.Bucket) {
+func (e entity) dbSetAll(bucket *bolt.Bucket) error {
+	var err error
 	for key := range e.data {
-		e.dbSet(key, bucket)
+		err = e.dbSet(key, bucket)
 	}
+	return err
 }
 
 func (e *entity) LoadBucket(bucket *bolt.Bucket) {
@@ -183,12 +201,16 @@ func (e *entity) LoadBucket(bucket *bolt.Bucket) {
 	}
 }
 
-func (e *entity) Load() {
-	DB.View(func(tx *bolt.Tx) error {
+func (e *entity) Load() error {
+	return DB.View(func(tx *bolt.Tx) error {
 		if entitiesBucket := tx.Bucket([]byte(e.name)); entitiesBucket != nil {
 			if entityBucket := entitiesBucket.Bucket([]byte(e.id)); entityBucket != nil {
 				e.LoadBucket(entityBucket)
+			} else {
+				return &bucketNotFoundError{e.name + "-" + e.id}
 			}
+		} else {
+			return &bucketNotFoundError{e.name}
 		}
 		return nil
 	})
@@ -198,13 +220,13 @@ func (e *entity) SetOnLoad(onLoad func(key string, val []byte, bucket *bolt.Buck
 	e.onLoad = onLoad
 }
 
-func (e entity) Delete() {
-	DB.Update(func(tx *bolt.Tx) error {
+func (e entity) Delete() error {
+	return DB.Update(func(tx *bolt.Tx) error {
 		entitiesBucket := tx.Bucket([]byte(e.name))
 		if entitiesBucket == nil {
-			return nil
+			return &bucketNotFoundError{e.name}
 		}
-		entitiesBucket.DeleteBucket([]byte(e.id))
-		return nil
+		err := entitiesBucket.DeleteBucket([]byte(e.id))
+		return err
 	})
 }
