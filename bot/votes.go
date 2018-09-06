@@ -2,9 +2,10 @@ package main
 
 import (
 	"bytes"
+	"strconv"
+
 	"github.com/bwmarrin/discordgo"
 	bolt "go.etcd.io/bbolt"
-	"strconv"
 )
 
 var (
@@ -22,6 +23,8 @@ var (
 //TODO: override message with messageID and channelID with editing when same id is used
 //TODO: add single server votes
 //TODO: add initial reactions for each answer to an vote message
+
+// Votes is a local cache to the votes in the database
 type Votes struct {
 	db      *bolt.DB
 	session *discordgo.Session
@@ -30,6 +33,7 @@ type Votes struct {
 	channelVotes map[string]*Vote // Key: channelID
 }
 
+// Vote references a single vote in the cache
 type Vote struct {
 	db      *bolt.DB
 	ID      string
@@ -39,17 +43,20 @@ type Vote struct {
 	Guilds  map[string]*GuildVote // Key: guildID
 }
 
+// GuildVote defines where a vote is located
 type GuildVote struct {
 	MessageID string
 	ChannelID string
 }
 
+// Answer contains the number of answers given with a certain emoji
 type Answer struct {
 	name    string
 	emojiID string
 	count   int
 }
 
+// Init constructs the Votes object
 func (v *Votes) Init(db *bolt.DB, session *discordgo.Session) {
 	v.db = db
 	v.session = session
@@ -62,6 +69,7 @@ func (v *Votes) Init(db *bolt.DB, session *discordgo.Session) {
 	v.fillChannelVotes()
 }
 
+// Create a vote
 func (v *Votes) Create(id string, name string, message string, answers map[string]*Answer, guilds map[string]*GuildVote) error {
 	err := v.db.Update(func(tx *bolt.Tx) error {
 		votesBucket, err := tx.CreateBucketIfNotExists(votes)
@@ -187,21 +195,24 @@ func (v *Votes) loadVote(votesBucket *bolt.Bucket, id string) *Vote {
 	return nil
 }
 
+// Vote fetches and returns a vote by ID
 func (v *Votes) Vote(id string) (*Vote, error) {
-	if vote, exists := v.Votes[id]; exists {
+	vote, exists := v.Votes[id]
+	if exists {
 		return vote, nil
-	} else {
-		err := v.db.View(func(tx *bolt.Tx) error {
-			votesBucket := tx.Bucket(votes)
-			if votesBucket != nil {
-				vote = v.loadVote(votesBucket, id)
-			}
-			return nil
-		})
-		return vote, err
 	}
+	err := v.db.View(func(tx *bolt.Tx) error {
+		votesBucket := tx.Bucket(votes)
+		if votesBucket != nil {
+			vote = v.loadVote(votesBucket, id)
+		}
+		return nil
+	})
+	return vote, err
+
 }
 
+// LoadVotes fetches the votes in the database to the cache
 func (v *Votes) LoadVotes() *Votes {
 	v.db.View(func(tx *bolt.Tx) error {
 		votesBucket := tx.Bucket(votes)

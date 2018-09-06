@@ -1,10 +1,12 @@
 package main
 
 import (
-	bolt "go.etcd.io/bbolt"
 	"strconv"
+
+	bolt "go.etcd.io/bbolt"
 )
 
+// Entity is an interface to the underlying entity object
 type Entity interface {
 	Init()
 	Id() string
@@ -31,7 +33,7 @@ func (e *entity) Init() {
 	e.data = map[string]interface{}{}
 }
 
-func (e entity) Id() string {
+func (e entity) ID() string {
 	return e.id
 }
 
@@ -101,7 +103,7 @@ func (e entity) GetEntities(key string) []*entity {
 }
 
 func (e entity) Update(keys []string) {
-	Db.Update(func(tx *bolt.Tx) error {
+	DB.Update(func(tx *bolt.Tx) error {
 		if entitiesBucket, err := tx.CreateBucketIfNotExists([]byte(e.name)); err == nil {
 			if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(e.id)); err == nil {
 				if keys != nil { // Only update the provided keys when keys are provided
@@ -157,7 +159,7 @@ func (e *entity) LoadBucket(bucket *bolt.Bucket) {
 }
 
 func (e *entity) Load() {
-	Db.View(func(tx *bolt.Tx) error {
+	DB.View(func(tx *bolt.Tx) error {
 		if entitiesBucket := tx.Bucket([]byte(e.name)); entitiesBucket != nil {
 			if entityBucket := entitiesBucket.Bucket([]byte(e.id)); entityBucket != nil {
 				e.LoadBucket(entityBucket)
@@ -172,7 +174,7 @@ func (e *entity) SetOnLoad(onLoad func(key string, val []byte, bucket *bolt.Buck
 }
 
 func (e entity) Delete() {
-	Db.Update(func(tx *bolt.Tx) error {
+	DB.Update(func(tx *bolt.Tx) error {
 		entitiesBucket := tx.Bucket([]byte(e.name))
 		if entitiesBucket == nil {
 			return nil
