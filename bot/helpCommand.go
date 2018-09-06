@@ -12,6 +12,17 @@ type helpCommands struct {
 	commands *commands.Commands
 }
 
+func (h helpCommands) Commands() []*commands.Command {
+	return []*commands.Command{
+		{
+			Name:        "help",
+			Description: "Begins a vote in this node's voting channel.",
+			Role:        int(NodeMod),
+			Handler:     h.helpCommand,
+		},
+	}
+}
+
 func (h *helpCommands) helpCommand(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	var buffer bytes.Buffer
 	for _, command := range h.commands.RegisteredCommands {

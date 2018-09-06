@@ -27,6 +27,77 @@ type guildAdminCommands struct {
 	votes  *Votes
 }
 
+func (g guildAdminCommands) Commands() []*commands.Command {
+	return []*commands.Command{
+		{
+			Name:        "prefix",
+			Description: "Changes / Displays the prefix.",
+			Role:        int(NodeMod),
+			Handler:     g.setPrefix,
+		},
+		{
+			Name:        "setAnnouncementsChannel",
+			Description: "Redefines this node's announcement channel.",
+			Role:        int(NodeMod),
+			Handler:     g.setAnnouncementsChannel,
+		},
+		{
+			Name:        "announce announcement",
+			Description: "Post an announcement in this node.",
+			Role:        int(NodeMod),
+			Handler:     g.postAnnouncement,
+		},
+		{
+			Name:        "clearAnnouncements",
+			Description: "Empties this node's announcement channel.",
+			Role:        int(NodeMod),
+			Handler:     g.clearAnnouncements,
+		},
+		{
+			Name:        "postLastMessageAsAnnouncement",
+			Description: "Repost the last message sent in this channel as an announcement",
+			Role:        int(NodeMod),
+			Handler:     g.postLastMessageAsAnnouncement,
+		},
+		{
+			Name:        "setVotesChannel",
+			Description: "Redefines this node's voting channel.",
+			Role:        int(NodeMod),
+			Handler:     g.setVotesChannel,
+		},
+		{
+			Name:        "setVotesChannel",
+			Description: "Redefines this node's voting channel.",
+			Role:        int(NodeMod),
+			Handler:     g.setVotesChannel,
+		},
+		{
+			Name:        "survey vote",
+			Description: "Starts a DoD-wide survey.",
+			Role:        int(NodeMod),
+			Handler:     g.postVote,
+		},
+		{
+			Name:        "setup",
+			Description: "Modifies basic configuration settings",
+			Role:        int(NodeMod),
+			Handler:     g.setup,
+		},
+		{
+			Name:        "role",
+			Description: "Specify roles",
+			Role:        int(NodeMod),
+			Handler:     g.setRole,
+		},
+		{
+			Name:        "roles",
+			Description: "Get roles",
+			Role:        int(NodeMod),
+			Handler:     g.getRoles,
+		},
+	}
+}
+
 func (g *guildAdminCommands) getRoles(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	guild, err := g.guilds.Guild(commandMessage.GuildID)
 	if err != nil {

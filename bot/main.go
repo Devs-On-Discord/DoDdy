@@ -35,8 +35,8 @@ func main() {
 	botCommands.Identifier = commandIdentifier{guilds: g}
 	botCommandsResultHandler := &commands.CommandResultHandler{}
 	botCommandsResultHandler.Init(botCommands, bot.session)
-
-	RegisterCommands(g, v, botCommands)
+	botCommands.RegisterGroup(guildAdminCommands{guilds: g, votes: v})
+	botCommands.RegisterGroup(helpCommands{botCommands})
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)

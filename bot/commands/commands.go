@@ -12,7 +12,7 @@ import (
 // ResultMessages is the return channel for successful commands
 type Commands struct {
 	RegisteredCommands []*Command
-	commands           map[string]Command
+	commands           map[string]*Command
 	ResultMessages     chan CommandResultMessage
 	session            *discordgo.Session
 	Validator          CommandValidator
@@ -22,21 +22,27 @@ type Commands struct {
 // Init constructs the Commands object
 func (c *Commands) Init(session *discordgo.Session) {
 	c.RegisteredCommands = make([]*Command, 0)
-	c.commands = make(map[string]Command)
+	c.commands = map[string]*Command{}
 	c.ResultMessages = make(chan CommandResultMessage)
 	c.session = session
 	session.AddHandler(c.ProcessMessage)
 }
 
 // Register associates a Command name to a Handler
-func (c *Commands) Register(command Command) {
-	c.RegisteredCommands = append(c.RegisteredCommands, &command)
+func (c *Commands) Register(command *Command) {
+	c.RegisteredCommands = append(c.RegisteredCommands, command)
 	commandNameSplit := strings.Split(command.Name, " ")
 	if len(commandNameSplit) < 1 {
 		return
 	}
 	for _, commandName := range commandNameSplit {
 		c.commands[strings.ToLower(commandName)] = command
+	}
+}
+
+func (c *Commands) RegisterGroup(commandGroup CommandGroup) {
+	for _, command := range commandGroup.Commands() {
+		c.Register(command)
 	}
 }
 
@@ -64,7 +70,7 @@ func (c *Commands) processMessage(session *discordgo.Session, commandMessage *di
 	}
 	commandName := commandParsed[0]
 	if command, exists := c.commands[strings.ToLower(commandName)]; exists {
-		valid := c.Validator.Validate(&command, session, commandMessage)
+		valid := c.Validator.Validate(command, session, commandMessage)
 		if !valid {
 			c.ResultMessages <- &CommandError{
 				CommandMessage: commandMessage,
