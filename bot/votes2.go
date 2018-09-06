@@ -14,41 +14,12 @@ func (v *votes2) Init(session *discordgo.Session) {
 	v.entityCache.Init()
 	v.name = "vote"
 	v.onCreate = v.CreateEntity
+	v.onUpdate = v.UpdateEntity
 	v.Entities()
 	v.channelVotes = map[string]*vote{}
 	v.fillChannelVotes()
 	session.AddHandler(v.reactionAdded)
 	session.AddHandler(v.reactionRemoved)
-}
-
-func (v *votes2) reactionAdded(session *discordgo.Session, reaction *discordgo.MessageReactionAdd) {
-	if session.State.User.ID == reaction.UserID { // Ignore bot reactions
-		return
-	}
-	if _, exists := v.channelVotes[reaction.ChannelID]; exists {
-		/*for _, answer := range vote.Answers {
-			if answer.emojiID == reaction.Emoji.ID {
-				//IncreaseVoteAnswer(vote.Id, answer.emojiID)
-				break
-			}
-		}*/
-		go session.MessageReactionsRemoveAll(reaction.ChannelID, reaction.MessageID)
-	}
-}
-
-func (v *votes2) reactionRemoved(session *discordgo.Session, reaction *discordgo.MessageReactionRemove) {
-	if session.State.User.ID == reaction.UserID { // Ignore bot reactions
-		return
-	}
-	if _, exists := v.channelVotes[reaction.ChannelID]; exists {
-		/*for _, answer := range vote.Answers {
-			if answer.emojiID == reaction.Emoji.ID {
-				//DecreaseVoteAnswer(vote.Id, answer.emojiID)
-				break
-			}
-		}*/
-		go session.MessageReactionsRemoveAll(reaction.ChannelID, reaction.MessageID)
-	}
 }
 
 func (v *votes2) CreateEntity() Entity {
@@ -79,5 +50,35 @@ func (v *votes2) fillChannelVotes() {
 		entity := *entityPtr
 		vote := entity.(*vote)
 		v.fillChannelVotesForVote(vote)
+	}
+}
+
+func (v *votes2) reactionAdded(session *discordgo.Session, reaction *discordgo.MessageReactionAdd) {
+	if session.State.User.ID == reaction.UserID { // Ignore bot reactions
+		return
+	}
+	if _, exists := v.channelVotes[reaction.ChannelID]; exists {
+		/*for _, answer := range vote.Answers {
+			if answer.emojiID == reaction.Emoji.ID {
+				//IncreaseVoteAnswer(vote.Id, answer.emojiID)
+				break
+			}
+		}*/
+		go session.MessageReactionsRemoveAll(reaction.ChannelID, reaction.MessageID)
+	}
+}
+
+func (v *votes2) reactionRemoved(session *discordgo.Session, reaction *discordgo.MessageReactionRemove) {
+	if session.State.User.ID == reaction.UserID { // Ignore bot reactions
+		return
+	}
+	if _, exists := v.channelVotes[reaction.ChannelID]; exists {
+		/*for _, answer := range vote.Answers {
+			if answer.emojiID == reaction.Emoji.ID {
+				//DecreaseVoteAnswer(vote.Id, answer.emojiID)
+				break
+			}
+		}*/
+		go session.MessageReactionsRemoveAll(reaction.ChannelID, reaction.MessageID)
 	}
 }
