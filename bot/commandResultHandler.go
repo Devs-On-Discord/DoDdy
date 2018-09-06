@@ -1,9 +1,10 @@
 package main
 
 import (
+	"time"
+
 	"github.com/Devs-On-Discord/DoDdy/bot/commands"
 	"github.com/bwmarrin/discordgo"
-	"time"
 )
 
 type commandResultHandler struct {

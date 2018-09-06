@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/Devs-On-Discord/DoDdy/bot/commands"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/Devs-On-Discord/DoDdy/bot/commands"
 )
 
 const version = "0.0.1"
