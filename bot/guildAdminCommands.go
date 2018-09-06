@@ -25,8 +25,7 @@ when channel exists throw error
 
 type guildAdminCommands struct {
 	guilds *Guilds
-	votes  *Votes
-	votes2 *votes2
+	votes  *votes2
 }
 
 func (g guildAdminCommands) Commands() []*commands.Command {
@@ -196,21 +195,20 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 	var wg sync.WaitGroup
 	wg.Add(len(loadedGuilds))
 
-	guildVotes := make(map[string]*GuildVote)
+	voteGuilds := map[string]Entity{}
 
 	go func() {
 		wg.Wait()
-		err := g.votes.Create(voteID, voteName, voteMessage, make(map[string]*Answer), guildVotes)
-		if err != nil {
-			//TODO: handle
-		}
+		//TODO: error handling, add CommandResultMessage chan to Handle params
 		vote := &vote{}
 		vote.Init()
 		vote.id = voteID
 		vote.Set("name", voteName)
 		vote.Set("message", voteMessage)
+		vote.Set("guild", voteGuilds)
+
 		vote.Update(nil)
-		g.votes2.Update(vote)
+		g.votes.Update(vote)
 	}()
 
 	for _, guild := range loadedGuilds {
@@ -220,7 +218,12 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 			if err == nil {
 				channel, err := session.Channel(channelID)
 				if err == nil {
-					guildVotes[channel.GuildID] = &GuildVote{ChannelID: channelID, MessageID: message.ID}
+					voteGuild := &voteGuild{}
+					voteGuild.Init()
+					voteGuild.id = channel.GuildID
+					voteGuild.Set("channelID", channelID)
+					voteGuild.Set("messageID", message.ID)
+					voteGuilds[channel.GuildID] = voteGuild
 				}
 			}
 		}(guild.VotesChannelID)

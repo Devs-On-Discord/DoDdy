@@ -77,15 +77,14 @@ func (e *entity) Set(key string, val interface{}) {
 }
 
 func (e entity) Get(key string) (interface{}, error) {
-	d := e.data
-	if data, exists := d[key]; exists {
+	if data, exists := e.data[key]; exists {
 		return data, nil
 	}
 	return nil, &entityDataNotFoundError{key}
 }
 
 func (e entity) GetString(key string) (string, error) {
-	if data, err := e.Get(key); err != nil {
+	if data, err := e.Get(key); err == nil {
 		switch data.(type) {
 		case string:
 			return data.(string), nil
@@ -101,7 +100,7 @@ func (e entity) GetString(key string) (string, error) {
 }
 
 func (e entity) GetInt(key string) (int, error) {
-	if data, err := e.Get(key); err != nil {
+	if data, err := e.Get(key); err == nil {
 		switch data.(type) {
 		case int:
 			return data.(int), nil
@@ -117,7 +116,7 @@ func (e entity) GetInt(key string) (int, error) {
 }
 
 func (e entity) GetEntity(key string) (*Entity, error) {
-	if data, err := e.Get(key); err != nil {
+	if data, err := e.Get(key); err == nil {
 		switch data.(type) {
 		case *Entity:
 			return data.(*Entity), nil
@@ -133,7 +132,7 @@ func (e entity) GetEntity(key string) (*Entity, error) {
 }
 
 func (e entity) GetEntities(key string) ([]*Entity, error) {
-	if data, err := e.Get(key); err != nil {
+	if data, err := e.Get(key); err == nil {
 		switch data.(type) {
 		case []*Entity:
 			return data.([]*Entity), nil
@@ -149,13 +148,13 @@ func (e entity) GetEntities(key string) ([]*Entity, error) {
 }
 
 func (e entity) GetEntitiesMap(key string) (map[string]Entity, error) {
-	if data, err := e.Get(key); err != nil {
+	if data, err := e.Get(key); err == nil {
 		switch data.(type) {
 		case map[string]Entity:
 			return data.(map[string]Entity), nil
 		default:
 			return nil, &entityDataWrongTypeError{
-				wrongType:   reflect.TypeOf(map[string]entity{}),
+				wrongType:   reflect.TypeOf(map[string]Entity{}),
 				correctType: reflect.TypeOf(data),
 			}
 		}

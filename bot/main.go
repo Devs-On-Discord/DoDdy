@@ -27,18 +27,15 @@ func main() {
 	g := &Guilds{}
 	g.Init(db.db)
 
-	v := &Votes{}
-	v.Init(db.db, bot.session)
-
-	v2 := &votes2{}
-	v2.Init()
+	v := &votes2{}
+	v.Init(bot.session)
 
 	botCommands := &commands.Commands{}
 	botCommands.Init(bot.session)
 	botCommands.Validator = commandValidator{guilds: g}
 	botCommands.Identifier = commandIdentifier{guilds: g}
 	botCommands.ResultHandler = commandResultHandler{}
-	botCommands.RegisterGroup(guildAdminCommands{guilds: g, votes: v, votes2: v2})
+	botCommands.RegisterGroup(guildAdminCommands{guilds: g, votes: v})
 	botCommands.RegisterGroup(helpCommands{botCommands})
 
 	sc := make(chan os.Signal, 1)

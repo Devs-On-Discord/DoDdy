@@ -15,11 +15,13 @@ type entityCache struct {
 	name     string
 	entities map[string]*Entity
 	onCreate func() Entity
+	onUpdate func(entity *Entity)
 }
 
 func (c *entityCache) Init() {
 	c.entities = map[string]*Entity{}
 	c.onCreate = c.createEntity
+	c.onUpdate = c.updateEntity
 }
 
 func (c entityCache) Name() string {
@@ -60,8 +62,12 @@ func (c *entityCache) Entities() *entityCache {
 
 func (c *entityCache) Update(entity Entity) {
 	c.entities[entity.ID()] = &entity
+	c.updateEntity(&entity)
 }
 
 func (c *entityCache) createEntity() Entity {
 	return &entity{name: c.name}
+}
+
+func (c *entityCache) updateEntity(entity *Entity) {
 }
