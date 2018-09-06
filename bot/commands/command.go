@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"github.com/Devs-On-Discord/DoDdy/bot/roles"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -13,6 +12,6 @@ type Handle func(session *discordgo.Session, commandMessage *discordgo.MessageCr
 type Command struct {
 	Name        string
 	Description string
-	Role        roles.Role
+	Role        int
 	Handler     Handle
 }

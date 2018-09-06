@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/Devs-On-Discord/DoDdy/bot/roles"
 	bolt "go.etcd.io/bbolt"
 	"strconv"
 )
@@ -31,7 +30,7 @@ type Guild struct {
 	Prefix                 string
 	AnnouncementsChannelID string
 	VotesChannelID         string
-	Roles                  map[roles.Role]string // Value: guild specific role id
+	Roles                  map[Role]string // Value: guild specific role id
 }
 
 const (
@@ -67,7 +66,7 @@ func (g *Guilds) Create(id string, name string) error {
 		return nil
 	})
 	if err == nil {
-		guild := &Guild{db: g.db, id: id, name: name, Roles: make(map[roles.Role]string)}
+		guild := &Guild{db: g.db, id: id, name: name, Roles: make(map[Role]string)}
 		g.Guilds[id] = guild
 	}
 	return err
@@ -77,7 +76,7 @@ func (g *Guilds) loadGuild(guildsBucket *bolt.Bucket, guildID string) *Guild {
 	guildBucket := guildsBucket.Bucket([]byte(guildID))
 	if guildBucket != nil {
 		guildCursor := guildBucket.Cursor()
-		guild := &Guild{db: g.db, id: string(guildID), Prefix: "", Roles: make(map[roles.Role]string)}
+		guild := &Guild{db: g.db, id: string(guildID), Prefix: "", Roles: make(map[Role]string)}
 		for k, v := guildCursor.First(); k != nil; k, v = guildCursor.Next() {
 			if bytes.Equal(k, guildName) {
 				guild.name = string(v)
@@ -94,7 +93,7 @@ func (g *Guilds) loadGuild(guildsBucket *bolt.Bucket, guildID string) *Guild {
 					for k, v := rolesCursor.First(); k != nil; k, v = rolesCursor.Next() {
 						roleInt, err := strconv.Atoi(string(k))
 						if err == nil {
-							if role, exists := roles.RoleInt[roleInt]; exists {
+							if role, exists := RoleInt[roleInt]; exists {
 								guild.Roles[role] = string(v)
 							}
 						}
@@ -195,7 +194,7 @@ func (g *Guild) SetVotesChannel(channelID string) error {
 }
 
 func (g *Guild) SetRole(name string, id string) error {
-	if role, exists := roles.CommandRoleNames[name]; exists {
+	if role, exists := CommandRoleNames[name]; exists {
 		err := g.db.Update(func(tx *bolt.Tx) error {
 			bucket, err := g.bucket(tx)
 			if err != nil {

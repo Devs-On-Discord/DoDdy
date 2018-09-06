@@ -3,7 +3,7 @@ package main
 import bolt "go.etcd.io/bbolt"
 
 type vote2 struct {
-	Entity
+	entity
 }
 
 func (v *vote2) Init() {

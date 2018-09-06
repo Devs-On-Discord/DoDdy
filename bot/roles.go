@@ -1,4 +1,4 @@
-package roles
+package main
 
 type Role int
 

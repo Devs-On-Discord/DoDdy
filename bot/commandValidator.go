@@ -17,10 +17,11 @@ func (v commandValidator) Validate(command *commands.Command, session *discordgo
 		if err != nil {
 			return false
 		}
+		commandRole := RoleInt[command.Role]
 		for role, id := range guild.Roles {
 			for _, memberRole := range member.Roles {
 				if id == memberRole {
-					if role >= command.Role {
+					if role >= commandRole {
 						return true
 					}
 				}

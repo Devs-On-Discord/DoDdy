@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"github.com/Devs-On-Discord/DoDdy/bot/commands"
-	"github.com/Devs-On-Discord/DoDdy/bot/roles"
 	"github.com/bwmarrin/discordgo"
 	"sync"
 )
@@ -39,7 +38,7 @@ func (g *guildAdminCommands) getRoles(session *discordgo.Session, commandMessage
 	}
 
 	var buffer bytes.Buffer
-	for name, id := range roles.CommandRoleNames {
+	for name, id := range CommandRoleNames {
 		if role, exists := guild.Roles[id]; exists {
 			roleName := role
 			for _, guildRole := range guildRoles {
