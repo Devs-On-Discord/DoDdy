@@ -2,9 +2,10 @@ package main
 
 import (
 	"bytes"
+	"sync"
+
 	"github.com/Devs-On-Discord/DoDdy/bot/commands"
 	"github.com/bwmarrin/discordgo"
-	"sync"
 )
 
 /*
@@ -138,12 +139,12 @@ func (g *guildAdminCommands) setRole(session *discordgo.Session, commandMessage 
 	guild, err := g.guilds.Guild(commandMessage.GuildID)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
-	} else {
-		err = guild.SetRole(roleName, roleID)
-		if err != nil {
-			return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
-		}
 	}
+	err = guild.SetRole(roleName, roleID)
+	if err != nil {
+		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
+	}
+
 	return &commands.CommandReply{Message: "Role set", Color: 0x00b300}
 }
 

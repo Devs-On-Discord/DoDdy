@@ -1,5 +1,6 @@
 package main
 
+// The Role type is used to assign users a permission level
 type Role int
 
 var (
@@ -11,6 +12,7 @@ var (
 		"Hub Admin",
 		"Bot Developer",
 	}
+	// CommandRoleNames assigns a string to a permission level
 	CommandRoleNames = map[string]Role{
 		"User":         User,
 		"NodeMod":      NodeMod,
@@ -19,6 +21,7 @@ var (
 		"HubAdmin":     HubAdmin,
 		"BotDeveloper": BotDeveloper,
 	}
+	// RoleInt assigns an int to a permission level
 	RoleInt = map[int]Role{
 		0: User,
 		1: NodeMod,
@@ -29,6 +32,7 @@ var (
 	}
 )
 
+// These constants define a permission level assignable to users, used in commands
 const (
 	User         Role = 0
 	NodeMod      Role = 1

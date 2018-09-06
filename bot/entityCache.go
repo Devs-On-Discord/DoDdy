@@ -4,6 +4,7 @@ package main
 
 import bolt "go.etcd.io/bbolt"
 
+// EntityCache is an interface to the underlying entityCache object
 type EntityCache interface {
 	Init()
 	Name() string
@@ -36,7 +37,7 @@ func (c *entityCache) Entity(id string) *entity {
 }
 
 func (c *entityCache) Entities() *entityCache {
-	Db.View(func(tx *bolt.Tx) error {
+	DB.View(func(tx *bolt.Tx) error {
 		if entitiesBucket := tx.Bucket([]byte(c.name)); entitiesBucket != nil {
 			entitiesCursor := entitiesBucket.Cursor()
 			for k, _ := entitiesCursor.First(); k != nil; k, _ = entitiesCursor.Next() {

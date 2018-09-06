@@ -8,7 +8,8 @@ type db struct {
 	db *bolt.DB
 }
 
-var Db *bolt.DB
+// DB Is a globally available database reference
+var DB *bolt.DB
 
 func (db *db) Init() {
 	var err error
@@ -16,7 +17,7 @@ func (db *db) Init() {
 	if err != nil {
 		panic("could not open boltdb: " + err.Error())
 	}
-	Db = db.db
+	DB = db.db
 }
 
 func (db *db) Close() {

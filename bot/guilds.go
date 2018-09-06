@@ -3,8 +3,9 @@ package main
 import (
 	"bytes"
 	"fmt"
-	bolt "go.etcd.io/bbolt"
 	"strconv"
+
+	bolt "go.etcd.io/bbolt"
 )
 
 var (
@@ -124,18 +125,19 @@ func (g *Guilds) LoadGuilds() *Guilds {
 
 // Guild returns a cached guild instance, or pulls it from the database
 func (g *Guilds) Guild(id string) (*Guild, error) {
-	if guild, exists := g.Guilds[id]; exists {
+	guild, exists := g.Guilds[id]
+	if exists {
 		return guild, nil
-	} else {
-		err := g.db.View(func(tx *bolt.Tx) error {
-			guildsBucket := tx.Bucket(guilds)
-			if guildsBucket != nil {
-				guild = g.loadGuild(guildsBucket, id)
-			}
-			return nil
-		})
-		return guild, err
 	}
+	err := g.db.View(func(tx *bolt.Tx) error {
+		guildsBucket := tx.Bucket(guilds)
+		if guildsBucket != nil {
+			guild = g.loadGuild(guildsBucket, id)
+		}
+		return nil
+	})
+	return guild, err
+
 }
 
 func (g *Guild) bucket(tx *bolt.Tx) (*bolt.Bucket, error) {
@@ -193,6 +195,7 @@ func (g *Guild) SetVotesChannel(channelID string) error {
 	return err
 }
 
+// SetRole assigns a role on the server to one of the permission levels
 func (g *Guild) SetRole(name string, id string) error {
 	if role, exists := CommandRoleNames[name]; exists {
 		err := g.db.Update(func(tx *bolt.Tx) error {
@@ -214,7 +217,7 @@ func (g *Guild) SetRole(name string, id string) error {
 			g.Roles[role] = id
 		}
 		return err
-	} else {
-		return fmt.Errorf("role %s doesn't exists\nEnter !roles to see possible names.", string(name))
 	}
+	return fmt.Errorf("role %s doesn't exists\nEnter !roles to see possible names", string(name))
+
 }

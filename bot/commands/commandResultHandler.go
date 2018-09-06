@@ -6,7 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// DiscordCommandResultHandler is a master object containing everything related to handling incoming commands
+// CommandResultHandler is a master object containing everything related to handling incoming commands
 // as well as responding to them, and deleting answers 10 seconds later
 type CommandResultHandler struct {
 	commands *Commands
