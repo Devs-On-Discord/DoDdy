@@ -21,9 +21,11 @@ func (v *votes2) CreateEntity() Entity {
 }
 
 func (v *votes2) fillChannelVotesForVote(vote *vote) {
-	if guilds := vote.GetEntitiesMap("guild"); guilds != nil {
+	if guilds, err := vote.GetEntitiesMap("guild"); err == nil {
 		for _, guild := range guilds {
-			v.channelVotes[guild.GetString("channelID")] = vote
+			if channelID, err := guild.GetString("channelID"); err == nil {
+				v.channelVotes[channelID] = vote
+			}
 		}
 	}
 }

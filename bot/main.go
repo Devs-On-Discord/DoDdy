@@ -32,12 +32,6 @@ func main() {
 
 	v2 := &votes2{}
 	v2.Init()
-	println("votes2 len", len(v2.entities))
-	for _, entity := range v2.entities {
-		entityOBj := *entity
-		entVote := entityOBj.(*vote)
-		println("name", entVote.GetString("name"))
-	}
 
 	botCommands := &commands.Commands{}
 	botCommands.Init(bot.session)

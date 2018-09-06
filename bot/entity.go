@@ -1,10 +1,29 @@
 package main
 
 import (
+	"fmt"
+	"reflect"
 	"strconv"
 
 	bolt "go.etcd.io/bbolt"
 )
+
+type entityDataNotFoundError struct {
+	key string
+}
+
+func (b entityDataNotFoundError) Error() string {
+	return fmt.Sprintf("Entity Data (%s) couldn't be found", b.key)
+}
+
+type entityDataWrongTypeError struct {
+	wrongType   reflect.Type
+	correctType reflect.Type
+}
+
+func (b entityDataWrongTypeError) Error() string {
+	return fmt.Sprintf("Entity Data doesn't confirm to %s is %s instead", b.wrongType, b.correctType)
+}
 
 // Entity is an interface to the underlying entity object
 type Entity interface {
@@ -14,9 +33,9 @@ type Entity interface {
 	Name() string
 	Data() map[string]interface{}
 	Set(key string, val interface{})
-	GetString(key string) string
-	GetInt(key string) int
-	Get(key string) interface{}
+	GetString(key string) (string, error)
+	GetInt(key string) (int, error)
+	Get(key string) (interface{}, error)
 	Update(keys []string) error
 	Load() error
 	Delete() error
@@ -57,62 +76,92 @@ func (e *entity) Set(key string, val interface{}) {
 	d[key] = val
 }
 
-func (e entity) Get(key string) interface{} {
+func (e entity) Get(key string) (interface{}, error) {
 	d := e.data
 	if data, exists := d[key]; exists {
-		return data
+		return data, nil
 	}
-	return nil
+	return nil, &entityDataNotFoundError{key}
 }
 
-func (e entity) GetString(key string) string {
-	if data := e.Get(key); data != nil {
+func (e entity) GetString(key string) (string, error) {
+	if data, err := e.Get(key); err != nil {
 		switch data.(type) {
 		case string:
-			return data.(string)
+			return data.(string), nil
+		default:
+			return "", &entityDataWrongTypeError{
+				wrongType:   reflect.TypeOf(""),
+				correctType: reflect.TypeOf(data),
+			}
 		}
+	} else {
+		return "", err
 	}
-	return ""
 }
 
-func (e entity) GetInt(key string) int {
-	if data := e.Get(key); data != nil {
+func (e entity) GetInt(key string) (int, error) {
+	if data, err := e.Get(key); err != nil {
 		switch data.(type) {
 		case int:
-			return data.(int)
+			return data.(int), nil
+		default:
+			return 0, &entityDataWrongTypeError{
+				wrongType:   reflect.TypeOf(0),
+				correctType: reflect.TypeOf(data),
+			}
 		}
+	} else {
+		return 0, err
 	}
-	return 0
 }
 
-func (e entity) GetEntity(key string) *Entity {
-	if data := e.Get(key); data != nil {
+func (e entity) GetEntity(key string) (*Entity, error) {
+	if data, err := e.Get(key); err != nil {
 		switch data.(type) {
 		case *Entity:
-			return data.(*Entity)
+			return data.(*Entity), nil
+		default:
+			return nil, &entityDataWrongTypeError{
+				wrongType:   reflect.TypeOf(&entity{}),
+				correctType: reflect.TypeOf(data),
+			}
 		}
+	} else {
+		return nil, err
 	}
-	return nil
 }
 
-func (e entity) GetEntities(key string) []*Entity {
-	if data := e.Get(key); data != nil {
+func (e entity) GetEntities(key string) ([]*Entity, error) {
+	if data, err := e.Get(key); err != nil {
 		switch data.(type) {
 		case []*Entity:
-			return data.([]*Entity)
+			return data.([]*Entity), nil
+		default:
+			return nil, &entityDataWrongTypeError{
+				wrongType:   reflect.TypeOf([]*entity{}),
+				correctType: reflect.TypeOf(data),
+			}
 		}
+	} else {
+		return nil, err
 	}
-	return nil
 }
 
-func (e entity) GetEntitiesMap(key string) map[string]Entity {
-	if data := e.Get(key); data != nil {
+func (e entity) GetEntitiesMap(key string) (map[string]Entity, error) {
+	if data, err := e.Get(key); err != nil {
 		switch data.(type) {
 		case map[string]Entity:
-			return data.(map[string]Entity)
+			return data.(map[string]Entity), nil
+		default:
+			return nil, &entityDataWrongTypeError{
+				wrongType:   reflect.TypeOf(map[string]entity{}),
+				correctType: reflect.TypeOf(data),
+			}
 		}
+	} else {
+		return nil, err
 	}
-	return nil
 }
 
 func (e entity) Update(keys []string) error {
@@ -138,8 +187,8 @@ func (e entity) Update(keys []string) error {
 }
 
 func (e entity) dbSet(key string, bucket *bolt.Bucket) error {
-	value := e.Get(key)
-	if value == nil {
+	value, err := e.Get(key)
+	if err != nil {
 		return bucket.Delete([]byte(key))
 	} else {
 		switch value.(type) {
