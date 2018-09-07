@@ -50,7 +50,7 @@ func (g *guild) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} 
 	return nil
 }
 
-func (g *guild) OnSave(key string, val interface{}, bucket *bolt.Bucket) error {
+func (g *guild) OnSave(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error) {
 	switch key {
 	case "roles":
 		roles := val.(map[Role]string)
@@ -59,9 +59,9 @@ func (g *guild) OnSave(key string, val interface{}, bucket *bolt.Bucket) error {
 			for role, roleId := range roles {
 				err = rolesBucket.Put([]byte(strconv.Itoa(int(role))), []byte(roleId))
 			}
-			return err
+			return nil, err
 		} else {
-			return err
+			return nil, err
 		}
 	case "channels":
 		channels := val.(map[Channel]string)
@@ -70,10 +70,10 @@ func (g *guild) OnSave(key string, val interface{}, bucket *bolt.Bucket) error {
 			for channel, channelId := range channels {
 				err = channelsBucket.Put([]byte(strconv.Itoa(int(channel))), []byte(channelId))
 			}
-			return err
+			return nil, err
 		} else {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return nil, nil
 }

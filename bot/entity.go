@@ -40,7 +40,7 @@ type Entity interface {
 	Load() error
 	Delete() error
 	SetOnLoad(func(key string, val []byte, bucket *bolt.Bucket) interface{})
-	SetOnSave(func(key string, val interface{}, bucket *bolt.Bucket) error)
+	SetOnSave(func(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error))
 	LoadBucket(bucket *bolt.Bucket)
 	dbSetAll(bucket *bolt.Bucket) error
 }
@@ -50,7 +50,7 @@ type entity struct {
 	name   string
 	data   map[string]interface{}
 	onLoad func(key string, val []byte, bucket *bolt.Bucket) interface{}
-	onSave func(key string, val interface{}, bucket *bolt.Bucket) error
+	onSave func(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error)
 }
 
 func (e *entity) Init() {
@@ -194,49 +194,67 @@ func (e entity) dbSet(key string, bucket *bolt.Bucket) error {
 	if err != nil {
 		return bucket.Delete([]byte(key))
 	} else {
-		switch value.(type) {
-		case string:
-			return bucket.Put([]byte(key), []byte(value.(string)))
-		case int:
-			return bucket.Put([]byte(key), []byte(strconv.Itoa(value.(int))))
-		case Entity:
-			entity := value.(Entity)
-			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-				if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
-					entity.dbSetAll(entityBucket)
-				} else {
-					return err
-				}
-			} else {
-				return err
-			}
-		case []Entity:
-			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-				for _, entity := range value.([]Entity) {
-					if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
-						err = entity.dbSetAll(entityBucket)
-					}
-				}
-				return err
-			} else {
-				return err
-			}
-		case map[string]Entity:
-			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-				for key, entity := range value.(map[string]Entity) {
-					if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-						err = entity.dbSetAll(entityBucket)
-					}
-				}
-				return err
-			} else {
-				return err
-			}
-		default:
-			return e.onSave(key, value, bucket)
-		}
-		return nil
+		e.dbSetValue(key, value, bucket, false)
 	}
+	return nil
+}
+
+func (e entity) dbSetValue(key string, value interface{}, bucket *bolt.Bucket, secondRun bool) error {
+	switch value.(type) {
+	case string:
+		return bucket.Put([]byte(key), []byte(value.(string)))
+	case int:
+		return bucket.Put([]byte(key), []byte(strconv.Itoa(value.(int))))
+	case Entity:
+		entity := value.(Entity)
+		if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+			if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
+				entity.dbSetAll(entityBucket)
+			} else {
+				return err
+			}
+		} else {
+			return err
+		}
+	case []Entity:
+		if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+			for _, entity := range value.([]Entity) {
+				if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
+					err = entity.dbSetAll(entityBucket)
+				}
+			}
+			return err
+		} else {
+			return err
+		}
+	case map[string]Entity:
+		if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+			for key, entity := range value.(map[string]Entity) {
+				if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+					err = entity.dbSetAll(entityBucket)
+				}
+			}
+			return err
+		} else {
+			return err
+		}
+	case map[string]string:
+		if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+			for key, value := range value.(map[string]string) {
+				entitiesBucket.Put([]byte(key), []byte(value))
+			}
+		}
+	default:
+		value, err := e.onSave(key, value, bucket)
+		if err != nil {
+			return err
+		}
+		// Maybe onSave has given us an value we can actually save
+		if value != nil {
+			e.dbSetValue(key, value, bucket, true)
+		}
+	}
+	return nil
 }
 
 func (e entity) dbSetAll(bucket *bolt.Bucket) error {
@@ -272,7 +290,7 @@ func (e *entity) SetOnLoad(onLoad func(key string, val []byte, bucket *bolt.Buck
 	e.onLoad = onLoad
 }
 
-func (e *entity) SetOnSave(onSave func(key string, val interface{}, bucket *bolt.Bucket) error) {
+func (e *entity) SetOnSave(onSave func(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error)) {
 	e.onSave = onSave
 }
 
@@ -303,10 +321,26 @@ func (e entity) loadNestedBucketEntityMap(key string, bucket *bolt.Bucket, creat
 	return nil
 }
 
+func (e entity) saveCustomMap(key string, bucket *bolt.Bucket, customMap map[interface{}]interface{}, transformer func(key interface{}, value interface{}) ([]byte, []byte)) error {
+	if customMapBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+		var err error
+		for key, value := range customMap {
+			transformedKey, transformedValue := transformer(key, value)
+			if transformedKey == nil || transformedValue == nil {
+				continue
+			}
+			err = customMapBucket.Put(transformedKey, transformedValue)
+		}
+		return err
+	} else {
+		return err
+	}
+}
+
 func (e entity) onDefaultLoad(key string, val []byte, bucket *bolt.Bucket) interface{} {
 	return nil
 }
 
-func (e entity) onDefaultSave(key string, val interface{}, bucket *bolt.Bucket) error {
-	return nil
+func (e entity) onDefaultSave(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error) {
+	return nil, nil
 }
