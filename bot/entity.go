@@ -250,7 +250,7 @@ func (e entity) dbSetValue(key string, value interface{}, bucket *bolt.Bucket, s
 			return err
 		}
 		// Maybe onSave has given us an value we can actually save
-		if value != nil {
+		if value != nil && !secondRun {
 			e.dbSetValue(key, value, bucket, true)
 		}
 	}
