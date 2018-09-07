@@ -25,6 +25,11 @@ func (b entityDataWrongTypeError) Error() string {
 	return fmt.Sprintf("Entity Data doesn't confirm to %s is %s instead", b.wrongType, b.correctType)
 }
 
+type entityField struct {
+	setter func(newValue interface{})
+	getter func() interface{}
+}
+
 // Entity is an interface to the underlying entity object
 type Entity interface {
 	Init()
@@ -32,6 +37,7 @@ type Entity interface {
 	SetID(id string)
 	Name() string
 	Data() map[string]interface{}
+	Fields() map[string]entityField
 	Set(key string, val interface{})
 	GetString(key string) (string, error)
 	GetInt(key string) (int, error)
@@ -49,6 +55,7 @@ type entity struct {
 	id     string
 	name   string
 	data   map[string]interface{}
+	fields map[string]entityField
 	onLoad func(key string, val []byte, bucket *bolt.Bucket) interface{}
 	onSave func(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error)
 }
@@ -73,6 +80,10 @@ func (e entity) Name() string {
 
 func (e entity) Data() map[string]interface{} {
 	return e.data
+}
+
+func (e entity) Fields() map[string]entityField {
+	return e.fields
 }
 
 func (e *entity) Set(key string, val interface{}) {
@@ -171,7 +182,7 @@ func (e entity) Update(keys []string) error {
 	return DB.Update(func(tx *bolt.Tx) error {
 		if entitiesBucket, err := tx.CreateBucketIfNotExists([]byte(e.name)); err == nil {
 			if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(e.id)); err == nil {
-				if keys != nil { // Only update the provided keys when keys are provided
+				if keys != nil { // Only update the provided fields when fields are provided
 					for _, key := range keys {
 						err = e.dbSet(key, entityBucket)
 					}
@@ -190,8 +201,13 @@ func (e entity) Update(keys []string) error {
 }
 
 func (e entity) dbSet(key string, bucket *bolt.Bucket) error {
-	value, err := e.Get(key)
-	if err != nil {
+	var value interface{}
+	if entityAttribute, exists := e.fields[key]; exists {
+		value = entityAttribute.getter()
+	} else {
+		value, _ = e.Get(key)
+	}
+	if value == nil {
 		return bucket.Delete([]byte(key))
 	} else {
 		e.dbSetValue(key, value, bucket, false)
@@ -269,7 +285,15 @@ func (e *entity) LoadBucket(bucket *bolt.Bucket) {
 	entityCursor := bucket.Cursor()
 	for k, v := entityCursor.First(); k != nil; k, v = entityCursor.Next() {
 		key := string(k)
-		e.data[key] = e.onLoad(key, v, bucket)
+		loadedValue := e.onLoad(key, v, bucket)
+		fields := e.fields //TODO: init fields in init when all are migrated
+		if fields != nil {
+			if field, exists := fields[key]; exists {
+				field.setter(loadedValue)
+				return
+			}
+		}
+		e.data[key] = loadedValue
 	}
 }
 
