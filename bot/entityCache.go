@@ -2,7 +2,17 @@ package main
 
 //var _ Entity = (*entity)(nil)
 
-import bolt "go.etcd.io/bbolt"
+import (
+	"fmt"
+	bolt "go.etcd.io/bbolt"
+)
+
+type entityNotFoundError struct {
+}
+
+func (b entityNotFoundError) Error() string {
+	return fmt.Sprintf("Entity couldn't be found")
+}
 
 // EntityCache is an interface to the underlying entityCache object
 type EntityCache interface {

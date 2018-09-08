@@ -7,10 +7,38 @@ import (
 
 type guild struct {
 	entity
+	serverName string
+	prefix     string
+	roles      map[Role]string
+	channels   map[Channel]string
 }
 
 func (g *guild) Init() {
 	g.entity.Init()
+	g.fields = map[string]*entityField{
+		"serverName": {
+			setter: func(val interface{}) {
+				if name, ok := val.(string); ok {
+					g.serverName = name
+				}
+			},
+			getter: func() interface{} {
+				return g.serverName
+			},
+		},
+		"prefix": {
+			setter: func(val interface{}) {
+				if prefix, ok := val.(string); ok {
+					g.prefix = prefix
+				}
+			},
+			getter: func() interface{} {
+				return g.prefix
+			},
+		},
+		"roles": nil,
+		"channels": nil,
+	}
 	g.name = "guild"
 	g.onLoad = g.OnLoad
 	g.onSave = g.OnSave
@@ -18,33 +46,33 @@ func (g *guild) Init() {
 
 func (g *guild) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} {
 	switch key {
-	case "name", "prefix":
+	case "serverName", "prefix":
 		return string(val)
 	case "roles":
 		if rolesBucket := bucket.Bucket([]byte(key)); rolesBucket != nil {
-			roles := map[Role]string{}
+			g.roles = map[Role]string{}
 			rolesCursor := rolesBucket.Cursor()
 			for k, v := rolesCursor.First(); k != nil; k, v = rolesCursor.Next() {
 				if roleInt, err := strconv.Atoi(string(k)); err == nil {
 					if role, exists := RoleInt[roleInt]; exists {
-						roles[role] = string(v)
+						g.roles[role] = string(v)
 					}
 				}
 			}
-			return roles
+			return nil
 		}
 	case "channels":
 		if channelsBucket := bucket.Bucket([]byte(key)); channelsBucket != nil {
-			channels := map[Channel]string{}
+			g.channels = map[Channel]string{}
 			channelsCursor := channelsBucket.Cursor()
 			for k, v := channelsCursor.First(); k != nil; k, v = channelsCursor.Next() {
 				if channelInt, err := strconv.Atoi(string(k)); err == nil {
 					if channel, exists := ChannelInt[channelInt]; exists {
-						channels[channel] = string(v)
+						g.channels[channel] = string(v)
 					}
 				}
 			}
-			return channels
+			return nil
 		}
 	}
 	return nil
@@ -53,10 +81,11 @@ func (g *guild) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} 
 func (g *guild) OnSave(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error) {
 	switch key {
 	case "roles":
-		roles := val.(map[Role]string)
+		if g.roles == nil {
+			return nil, nil
+		}
 		if rolesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-			var err error
-			for role, roleId := range roles {
+			for role, roleId := range g.roles {
 				err = rolesBucket.Put([]byte(strconv.Itoa(int(role))), []byte(roleId))
 			}
 			return nil, err
@@ -64,10 +93,11 @@ func (g *guild) OnSave(key string, val interface{}, bucket *bolt.Bucket) (interf
 			return nil, err
 		}
 	case "channels":
-		channels := val.(map[Channel]string)
+		if g.channels == nil {
+			return nil, nil
+		}
 		if channelsBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-			var err error
-			for channel, channelId := range channels {
+			for channel, channelId := range g.channels {
 				err = channelsBucket.Put([]byte(strconv.Itoa(int(channel))), []byte(channelId))
 			}
 			return nil, err

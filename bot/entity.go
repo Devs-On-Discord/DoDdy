@@ -37,7 +37,7 @@ type Entity interface {
 	SetID(id string)
 	Name() string
 	Data() map[string]interface{}
-	Fields() map[string]entityField
+	Fields() map[string]*entityField
 	Set(key string, val interface{})
 	GetString(key string) (string, error)
 	GetInt(key string) (int, error)
@@ -55,7 +55,7 @@ type entity struct {
 	id     string
 	name   string
 	data   map[string]interface{}
-	fields map[string]entityField
+	fields map[string]*entityField
 	onLoad func(key string, val []byte, bucket *bolt.Bucket) interface{}
 	onSave func(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error)
 }
@@ -82,7 +82,7 @@ func (e entity) Data() map[string]interface{} {
 	return e.data
 }
 
-func (e entity) Fields() map[string]entityField {
+func (e entity) Fields() map[string]*entityField {
 	return e.fields
 }
 
@@ -202,8 +202,13 @@ func (e entity) Update(keys []string) error {
 
 func (e entity) dbSet(key string, bucket *bolt.Bucket) error {
 	var value interface{}
-	if entityAttribute, exists := e.fields[key]; exists {
-		value = entityAttribute.getter()
+	if field, exists := e.fields[key]; exists {
+		if field == nil || field.getter == nil {
+			// When getter doesn't exists make it possible to set the values manually in onSave with an nil value
+			return e.dbSetValue(key, nil, bucket, false)
+		} else {
+			value = field.getter()
+		}
 	} else {
 		value, _ = e.Get(key)
 	}
@@ -216,59 +221,63 @@ func (e entity) dbSet(key string, bucket *bolt.Bucket) error {
 }
 
 func (e entity) dbSetValue(key string, value interface{}, bucket *bolt.Bucket, secondRun bool) error {
-	switch value.(type) {
-	case string:
-		return bucket.Put([]byte(key), []byte(value.(string)))
-	case int:
-		return bucket.Put([]byte(key), []byte(strconv.Itoa(value.(int))))
-	case Entity:
-		entity := value.(Entity)
-		if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-			if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
-				entity.dbSetAll(entityBucket)
+	if value != nil {
+		switch value.(type) {
+		case string:
+			return bucket.Put([]byte(key), []byte(value.(string)))
+		case int:
+			return bucket.Put([]byte(key), []byte(strconv.Itoa(value.(int))))
+		case Entity:
+			entity := value.(Entity)
+			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+				if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
+					return entity.dbSetAll(entityBucket)
+				} else {
+					return err
+				}
 			} else {
 				return err
 			}
-		} else {
-			return err
-		}
-	case []Entity:
-		if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-			for _, entity := range value.([]Entity) {
-				if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
-					err = entity.dbSetAll(entityBucket)
+		case []Entity:
+			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+				for _, entity := range value.([]Entity) {
+					if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
+						err = entity.dbSetAll(entityBucket)
+					}
 				}
+				return err
+			} else {
+				return err
 			}
-			return err
-		} else {
-			return err
-		}
-	case map[string]Entity:
-		if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-			for key, entity := range value.(map[string]Entity) {
-				if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-					err = entity.dbSetAll(entityBucket)
+		case map[string]Entity:
+			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+				for key, entity := range value.(map[string]Entity) {
+					if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+						err = entity.dbSetAll(entityBucket)
+					}
 				}
+				return err
+			} else {
+				return err
 			}
-			return err
-		} else {
-			return err
-		}
-	case map[string]string:
-		if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-			for key, value := range value.(map[string]string) {
-				entitiesBucket.Put([]byte(key), []byte(value))
+		case map[string]string:
+			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+				for key, value := range value.(map[string]string) {
+					err = entitiesBucket.Put([]byte(key), []byte(value))
+				}
+				return err
+			} else {
+				return err
 			}
 		}
-	default:
-		value, err := e.onSave(key, value, bucket)
-		if err != nil {
-			return err
-		}
-		// Maybe onSave has given us an value we can actually save
-		if value != nil && !secondRun {
-			e.dbSetValue(key, value, bucket, true)
-		}
+	}
+	value, err := e.onSave(key, value, bucket)
+	if err != nil {
+		return err
+	}
+	// Maybe onSave has given us an value we can actually save
+	if value != nil && !secondRun {
+		return e.dbSetValue(key, value, bucket, true)
 	}
 	return nil
 }
@@ -286,11 +295,17 @@ func (e *entity) LoadBucket(bucket *bolt.Bucket) {
 	for k, v := entityCursor.First(); k != nil; k, v = entityCursor.Next() {
 		key := string(k)
 		loadedValue := e.onLoad(key, v, bucket)
+		if loadedValue == nil {
+			continue
+		}
 		fields := e.fields //TODO: init fields in init when all are migrated
 		if fields != nil {
 			if field, exists := fields[key]; exists {
-				field.setter(loadedValue)
-				return
+				if field != nil && field.setter != nil {
+					field.setter(loadedValue)
+				}
+				// When there is no setter we assume its handled in onLoad, so setting it to data isn't needed
+				continue
 			}
 		}
 		e.data[key] = loadedValue

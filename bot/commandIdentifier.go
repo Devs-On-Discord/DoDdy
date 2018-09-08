@@ -24,12 +24,10 @@ func (i commandIdentifier) Identify(s *discordgo.Session, m *discordgo.MessageCr
 	}
 	if len(m.Content) > 1 {
 		if guildPtr, err := i.guilds.Entity(m.GuildID); err == nil {
-			guild := *guildPtr
-			if prefix, err := guild.GetString("prefix"); err == nil {
-				if prefix == m.Content[:1] {
-					m.Content = m.Content[1:]
-					return true
-				}
+			guild := (*guildPtr).(*guild)
+			if guild.prefix == m.Content[:1] {
+				m.Content = m.Content[1:]
+				return true
 			}
 		}
 	}
