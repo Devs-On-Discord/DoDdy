@@ -86,7 +86,8 @@ func (c *Commands) processMessage(session *discordgo.Session, commandMessage *di
 			}
 			return
 		}
-		if commandCount < 2 {
+
+		if commandCount < 2 { // Check for more arguments
 			resultMessage := command.Handler(c.session, commandMessage, nil)
 			resultMessage.setCommandMessage(commandMessage)
 			c.resultMessages <- resultMessage

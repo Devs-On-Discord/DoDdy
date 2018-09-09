@@ -32,7 +32,7 @@ func main() {
 
 	botCommands := &commands.Commands{}
 	botCommands.Init(bot.session)
-	botCommands.Validator = commandValidator{guilds: g}
+	botCommands.Validator = commandValidator{g}
 	identifier := commandIdentifier{guilds: g}
 	identifier.Init(bot.session)
 	botCommands.Identifier = identifier
@@ -40,9 +40,7 @@ func main() {
 	botCommands.RegisterGroup(guildAdminCommands{guilds: g, votes: v})
 	botCommands.RegisterGroup(helpCommands{botCommands})
 	botCommands.RegisterGroup(debugCommands{})
-	questionCommands := questionCommands{}
-	questionCommands.Init(bot.session)
-	botCommands.RegisterGroup(questionCommands)
+	botCommands.RegisterGroup(questionCommands{g})
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)

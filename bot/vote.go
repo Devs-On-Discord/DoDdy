@@ -87,7 +87,6 @@ func (v *vote) OnSave(key string, val interface{}, bucket *bolt.Bucket) (interfa
 			}
 		})
 	case "guild":
-		println("save gui")
 		if v.guild == nil {
 			return nil, nil
 		}

@@ -11,6 +11,7 @@ type guild struct {
 	prefix     string
 	roles      map[Role]string
 	channels   map[Channel]string
+	questions  map[string]*question // Key: channelID
 }
 
 func (g *guild) Init() {
@@ -36,8 +37,9 @@ func (g *guild) Init() {
 				return g.prefix
 			},
 		},
-		"roles":    nil,
-		"channels": nil,
+		"roles":     nil,
+		"channels":  nil,
+		"questions": nil,
 	}
 	g.name = "guild"
 	g.onLoad = g.OnLoad
@@ -66,7 +68,17 @@ func (g *guild) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} 
 				}
 			}
 		})
+	case "questions":
+		g.questions = map[string]*question{}
+		g.loadNestedBucketEntity(key, bucket, func(id string, bucket *bolt.Bucket) {
+			question := &question{}
+			question.Init()
+			question.SetID(id)
+			question.LoadBucket(bucket)
+			g.questions[id] = question
+		})
 	}
+
 	return nil
 }
 
@@ -96,6 +108,15 @@ func (g *guild) OnSave(key string, val interface{}, bucket *bolt.Bucket) (interf
 		} else {
 			return nil, err
 		}
+	case "questions":
+		if g.questions == nil {
+			return nil, nil
+		}
+		g.saveNestedBucketEntities(key, bucket, len(g.questions), func(save func(entity Entity)) {
+			for _, question := range g.questions {
+				save(question)
+			}
+		})
 	}
 	return nil, nil
 }

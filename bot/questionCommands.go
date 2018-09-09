@@ -5,11 +5,10 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+//TODO: move reactions handlers to questions entity cache struct
+//TODO: add cache for channelID, question
 type questionCommands struct {
-}
-
-func (q questionCommands) Init(session *discordgo.Session) {
-	session.AddHandler(q.reactionAdded)
+	guilds *guilds
 }
 
 func (q questionCommands) Commands() []*commands.Command {
@@ -23,49 +22,52 @@ func (q questionCommands) Commands() []*commands.Command {
 	}
 }
 
+//TODO: maybe just ignore the args here and use the commandMessage without the command name as an question so the syntax with "" isn't needed here
 func (q *questionCommands) ask(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	if len(args) < 1 {
 		return &commands.CommandReply{Message: "Question is required", Color: 0xb30000}
 	}
-	question := args[0]
-	channel, err := session.GuildChannelCreateComplex(commandMessage.GuildID, discordgo.GuildChannelCreateData{Name: question})
+	guild, err := q.guilds.Guild(commandMessage.GuildID)
+	if err != nil {
+		return &commands.CommandReply{Message: err.Error(), Color: 0xb30000}
+	}
+	questionMessage := args[0]
+	commandMessage.Content = questionMessage
+	questionMessage, err = commandMessage.ContentWithMoreMentionsReplaced(session)
+	if err != nil {
+		return &commands.CommandReply{Message: err.Error(), Color: 0xb30000}
+	}
+	channel, err := session.GuildChannelCreateComplex(commandMessage.GuildID, discordgo.GuildChannelCreateData{Name: questionMessage})
 	if err != nil {
 		return &commands.CommandReply{Message: err.Error(), Color: 0xb30000}
 	}
 	_, err = session.ChannelMessageSendEmbed(channel.ID, &discordgo.MessageEmbed{
-		Title: question,
-		Color: 9001204,
+		Title: questionMessage,
+		Color: 0xEE2C90/*9001204*/,
 		Author: &discordgo.MessageEmbedAuthor{
-			Name: commandMessage.Author.Username,
-			IconURL:  commandMessage.Author.AvatarURL("50x50"),
+			Name:    commandMessage.Author.Username,
+			IconURL: commandMessage.Author.AvatarURL("50x50"),
+		},
+		Timestamp: string(commandMessage.Timestamp),
+		Footer: &discordgo.MessageEmbedFooter{
+			Text:    "@ RxJava",
+			IconURL: "https://i.imgur.com/YP32xgu.png",
 		},
 	})
 	if err != nil {
 		return &commands.CommandReply{Message: err.Error(), Color: 0xb30000}
 	}
+	if guild.questions == nil {
+		guild.questions = map[string]*question{}
+	}
+	question := &question{}
+	question.Init()
+	question.id = channel.ID
+	question.message = questionMessage
+	question.askingUser = commandMessage.Author.ID
+	question.channelID = channel.ID
+	guild.questions[channel.ID] =  question
+	guild.Update([]string{"questions"})
+	q.guilds.Update(guild)
 	return &commands.CommandReply{Message: "Created", Color: 0x00b300}
-}
-
-func (q *questionCommands) reactionAdded(session *discordgo.Session, reaction *discordgo.MessageReactionAdd) {
-	if session.State.User.ID == reaction.UserID { // Ignore bot reactions
-		return
-	}
-	//TODO: check if channel is an question channel
-	//TODO: check if user that added the reaction is channel owner
-	//TODO: add 24hour time until channel remove after reaction
-	//TODO: close channel conversations
-	if reaction.Emoji.APIName() == "✅" {
-	}
-}
-
-func (q *questionCommands) reactionRemoved(session *discordgo.Session, reaction *discordgo.MessageReactionRemove) {
-	if session.State.User.ID == reaction.UserID { // Ignore bot reactions
-		return
-	}
-	//TODO: check if channel is an question channel
-	//TODO: check if user that added the reaction is channel owner
-	//TODO: make channel conversation open again
-	//TODO: stop deletion timer
-	if reaction.Emoji.APIName() == "✅" {
-	}
 }

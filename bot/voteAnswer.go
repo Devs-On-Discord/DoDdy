@@ -24,8 +24,8 @@ func (a *voteAnswer) Init() {
 		},
 		"emojiName": {
 			setter: func(val interface{}) {
-				if channelID, ok := val.(string); ok {
-					a.emojiName = channelID
+				if emojiName, ok := val.(string); ok {
+					a.emojiName = emojiName
 				}
 			},
 			getter: func() interface{} {

@@ -5,20 +5,37 @@ import "github.com/bwmarrin/discordgo"
 type guilds struct {
 	entityCache
 	session *discordgo.Session
+	channelQuestions map[string]*question
 }
 
 func (g *guilds) Init(session *discordgo.Session) {
+	g.channelQuestions = map[string]*question{}
 	g.session = session
 	g.session.AddHandler(g.guildCreate)
+	g.session.AddHandler(g.reactionAdded)
+	g.session.AddHandler(g.reactionRemoved)
 	g.entityCache.Init()
 	g.name = "guild"
 	g.onCreate = g.CreateEntity
+	g.onUpdate = g.UpdateEntity
 	g.Entities()
 }
 
 func (g *guilds) CreateEntity() Entity {
 	guild := &guild{}
 	return guild
+}
+
+func (g *guilds) UpdateEntity(entityPtr *Entity) {
+	entity := *entityPtr
+	guild := entity.(*guild)
+	g.fillChannelQuestionsForQuestion(guild)
+}
+
+func (g *guilds) fillChannelQuestionsForQuestion(guild *guild) {
+	for _, question := range guild.questions {
+		g.channelQuestions[question.channelID] = question
+	}
 }
 
 func (g *guilds) Guild(id string) (*guild, error) {
@@ -78,5 +95,29 @@ func (g *guilds) guildCreate(s *discordgo.Session, event *discordgo.GuildCreate)
 			return
 		}
 		s.ChannelMessageSend(channel.ID, "Use this channel to setup the bot. Type !setup for more infos.")
+	}
+}
+
+func (g *guilds) reactionAdded(session *discordgo.Session, reaction *discordgo.MessageReactionAdd) {
+	if session.State.User.ID == reaction.UserID { // Ignore bot reactions
+		return
+	}
+	//TODO: check if channel is an question channel
+	//TODO: check if user that added the reaction is channel owner
+	//TODO: add 24hour time until channel remove after reaction
+	//TODO: close channel conversations
+	if reaction.Emoji.APIName() == "✅" {
+	}
+}
+
+func (g *guilds) reactionRemoved(session *discordgo.Session, reaction *discordgo.MessageReactionRemove) {
+	if session.State.User.ID == reaction.UserID { // Ignore bot reactions
+		return
+	}
+	//TODO: check if channel is an question channel
+	//TODO: check if user that added the reaction is channel owner
+	//TODO: make channel conversation open again
+	//TODO: stop deletion timer
+	if reaction.Emoji.APIName() == "✅" {
 	}
 }
