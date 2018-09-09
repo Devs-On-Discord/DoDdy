@@ -150,10 +150,6 @@ func (g *guildAdminCommands) setChannel(session *discordgo.Session, commandMessa
 }
 
 func (g *guildAdminCommands) getChannels(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
-	guildChannels, err := session.GuildChannels(commandMessage.GuildID)
-	if err != nil {
-		return &commands.CommandError{Message: "Error in fetching server roles " + err.Error(), Color: 0xb30000}
-	}
 	guild, err := g.guilds.Guild(commandMessage.GuildID)
 	if err != nil {
 		return &commands.CommandError{Message: err.Error(), Color: 0xb30000}
@@ -166,19 +162,20 @@ func (g *guildAdminCommands) getChannels(session *discordgo.Session, commandMess
 			channel, exists = guild.channels[id]
 		}
 		if exists {
-			channelName := channel
-			for _, guildRole := range guildChannels {
-				if guildRole.ID == channel {
-					channelName = guildRole.Name
-					break
-				}
-			}
-			buffer.WriteString("channel: " + name + " " + channelName + "\n")
+			buffer.WriteString("Channel: " + name + " <#" + channel + "> \n")
 		} else {
 			buffer.WriteString("channel: " + name + " not set\n")
 		}
 	}
-	return &commands.CommandReply{Message: buffer.String(), Color: 0x00b300}
+	return &commands.CommandReply{
+		CustomMessage: &discordgo.MessageSend{
+			Content: buffer.String(),
+			Embed: &discordgo.MessageEmbed{
+				Color: 0x00b300,
+				Title: "Deletion in 10 seconds",
+			},
+		},
+	}
 }
 
 func (g *guildAdminCommands) setRole(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {

@@ -6,6 +6,7 @@ import "github.com/bwmarrin/discordgo"
 type CommandResultMessage interface {
 	setCommandMessage(commandMessage *discordgo.MessageCreate)
 	GetCommandMessage() *discordgo.MessageCreate
+	GetCustomMessage() *discordgo.MessageSend
 	GetMessage() string
 	GetColor() int
 }

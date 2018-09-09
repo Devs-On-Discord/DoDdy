@@ -7,6 +7,7 @@ import "github.com/bwmarrin/discordgo"
 type CommandError struct {
 	CommandMessage *discordgo.MessageCreate
 	Message        string
+	CustomMessage  *discordgo.MessageSend
 	Color          int
 }
 
@@ -20,6 +21,10 @@ func (c *CommandError) GetCommandMessage() *discordgo.MessageCreate {
 
 func (c *CommandError) GetMessage() string {
 	return c.Message
+}
+
+func (c *CommandError) GetCustomMessage() *discordgo.MessageSend {
+	return c.CustomMessage
 }
 
 func (c *CommandError) GetColor() int {
