@@ -4,7 +4,7 @@ import bolt "go.etcd.io/bbolt"
 
 type voteAnswer struct {
 	entity
-	title string
+	title     string
 	emojiName string
 	//count int //TODO: later
 }

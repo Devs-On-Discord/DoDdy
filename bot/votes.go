@@ -63,11 +63,11 @@ func (v *votes) reactionAdded(session *discordgo.Session, reaction *discordgo.Me
 	if guildVotes, exists := v.channelVotes[reaction.ChannelID]; exists {
 		if _, exists := guildVotes[reaction.MessageID]; exists {
 			/*for _, answer := range vote.Answers {
-			if answer.emojiID == reaction.Emoji.ID {
-				//IncreaseVoteAnswer(vote.Id, answer.emojiID)
-				break
-			}
-		}*/
+				if answer.emojiID == reaction.Emoji.ID {
+					//IncreaseVoteAnswer(vote.Id, answer.emojiID)
+					break
+				}
+			}*/
 			go session.MessageReactionsRemoveAll(reaction.ChannelID, reaction.MessageID)
 			//go session.MessageReactionRemove(reaction.ChannelID, reaction.MessageID, reaction.Emoji.Name, reaction.UserID)
 		}

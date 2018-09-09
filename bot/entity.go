@@ -370,7 +370,7 @@ func (e entity) loadNestedBucketEntity(key string, bucket *bolt.Bucket, loadEnti
 	}
 }
 
-func (e entity)saveNestedBucketEntities(key string, bucket *bolt.Bucket, count int, getEntities func(save func(entity Entity))) error {
+func (e entity) saveNestedBucketEntities(key string, bucket *bolt.Bucket, count int, getEntities func(save func(entity Entity))) error {
 	if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
 		save := func(entity Entity) {
 			if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {

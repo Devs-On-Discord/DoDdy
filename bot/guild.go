@@ -36,7 +36,7 @@ func (g *guild) Init() {
 				return g.prefix
 			},
 		},
-		"roles": nil,
+		"roles":    nil,
 		"channels": nil,
 	}
 	g.name = "guild"

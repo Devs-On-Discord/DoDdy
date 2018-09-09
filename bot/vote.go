@@ -4,10 +4,10 @@ import bolt "go.etcd.io/bbolt"
 
 type vote struct {
 	entity
-	title string
+	title   string
 	message string
 	answers map[string]*voteAnswer
-	guild map[string]*voteGuild
+	guild   map[string]*voteGuild
 }
 
 func (v *vote) Init() {
