@@ -284,6 +284,9 @@ func (e entity) dbSetValue(key string, value interface{}, bucket *bolt.Bucket, s
 
 func (e entity) dbSetAll(bucket *bolt.Bucket) error {
 	var err error
+	for field := range e.fields {
+		err = e.dbSet(field, bucket)
+	}
 	for key := range e.data {
 		err = e.dbSet(key, bucket)
 	}
@@ -342,22 +345,38 @@ func (e entity) Delete() error {
 	})
 }
 
-func (e entity) loadNestedBucketEntityMap(key string, bucket *bolt.Bucket, createEntity func() Entity) map[string]Entity {
-	nestedEntities := map[string]Entity{}
+func (e entity) loadNestedBucketEntity(key string, bucket *bolt.Bucket, loadEntity func(id string, bucket *bolt.Bucket)) {
 	if nestedEntitiesBucket := bucket.Bucket([]byte(key)); nestedEntitiesBucket != nil {
 		nestedEntitiesCursor := nestedEntitiesBucket.Cursor()
 		for k, _ := nestedEntitiesCursor.First(); k != nil; k, _ = nestedEntitiesCursor.Next() {
 			if nestedEntityBucket := nestedEntitiesBucket.Bucket(k); nestedEntityBucket != nil {
-				nestedEntity := createEntity()
-				nestedEntity.Init()
-				nestedEntity.SetID(string(k))
-				nestedEntity.LoadBucket(nestedEntityBucket)
-				nestedEntities[nestedEntity.ID()] = nestedEntity
+				loadEntity(string(k), nestedEntityBucket)
 			}
 		}
-		return nestedEntities
 	}
-	return nil
+}
+
+func (e entity)saveNestedBucketEntities(key string, bucket *bolt.Bucket, count int, getEntities func(save func(entity Entity))) error {
+	if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
+		save := func(entity Entity) {
+			if entityBucket, err := entitiesBucket.CreateBucketIfNotExists([]byte(entity.ID())); err == nil {
+				err = entity.dbSetAll(entityBucket)
+			}
+		}
+		getEntities(save)
+		return err
+	} else {
+		return err
+	}
+}
+
+func (e entity) loadNestedBucket(key string, bucket *bolt.Bucket, loadValue func(key string, value string)) {
+	if nestedValuesBucket := bucket.Bucket([]byte(key)); nestedValuesBucket != nil {
+		nestedValuesCursor := nestedValuesBucket.Cursor()
+		for k, v := nestedValuesCursor.First(); k != nil; k, v = nestedValuesCursor.Next() {
+			loadValue(string(k), string(v))
+		}
+	}
 }
 
 func (e entity) saveCustomMap(key string, bucket *bolt.Bucket, customMap map[interface{}]interface{}, transformer func(key interface{}, value interface{}) ([]byte, []byte)) error {

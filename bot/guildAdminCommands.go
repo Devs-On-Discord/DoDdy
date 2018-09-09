@@ -230,7 +230,7 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 		return &commands.CommandError{Message: "Vote id, name and message are required", Color: 0xb30000}
 	}
 	voteID := args[0]
-	voteName := args[1]
+	voteTitle := args[1]
 	voteMessage := args[2]
 
 	loadedEntities := g.guilds.Entities().entities
@@ -238,7 +238,7 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 	var wg sync.WaitGroup
 	wg.Add(len(loadedEntities))
 
-	voteGuilds := map[string]Entity{}
+	voteGuilds := map[string]*voteGuild{}
 
 	go func() {
 		wg.Wait()
@@ -246,20 +246,20 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 		vote := &vote{}
 		vote.Init()
 		vote.id = voteID
-		vote.Set("name", voteName)
-		vote.Set("message", voteMessage)
-		vote.Set("guild", voteGuilds)
-
-		vote.Update(nil)
+		vote.title = voteTitle
+		vote.message = voteMessage
+		vote.guild = voteGuilds
+		if err := vote.Update(nil); err != nil {
+			println("vote insert err", err.Error())
+		}
 		g.votes.Update(vote)
 	}()
 
-	for _, guild := range loadedEntities {
-		rawChannels, err := (*guild).Get("channels")
-		if err == nil {
-			channels := rawChannels.(map[Channel]string)
-			if channelID, exists := channels[Votes]; exists {
-				go func(channelID string) {
+	for _, guildPtr := range loadedEntities {
+		guild, ok := (*guildPtr).(*guild)
+		if ok && guild.channels != nil {
+			if channelID, exists := guild.channels[Votes]; exists {
+				go func() {
 					defer wg.Done()
 					message, err := session.ChannelMessageSend(channelID, voteMessage)
 					if err == nil {
@@ -268,13 +268,17 @@ func (g *guildAdminCommands) postVote(session *discordgo.Session, commandMessage
 							voteGuild := &voteGuild{}
 							voteGuild.Init()
 							voteGuild.id = channel.GuildID
-							voteGuild.Set("channelID", channelID)
-							voteGuild.Set("messageID", message.ID)
+							voteGuild.channelID = channelID
+							voteGuild.messageID = message.ID
 							voteGuilds[channel.GuildID] = voteGuild
 						}
 					}
-				}(channelID)
+				}()
+			} else {
+				wg.Done()
 			}
+		} else {
+			wg.Done()
 		}
 	}
 	return &commands.CommandReply{Message: "Vote posted", Color: 0x00b300}

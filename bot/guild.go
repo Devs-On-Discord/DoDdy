@@ -49,31 +49,23 @@ func (g *guild) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} 
 	case "serverName", "prefix":
 		return string(val)
 	case "roles":
-		if rolesBucket := bucket.Bucket([]byte(key)); rolesBucket != nil {
-			g.roles = map[Role]string{}
-			rolesCursor := rolesBucket.Cursor()
-			for k, v := rolesCursor.First(); k != nil; k, v = rolesCursor.Next() {
-				if roleInt, err := strconv.Atoi(string(k)); err == nil {
-					if role, exists := RoleInt[roleInt]; exists {
-						g.roles[role] = string(v)
-					}
+		g.roles = map[Role]string{}
+		g.loadNestedBucket(key, bucket, func(key string, value string) {
+			if roleInt, err := strconv.Atoi(key); err == nil {
+				if role, exists := RoleInt[roleInt]; exists {
+					g.roles[role] = value
 				}
 			}
-			return nil
-		}
+		})
 	case "channels":
-		if channelsBucket := bucket.Bucket([]byte(key)); channelsBucket != nil {
-			g.channels = map[Channel]string{}
-			channelsCursor := channelsBucket.Cursor()
-			for k, v := channelsCursor.First(); k != nil; k, v = channelsCursor.Next() {
-				if channelInt, err := strconv.Atoi(string(k)); err == nil {
-					if channel, exists := ChannelInt[channelInt]; exists {
-						g.channels[channel] = string(v)
-					}
+		g.channels = map[Channel]string{}
+		g.loadNestedBucket(key, bucket, func(key string, value string) {
+			if channelInt, err := strconv.Atoi(key); err == nil {
+				if channel, exists := ChannelInt[channelInt]; exists {
+					g.channels[channel] = value
 				}
 			}
-			return nil
-		}
+		})
 	}
 	return nil
 }
