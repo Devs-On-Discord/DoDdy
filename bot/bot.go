@@ -14,10 +14,18 @@ func (b *bot) Init() {
 	if err = b.session.Open(); err != nil {
 		panic("could not open session: " + err.Error())
 	}
+	b.session.AddHandler(b.ready)
 }
 
 func (b *bot) Close() {
 	if err := b.session.Close(); err != nil {
 		println("could not open session: " + err.Error())
+	}
+}
+
+//TODO: fix ready event not getting called
+func (b *bot) ready(s *discordgo.Session, event *discordgo.Ready) {
+	if err := s.UpdateStatus(0, "powering "+string(len(event.Guilds))+" nodes"); err != nil {
+		println("update status error", err.Error())
 	}
 }

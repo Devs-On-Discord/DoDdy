@@ -25,7 +25,7 @@ func main() {
 	defer bot.Close()
 
 	g := &guilds{}
-	g.Init()
+	g.Init(bot.session)
 
 	v := &votes{}
 	v.Init(bot.session)
