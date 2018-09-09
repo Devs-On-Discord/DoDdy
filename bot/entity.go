@@ -30,6 +30,10 @@ type entityField struct {
 	getter func() interface{}
 }
 
+type LoadHandler func(key string, val []byte, bucket *bolt.Bucket) interface{}
+
+type SaveHandler func(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error)
+
 // Entity is an interface to the underlying entity object
 type Entity interface {
 	Init()
@@ -45,8 +49,8 @@ type Entity interface {
 	Update(keys []string) error
 	Load() error
 	Delete() error
-	SetOnLoad(func(key string, val []byte, bucket *bolt.Bucket) interface{})
-	SetOnSave(func(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error))
+	SetOnLoad(LoadHandler)
+	SetOnSave(SaveHandler)
 	LoadBucket(bucket *bolt.Bucket)
 	dbSetAll(bucket *bolt.Bucket) error
 }
@@ -56,8 +60,8 @@ type entity struct {
 	name   string
 	data   map[string]interface{}
 	fields map[string]*entityField
-	onLoad func(key string, val []byte, bucket *bolt.Bucket) interface{}
-	onSave func(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error)
+	onLoad LoadHandler
+	onSave SaveHandler
 }
 
 func (e *entity) Init() {
@@ -200,24 +204,34 @@ func (e entity) Update(keys []string) error {
 	})
 }
 
-func (e entity) dbSet(key string, bucket *bolt.Bucket) error {
-	var value interface{}
-	if field, exists := e.fields[key]; exists {
-		if field == nil || field.getter == nil {
-			// When getter doesn't exists make it possible to set the values manually in onSave with an nil value
-			return e.dbSetValue(key, nil, bucket, false)
-		} else {
-			value = field.getter()
-		}
+func (e entity) dbSetField(key string, field *entityField, bucket *bolt.Bucket) error {
+	if field == nil || field.getter == nil {
+		// When getter doesn't exists make it possible to set the values manually in onSave with an nil value
+		return e.dbSetValue(key, nil, bucket, false)
 	} else {
-		value, _ = e.Get(key)
+		value := field.getter()
+		if value == nil {
+			return bucket.Delete([]byte(key))
+		} else {
+			return e.dbSetValue(key, value, bucket, false)
+		}
 	}
+}
+
+func (e entity) dbSetData(key string, bucket *bolt.Bucket) error {
+	value, _ := e.Get(key)
 	if value == nil {
 		return bucket.Delete([]byte(key))
 	} else {
-		e.dbSetValue(key, value, bucket, false)
+		return e.dbSetValue(key, value, bucket, false)
 	}
-	return nil
+}
+
+func (e entity) dbSet(key string, bucket *bolt.Bucket) error {
+	if field, exists := e.fields[key]; exists {
+		return e.dbSetField(key, field, bucket)
+	}
+	return e.dbSetData(key, bucket)
 }
 
 func (e entity) dbSetValue(key string, value interface{}, bucket *bolt.Bucket, secondRun bool) error {
@@ -284,11 +298,11 @@ func (e entity) dbSetValue(key string, value interface{}, bucket *bolt.Bucket, s
 
 func (e entity) dbSetAll(bucket *bolt.Bucket) error {
 	var err error
-	for field := range e.fields {
-		err = e.dbSet(field, bucket)
+	for fieldKey, field := range e.fields {
+		err = e.dbSetField(fieldKey, field, bucket)
 	}
 	for key := range e.data {
-		err = e.dbSet(key, bucket)
+		err = e.dbSetData(key, bucket)
 	}
 	return err
 }
@@ -328,11 +342,11 @@ func (e *entity) Load() error {
 	})
 }
 
-func (e *entity) SetOnLoad(onLoad func(key string, val []byte, bucket *bolt.Bucket) interface{}) {
+func (e *entity) SetOnLoad(onLoad LoadHandler) {
 	e.onLoad = onLoad
 }
 
-func (e *entity) SetOnSave(onSave func(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error)) {
+func (e *entity) SetOnSave(onSave SaveHandler) {
 	e.onSave = onSave
 }
 
@@ -376,22 +390,6 @@ func (e entity) loadNestedBucket(key string, bucket *bolt.Bucket, loadValue func
 		for k, v := nestedValuesCursor.First(); k != nil; k, v = nestedValuesCursor.Next() {
 			loadValue(string(k), string(v))
 		}
-	}
-}
-
-func (e entity) saveCustomMap(key string, bucket *bolt.Bucket, customMap map[interface{}]interface{}, transformer func(key interface{}, value interface{}) ([]byte, []byte)) error {
-	if customMapBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
-		var err error
-		for key, value := range customMap {
-			transformedKey, transformedValue := transformer(key, value)
-			if transformedKey == nil || transformedValue == nil {
-				continue
-			}
-			err = customMapBucket.Put(transformedKey, transformedValue)
-		}
-		return err
-	} else {
-		return err
 	}
 }
 

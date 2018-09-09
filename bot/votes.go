@@ -12,12 +12,11 @@ type votes struct {
 
 func (v *votes) Init(session *discordgo.Session) {
 	v.entityCache.Init()
+	v.channelVotes = map[string]map[string]*voteGuild{}
 	v.name = "vote"
 	v.onCreate = v.CreateEntity
 	v.onUpdate = v.UpdateEntity
 	v.Entities()
-	v.channelVotes = map[string]map[string]*voteGuild{}
-	v.fillChannelVotes()
 	session.AddHandler(v.reactionAdded)
 	session.AddHandler(v.reactionRemoved)
 }
@@ -54,13 +53,6 @@ func (v *votes) fillChannelVotesForVote(vote *vote) {
 			v.channelVotes[guild.channelID] = map[string]*voteGuild{}
 		}
 		v.channelVotes[guild.channelID][guild.messageID] = guild
-	}
-}
-
-func (v *votes) fillChannelVotes() {
-	for _, entityPtr := range v.entities {
-		vote := (*entityPtr).(*vote)
-		v.fillChannelVotesForVote(vote)
 	}
 }
 

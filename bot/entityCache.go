@@ -72,7 +72,7 @@ func (c *entityCache) Entities() *entityCache {
 
 func (c *entityCache) Update(entity Entity) {
 	c.entities[entity.ID()] = &entity
-	c.updateEntity(&entity)
+	c.onUpdate(&entity)
 }
 
 func (c *entityCache) createEntity() Entity {
