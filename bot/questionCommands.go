@@ -101,16 +101,15 @@ func (q *questionCommands) createTopic(session *discordgo.Session, commandMessag
 
 	newTopic := &topic{}
 	newTopic.Init()
-	newTopic.id = channel.Topic
+	newTopic.id = channel.ParentID
 	newTopic.title = title
 	newTopic.color = "0x" + color
 	newTopic.iconURL = iconURL
-	newTopic.topicID = channel.Topic
+	newTopic.topicID = channel.ParentID
 	if guild.topics == nil {
 		guild.topics = map[string]*topic{}
 	}
-	println("topic " + channel.Topic)
-	guild.topics[channel.Topic] = newTopic
+	guild.topics[channel.ParentID] = newTopic
 	err = guild.Update([]string{"topics"})
 	if err != nil {
 		return &commands.CommandReply{Message: err.Error(), Color: 0xb30000}
