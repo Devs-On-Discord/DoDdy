@@ -14,6 +14,9 @@ func (b *bot) Init() {
 	if err = b.session.Open(); err != nil {
 		panic("could not open session: " + err.Error())
 	}
+	if b.session.State.User == nil {
+		panic("No user")
+	}
 	b.session.AddHandler(b.ready)
 }
 

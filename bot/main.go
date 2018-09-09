@@ -40,6 +40,9 @@ func main() {
 	botCommands.RegisterGroup(guildAdminCommands{guilds: g, votes: v})
 	botCommands.RegisterGroup(helpCommands{botCommands})
 	botCommands.RegisterGroup(debugCommands{})
+	questionCommands := questionCommands{}
+	questionCommands.Init(bot.session)
+	botCommands.RegisterGroup(questionCommands)
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
