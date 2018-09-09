@@ -33,7 +33,9 @@ func main() {
 	botCommands := &commands.Commands{}
 	botCommands.Init(bot.session)
 	botCommands.Validator = commandValidator{guilds: g}
-	botCommands.Identifier = commandIdentifier{guilds: g}
+	identifier := commandIdentifier{guilds: g}
+	identifier.Init(bot.session)
+	botCommands.Identifier = identifier
 	botCommands.ResultHandler = commandResultHandler{}
 	botCommands.RegisterGroup(guildAdminCommands{guilds: g, votes: v})
 	botCommands.RegisterGroup(helpCommands{botCommands})

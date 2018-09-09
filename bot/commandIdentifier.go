@@ -2,10 +2,19 @@ package main
 
 import (
 	"github.com/bwmarrin/discordgo"
+	"strings"
 )
 
 type commandIdentifier struct {
-	guilds *guilds
+	guilds   *guilds
+	replacer *strings.Replacer
+}
+
+func (i *commandIdentifier) Init(s *discordgo.Session) {
+	i.replacer = strings.NewReplacer(
+		"<@"+s.State.User.ID+">", "",
+		"<@!"+s.State.User.ID+">", "",
+	)
 }
 
 func (i commandIdentifier) Identify(s *discordgo.Session, m *discordgo.MessageCreate) bool {
@@ -18,7 +27,8 @@ func (i commandIdentifier) Identify(s *discordgo.Session, m *discordgo.MessageCr
 	}
 	for _, mention := range m.Mentions {
 		if mention.ID == botID {
-			m.Content = m.Content[len(mention.ID)+3:] //<@{botID}>
+			m.Content = i.replacer.Replace(m.Content)
+			//m.Content = m.Content[len(mention.ID)+3:] //<@{botID}>
 			return true
 		}
 	}
