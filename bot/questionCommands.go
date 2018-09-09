@@ -5,8 +5,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-//TODO: move reactions handlers to questions entity cache struct
-//TODO: add cache for channelID, question
 type questionCommands struct {
 	guilds *guilds
 }
@@ -18,6 +16,12 @@ func (q questionCommands) Commands() []*commands.Command {
 			Description: "ask question.",
 			Role:        int(User),
 			Handler:     q.ask,
+		},
+		{
+			Name:        "topic",
+			Description: "create topic.",
+			Role:        int(NodeAdmin),
+			Handler:     q.createTopic,
 		},
 	}
 }
@@ -43,7 +47,7 @@ func (q *questionCommands) ask(session *discordgo.Session, commandMessage *disco
 	}
 	_, err = session.ChannelMessageSendEmbed(channel.ID, &discordgo.MessageEmbed{
 		Title: questionMessage,
-		Color: 0xEE2C90/*9001204*/,
+		Color: 0xEE2C90 /*9001204*/,
 		Author: &discordgo.MessageEmbedAuthor{
 			Name:    commandMessage.Author.Username,
 			IconURL: commandMessage.Author.AvatarURL("50x50"),
@@ -66,8 +70,52 @@ func (q *questionCommands) ask(session *discordgo.Session, commandMessage *disco
 	question.message = questionMessage
 	question.askingUser = commandMessage.Author.ID
 	question.channelID = channel.ID
-	guild.questions[channel.ID] =  question
-	guild.Update([]string{"questions"})
+	guild.questions[channel.ID] = question
+	err = guild.Update([]string{"questions"})
+	if err != nil {
+		return &commands.CommandReply{Message: err.Error(), Color: 0xb30000}
+	}
 	q.guilds.Update(guild)
+	return &commands.CommandReply{Message: "Created", Color: 0x00b300}
+}
+
+func (q *questionCommands) createTopic(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	if len(args) < 4 {
+		return &commands.CommandReply{Message: "title, color, iconURL, child channel of topic", Color: 0xb30000}
+	}
+	title := args[0]
+	color := args[1]
+	iconURL := args[2]
+	childChannel := args[3]
+	childChannelID := childChannel[2 : len(childChannel)-1]
+
+	guild, err := q.guilds.Guild(commandMessage.GuildID)
+	if err != nil {
+		return &commands.CommandReply{Message: err.Error(), Color: 0xb30000}
+	}
+
+	channel, err := session.Channel(childChannelID)
+	if err != nil {
+		return &commands.CommandReply{Message: err.Error(), Color: 0xb30000}
+	}
+
+	newTopic := &topic{}
+	newTopic.Init()
+	newTopic.id = channel.Topic
+	newTopic.title = title
+	newTopic.color = "0x" + color
+	newTopic.iconURL = iconURL
+	newTopic.topicID = channel.Topic
+	if guild.topics == nil {
+		guild.topics = map[string]*topic{}
+	}
+	println("topic " + channel.Topic)
+	guild.topics[channel.Topic] = newTopic
+	err = guild.Update([]string{"topics"})
+	if err != nil {
+		return &commands.CommandReply{Message: err.Error(), Color: 0xb30000}
+	}
+	q.guilds.Update(guild)
+
 	return &commands.CommandReply{Message: "Created", Color: 0x00b300}
 }
