@@ -21,3 +21,4 @@ doddy.db
 doddy.db.lock
 #Golang
 .idea
+.DS_STORE
