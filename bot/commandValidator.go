@@ -30,5 +30,5 @@ func (v commandValidator) Validate(command *commands.Command, session *discordgo
 			}
 		}
 	}
-	return true
+	return false
 }
