@@ -63,6 +63,11 @@ func (d *debugCommands) debug(session *discordgo.Session, commandMessage *discor
 		Value:  strconv.FormatUint(vmStat.Used / 1024.0 / 1024.0 / 1024.0, 10) + "GB / " + strconv.FormatUint(vmStat.Total / 1024.0 / 1024.0 / 1024.0, 10) + "GB",
 		Inline: true,
 	})
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Uptime",
+		Value:  strconv.FormatUint(hostStat.Uptime, 10) + "m",
+		Inline: true,
+	})
 	for index, cpuPercent := range percentage {
 		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   "CPU " + strconv.Itoa(index+1),
