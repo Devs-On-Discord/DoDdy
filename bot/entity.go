@@ -241,6 +241,8 @@ func (e entity) dbSetValue(key string, value interface{}, bucket *bolt.Bucket, s
 			return bucket.Put([]byte(key), []byte(value.(string)))
 		case int:
 			return bucket.Put([]byte(key), []byte(strconv.Itoa(value.(int))))
+		case uint64:
+			return bucket.Put([]byte(key), []byte(strconv.FormatUint(value.(uint64), 10)))
 		case Entity:
 			entity := value.(Entity)
 			if entitiesBucket, err := bucket.CreateBucketIfNotExists([]byte(key)); err == nil {
