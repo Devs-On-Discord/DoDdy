@@ -378,8 +378,9 @@ func (g *guildAdminCommands) warn(session *discordgo.Session, commandMessage *di
 	warn.timestamp = uint64(time.Now().Unix())
 
 	if guild, ok := user.guilds[commandMessage.GuildID]; ok {
-		warn.id = string(len(guild.warns) + 1)
+		warn.SetID(string(len(guild.warns) + 1))
 		guild.warns[warn.id] = warn
+		println("warnid", warn.id)
 		user.Update([]string{"guilds"})
 	} else {
 		warn.id = "1"
