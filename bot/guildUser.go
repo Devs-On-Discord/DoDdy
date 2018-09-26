@@ -11,7 +11,7 @@ import (
 type guildUser struct {
 	entity
 	reputation uint64
-	warns      []guildUserWarn
+	warns      map[string]*guildUserWarn
 }
 
 func (u *guildUser) Init() {
@@ -27,20 +27,43 @@ func (u *guildUser) Init() {
 				return u.reputation
 			},
 		},
+		"warns": {
+			getter: func() interface{} {
+				return u.warns
+			},
+		},
 	}
 	u.name = "guildUser"
 	u.onLoad = u.OnLoad
 	u.onSave = u.OnSave
+
+	u.warns = map[string]*guildUserWarn{}
 }
 
 func (u *guildUser) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} {
 	switch key {
 	case "reputation":
 		return binary.LittleEndian.Uint64(val)
+	case "warns":
+		u.loadNestedBucketEntity(key, bucket, func(id string, bucket *bolt.Bucket) {
+			guildUserWarn := &guildUserWarn{}
+			guildUserWarn.Init()
+			guildUserWarn.SetID(id)
+			guildUserWarn.LoadBucket(bucket)
+			u.warns[id] = guildUserWarn
+		})
 	}
 	return nil
 }
 
 func (u *guildUser) OnSave(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error) {
+	switch key {
+	case "warns":
+		u.saveNestedBucketEntities(key, bucket, len(u.warns), func(save func(entity Entity)) {
+			for _, warn := range u.warns {
+				save(warn)
+			}
+		})
+	}
 	return nil, nil
 }

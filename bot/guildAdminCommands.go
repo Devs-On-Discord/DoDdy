@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"sync"
+	"time"
 
 	"github.com/Devs-On-Discord/DoDdy/bot/commands"
 	"github.com/bwmarrin/discordgo"
@@ -89,6 +90,12 @@ func (g guildAdminCommands) Commands() []*commands.Command {
 			Description: "Get channels",
 			Role:        int(NodeMod),
 			Handler:     g.getChannels,
+		},
+		{
+			Name:        "warn",
+			Description: "Warn user",
+			Role:        int(NodeMod),
+			Handler:     g.warn,
 		},
 	}
 }
@@ -348,4 +355,41 @@ func (g *guildAdminCommands) setup(session *discordgo.Session, commandMessage *d
 	g.guilds.Update(newGuild)
 
 	return &commands.CommandReply{Message: "setup", Color: 0x00b300}
+}
+
+//TODO: pm user that he received an warn
+func (g *guildAdminCommands) warn(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
+	if len(commandMessage.Mentions) != 1 {
+		return &commands.CommandError{Message: "One User needs to be specified", Color: 0xb30000}
+	}
+	if len(args) < 2 {
+		return &commands.CommandError{Message: "One reason needs to be specified", Color: 0xb30000}
+	}
+	reason := args[1]
+	user := user{}
+	user.Init()
+	user.SetID(commandMessage.Mentions[0].ID)
+	user.Load()
+
+	warn := &guildUserWarn{}
+	warn.Init()
+	warn.reason = reason
+	warn.authorID = commandMessage.Author.ID
+	warn.timestamp = uint64(time.Now().Unix())
+
+	if guild, ok := user.guilds[commandMessage.GuildID]; ok {
+		warn.id = string(len(guild.warns) + 1)
+		guild.warns[warn.id] = warn
+		user.Update([]string{"guilds"})
+	} else {
+		warn.id = "1"
+		guildUser := &guildUser{}
+		guildUser.Init()
+		guildUser.SetID(commandMessage.GuildID)
+		guildUser.warns[warn.id] = warn
+		user.guilds[commandMessage.GuildID] = guildUser
+		user.Update(nil)
+
+	}
+	return &commands.CommandReply{Message: "User received the warn", Color: 0x00b300}
 }

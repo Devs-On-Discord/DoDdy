@@ -12,16 +12,22 @@ type user struct {
 func (u *user) Init() {
 	u.entity.Init()
 	u.fields = map[string]*entityField{
+		"guilds": {
+			getter: func() interface{} {
+				return u.guilds
+			},
+		},
 	}
 	u.name = "user"
 	u.onLoad = u.OnLoad
 	u.onSave = u.OnSave
+
+	u.guilds = map[string]*guildUser{}
 }
 
 func (u *user) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} {
 	switch key {
 	case "guilds":
-		u.guilds = map[string]*guildUser{}
 		u.loadNestedBucketEntity(key, bucket, func(id string, bucket *bolt.Bucket) {
 			guildUser := &guildUser{}
 			guildUser.Init()
@@ -35,10 +41,8 @@ func (u *user) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} {
 
 func (u *user) OnSave(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error) {
 	switch key {
-	case "answers":
-		if u.guilds == nil {
-			return nil, nil
-		}
+	case "guilds":
+		println("save guilds")
 		u.saveNestedBucketEntities(key, bucket, len(u.guilds), func(save func(entity Entity)) {
 			for _, guild := range u.guilds {
 				save(guild)
