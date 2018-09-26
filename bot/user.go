@@ -42,7 +42,6 @@ func (u *user) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} {
 func (u *user) OnSave(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error) {
 	switch key {
 	case "guilds":
-		println("save guilds")
 		u.saveNestedBucketEntities(key, bucket, len(u.guilds), func(save func(entity Entity)) {
 			for _, guild := range u.guilds {
 				save(guild)

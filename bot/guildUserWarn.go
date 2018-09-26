@@ -1,11 +1,8 @@
 package main
 
 import (
-	"encoding/binary"
-)
-
-import (
 	bolt "go.etcd.io/bbolt"
+	"strconv"
 )
 
 type guildUserWarn struct {
@@ -59,7 +56,11 @@ func (u *guildUserWarn) OnLoad(key string, val []byte, bucket *bolt.Bucket) inte
 	case "reason", "authorID":
 		return string(val)
 	case "timestamp":
-		return binary.LittleEndian.Uint64(val)
+		if timestamp, err := strconv.ParseUint(string(val), 10, 64); err == nil {
+			return timestamp
+		} else {
+			return nil
+		}
 	}
 	return nil
 }

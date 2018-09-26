@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/binary"
+	"strconv"
 )
 
 import (
@@ -43,7 +43,11 @@ func (u *guildUser) Init() {
 func (u *guildUser) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} {
 	switch key {
 	case "reputation":
-		return binary.LittleEndian.Uint64(val)
+		if reputation, err := strconv.ParseUint(string(val), 10, 64); err == nil {
+			return reputation
+		} else {
+			return nil
+		}
 	case "warns":
 		u.loadNestedBucketEntity(key, bucket, func(id string, bucket *bolt.Bucket) {
 			guildUserWarn := &guildUserWarn{}
