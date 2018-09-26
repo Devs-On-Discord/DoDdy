@@ -41,6 +41,7 @@ func main() {
 	botCommands.RegisterGroup(helpCommands{botCommands})
 	botCommands.RegisterGroup(debugCommands{})
 	botCommands.RegisterGroup(questionCommands{g})
+	botCommands.RegisterGroup(userCommands{})
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
