@@ -26,12 +26,18 @@ func (u userCommands) Commands() []*commands.Command {
 //TODO: rank anzeigen
 func (u *userCommands) info(session *discordgo.Session, commandMessage *discordgo.MessageCreate, args []string) commands.CommandResultMessage {
 	user := user{}
-	user.id = commandMessage.Author.ID
+	user.Init()
+	user.SetID(commandMessage.Author.ID)
 	user.Load()
+	var reputation uint64
+	reputation = 0
+	if guild, ok := user.guilds[commandMessage.GuildID]; ok {
+		reputation = guild.reputation
+	}
 	var fields []*discordgo.MessageEmbedField
 	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "Reputation",
-		Value:  strconv.FormatUint(user.reputation, 10),
+		Value:  strconv.FormatUint(reputation, 10),
 		Inline: true,
 	})
 	return &commands.CommandReply{

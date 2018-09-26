@@ -1,57 +1,49 @@
 package main
 
 import (
-	"encoding/binary"
 	bolt "go.etcd.io/bbolt"
 )
 
 type user struct {
 	entity
-	id         string
-	reputation uint64
+	guilds map[string]*guildUser // Key: guildID
 }
 
 func (u *user) Init() {
 	u.entity.Init()
 	u.fields = map[string]*entityField{
-		"id": {
-			setter: func(val interface{}) {
-				if id, ok := val.(string); ok {
-					u.id = id
-				}
-			},
-			getter: func() interface{} {
-				return u.id
-			},
-		},
-		"reputation": {
-			setter: func(val interface{}) {
-				if reputation, ok := val.(uint64); ok {
-					u.reputation = reputation
-				}
-			},
-			getter: func() interface{} {
-				return u.reputation
-			},
-		},
 	}
 	u.name = "user"
 	u.onLoad = u.OnLoad
 	u.onSave = u.OnSave
-
-	u.reputation = 0
 }
 
 func (u *user) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} {
 	switch key {
-	case "id":
-		return string(val)
-	case "reputation":
-		return binary.LittleEndian.Uint64(val)
+	case "guilds":
+		u.guilds = map[string]*guildUser{}
+		u.loadNestedBucketEntity(key, bucket, func(id string, bucket *bolt.Bucket) {
+			guildUser := &guildUser{}
+			guildUser.Init()
+			guildUser.SetID(id)
+			guildUser.LoadBucket(bucket)
+			u.guilds[id] = guildUser
+		})
 	}
 	return nil
 }
 
 func (u *user) OnSave(key string, val interface{}, bucket *bolt.Bucket) (interface{}, error) {
+	switch key {
+	case "answers":
+		if u.guilds == nil {
+			return nil, nil
+		}
+		u.saveNestedBucketEntities(key, bucket, len(u.guilds), func(save func(entity Entity)) {
+			for _, guild := range u.guilds {
+				save(guild)
+			}
+		})
+	}
 	return nil, nil
 }
