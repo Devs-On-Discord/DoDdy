@@ -7,7 +7,7 @@ import (
 
 type user struct {
 	entity
-	id   string
+	id         string
 	reputation uint64
 }
 
