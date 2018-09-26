@@ -5,8 +5,8 @@ import bolt "go.etcd.io/bbolt"
 type question struct {
 	entity
 	askingUser string
-	message string
-	channelID string
+	message    string
+	channelID  string
 }
 
 func (q *question) Init() {

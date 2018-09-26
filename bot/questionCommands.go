@@ -47,7 +47,7 @@ func (q *questionCommands) ask(session *discordgo.Session, commandMessage *disco
 	}
 	_, err = session.ChannelMessageSendEmbed(channel.ID, &discordgo.MessageEmbed{
 		Title: questionMessage,
-		Color: 0xEE2C90 /*9001204*/,
+		Color: 0xEE2C90, /*9001204*/
 		Author: &discordgo.MessageEmbedAuthor{
 			Name:    commandMessage.Author.Username,
 			IconURL: commandMessage.Author.AvatarURL("50x50"),
@@ -106,6 +106,7 @@ func (q *questionCommands) createTopic(session *discordgo.Session, commandMessag
 	newTopic.color = "0x" + color
 	newTopic.iconURL = iconURL
 	newTopic.topicID = channel.ParentID
+	newTopic.channelID = childChannelID
 	if guild.topics == nil {
 		guild.topics = map[string]*topic{}
 	}

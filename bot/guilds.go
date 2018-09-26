@@ -4,16 +4,17 @@ import "github.com/bwmarrin/discordgo"
 
 type guilds struct {
 	entityCache
-	session *discordgo.Session
-	channelQuestions map[string]*question
+	channelQuestions map[string]*question // Key: channelID
+	channelTopics    map[string]*topic    // Key: channelID
 }
 
 func (g *guilds) Init(session *discordgo.Session) {
 	g.channelQuestions = map[string]*question{}
-	g.session = session
-	g.session.AddHandler(g.guildCreate)
-	g.session.AddHandler(g.reactionAdded)
-	g.session.AddHandler(g.reactionRemoved)
+	g.channelTopics = map[string]*topic{}
+	session.AddHandler(g.guildCreate)
+	session.AddHandler(g.reactionAdded)
+	session.AddHandler(g.reactionRemoved)
+	session.AddHandler(g.messageCreated)
 	g.entityCache.Init()
 	g.name = "guild"
 	g.onCreate = g.CreateEntity
@@ -30,11 +31,18 @@ func (g *guilds) UpdateEntity(entityPtr *Entity) {
 	entity := *entityPtr
 	guild := entity.(*guild)
 	g.fillChannelQuestionsForQuestion(guild)
+	g.fillChannelTopicsForTopic(guild)
 }
 
 func (g *guilds) fillChannelQuestionsForQuestion(guild *guild) {
 	for _, question := range guild.questions {
 		g.channelQuestions[question.channelID] = question
+	}
+}
+
+func (g *guilds) fillChannelTopicsForTopic(guild *guild) {
+	for _, topic := range guild.topics {
+		g.channelTopics[topic.channelID] = topic
 	}
 }
 
@@ -95,6 +103,16 @@ func (g *guilds) guildCreate(s *discordgo.Session, event *discordgo.GuildCreate)
 			return
 		}
 		s.ChannelMessageSend(channel.ID, "Use this channel to setup the bot. Type !setup for more infos.")
+	}
+}
+
+func (g *guilds) messageCreated(session *discordgo.Session, message *discordgo.MessageCreate) {
+	//TODO: check if the message got created in one of the topic channels so we automatically transform it into an question
+	if session.State.User.ID == message.Author.ID { // Ignore bot messages
+		return
+	}
+	if _, exists := g.channelTopics[message.ChannelID]; exists {
+		// Message got posted into an topic channel, now transform it into an question
 	}
 }
 

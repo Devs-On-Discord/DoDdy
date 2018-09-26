@@ -1,13 +1,17 @@
 package main
 
-import bolt "go.etcd.io/bbolt"
+import (
+	"github.com/bwmarrin/discordgo"
+	bolt "go.etcd.io/bbolt"
+)
 
 type topic struct {
 	entity
-	title   string
-	color   string // Format 0x{HexColor} without #
-	iconURL    string
-	topicID string
+	title     string
+	color     string // Format 0x{HexColor} without #
+	iconURL   string
+	topicID   string
+	channelID string
 }
 
 func (t *topic) Init() {
@@ -53,6 +57,16 @@ func (t *topic) Init() {
 				return t.topicID
 			},
 		},
+		"channelID": {
+			setter: func(val interface{}) {
+				if channelID, ok := val.(string); ok {
+					t.channelID = channelID
+				}
+			},
+			getter: func() interface{} {
+				return t.channelID
+			},
+		},
 	}
 	t.name = "topic"
 	t.onLoad = t.OnLoad
@@ -60,8 +74,17 @@ func (t *topic) Init() {
 
 func (t *topic) OnLoad(key string, val []byte, bucket *bolt.Bucket) interface{} {
 	switch key {
-	case "title", "color", "icon", "topicID":
+	case "title", "color", "icon", "topicID", "channelID":
 		return string(val)
 	}
 	return nil
+}
+
+func (t *topic) CreateQuestion(session *discordgo.Session, message discordgo.MessageCreate) {
+	content, err := message.ContentWithMoreMentionsReplaced(session)
+	if err != nil {
+		return
+	}
+	message.Content = content
+
 }

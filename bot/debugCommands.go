@@ -55,12 +55,12 @@ func (d *debugCommands) debug(session *discordgo.Session, commandMessage *discor
 	})
 	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "Disk",
-		Value:  strconv.FormatUint(diskStat.Used / 1024.0 / 1024.0 / 1024.0, 10) + "GB / " + strconv.FormatUint(diskStat.Total / 1024.0 / 1024.0 / 1024.0, 10) + "GB",
+		Value:  strconv.FormatUint(diskStat.Used/1024.0/1024.0/1024.0, 10) + "GB / " + strconv.FormatUint(diskStat.Total/1024.0/1024.0/1024.0, 10) + "GB",
 		Inline: true,
 	})
 	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "Memory",
-		Value:  strconv.FormatUint(vmStat.Used / 1024.0 / 1024.0 / 1024.0, 10) + "GB / " + strconv.FormatUint(vmStat.Total / 1024.0 / 1024.0 / 1024.0, 10) + "GB",
+		Value:  strconv.FormatUint(vmStat.Used/1024.0/1024.0/1024.0, 10) + "GB / " + strconv.FormatUint(vmStat.Total/1024.0/1024.0/1024.0, 10) + "GB",
 		Inline: true,
 	})
 	fields = append(fields, &discordgo.MessageEmbedField{
