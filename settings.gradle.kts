@@ -1,1 +1,1 @@
-include("bot", "feature1")
+include("bot", "core", "feature1")
