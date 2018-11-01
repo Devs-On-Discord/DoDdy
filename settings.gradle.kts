@@ -2,6 +2,7 @@ include(
     "bot",
     "core",
     "db",
+    "help",
     "reputation",
     "warnings",
     "bans",
