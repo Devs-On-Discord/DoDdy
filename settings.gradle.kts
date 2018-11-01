@@ -1,1 +1,16 @@
-include("bot", "db", "reputation", "warnings", "bans", "setup", "votes", "rules", "redirections", "announcements", "questions", "ranks", "guilds", "users")
+include(
+    "bot",
+    "db",
+    "reputation",
+    "warnings",
+    "bans",
+    "setup",
+    "votes",
+    "rules",
+    "redirections",
+    "announcements",
+    "questions",
+    "ranks",
+    "guilds",
+    "users"
+)
