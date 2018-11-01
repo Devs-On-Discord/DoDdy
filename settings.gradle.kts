@@ -1,5 +1,6 @@
 include(
     "bot",
+    "core",
     "db",
     "reputation",
     "warnings",
