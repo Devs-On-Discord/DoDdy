@@ -1,5 +1,5 @@
 object Versions {
-    val jda = "3.8.1"
+    val jda = "3.8.1_437"
 }
 
 object Libs {
