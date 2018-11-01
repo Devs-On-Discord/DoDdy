@@ -14,8 +14,9 @@ dependencies {
     implementation(project(":setup"))
     implementation(project(":votes"))
     implementation(project(":rules"))
-    implementation(project(":redirection"))
+    implementation(project(":redirections"))
     implementation(project(":announcements"))
     implementation(project(":questions"))
+    implementation(project(":ranks"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
 }
