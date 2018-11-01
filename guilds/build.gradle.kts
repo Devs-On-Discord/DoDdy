@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:VERSION:3.8.1")
+    implementation(Libs.discord_bot_sdk)
 }

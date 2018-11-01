@@ -3,6 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:VERSION:3.8.1")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation(Libs.discord_bot_sdk)
+    implementation(Libs.stdlib)
 }
