@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     implementation(Libs.stdlib)
+    implementation(Libs.discord_bot_sdk)
 }
