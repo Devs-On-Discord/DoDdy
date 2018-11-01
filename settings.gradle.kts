@@ -1,1 +1,1 @@
-include("bot", "db", "feature1", "guilds","users")
+include("bot", "db", "reputation", "warnings", "bans", "setup", "votes", "rules", "redirection", "announcements", "questions", "guilds", "users")
