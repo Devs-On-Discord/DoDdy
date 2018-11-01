@@ -5,7 +5,7 @@ plugins {
 
 allprojects {
 
-    group = "com.github.doddy"
+    group = "com.github.dod.doddy"
 
     version = "1.0"
 

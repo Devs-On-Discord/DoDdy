@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClassName = "com.github.doddy.Main"
+    mainClassName = "com.github.dod.doddy.Main"
 }
 
 dependencies {
