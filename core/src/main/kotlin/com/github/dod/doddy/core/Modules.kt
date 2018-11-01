@@ -1,23 +1,19 @@
 package com.github.dod.doddy.core
 
 object Modules {
-    private var modules = mutableListOf<Module>()
-
-    private var commandModules = mutableMapOf<String, Module>()
+    private val moduleCommands = mutableMapOf<Command, Module>()
+    private val commandNames = mutableMapOf<String, Command>()
 
     fun add(module: Module) {
-        modules.add(module)
-        module.getCommands().forEach {
-            commandModules[it] = module
+        module.getCommands().forEach { command ->
+            moduleCommands[command] = module
+            command.names.forEach {name ->
+                commandNames[name] = command
+            }
         }
     }
 
-    internal fun onCommand(command: String, args: Array<Any>) {
-        val module = commandModules[command]
-        if (module != null) {
-            module.onCommand(command, args)
-        } else {
-            modules.forEach { it.onCommand(command, args) }
-        }
+    internal fun onCommand(name: String, args: Array<Any>): Boolean {
+        return commandNames[name]?.onCommand(args) ?: false
     }
 }
