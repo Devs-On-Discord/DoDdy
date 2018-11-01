@@ -4,5 +4,9 @@ interface Module {
     /**
      * @return true to consume
      */
-    fun onCommand(): Boolean
+    fun onCommand(command: String, args: Array<Any>): Boolean
+
+    fun getCommands(): Set<String>
+
+    fun getEventListeners() : List<Any>
 }
