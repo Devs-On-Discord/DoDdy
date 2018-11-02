@@ -13,5 +13,5 @@ abstract class Command(vararg val names: String) {
      *
      * @return true to consume
      */
-    abstract fun onCommand(args: Array<Any>): Boolean
+    abstract fun onCommand(args: List<String>): Boolean
 }

@@ -8,6 +8,9 @@ application {
 }
 
 dependencies {
+    implementation(project(":core"))
+    implementation(project(":help"))
+
     implementation(project(":reputation"))
     implementation(project(":warnings"))
     implementation(project(":bans"))
