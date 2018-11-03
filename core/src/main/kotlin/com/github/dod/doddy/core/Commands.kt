@@ -17,11 +17,20 @@ class Commands {
                 val commandAnnotation = function.annotations.find { annotation -> annotation is Command }
                 if (commandAnnotation != null && commandAnnotation is Command) {
                     if (parameters[1].type == MessageReceivedEvent::class.createType()) {
+                        val optionals = mutableListOf<Int>()
+                        parameters.forEachIndexed { index, parameter ->
+                            if (parameter.type.isMarkedNullable) {
+                                optionals.add(index)
+                            }
+                        }
+                        println(optionals)
+                        val functionsParams = parameters.drop(2)
                         commandAnnotation.names.forEach { commandName ->
                             commandFunctions[commandName] = CommandFunction(
                                     caller,
                                     function,
-                                    parameters.drop(2),
+                                    functionsParams,
+                                    optionals,
                                     parameters.last().type == List::class
                             )
                         }

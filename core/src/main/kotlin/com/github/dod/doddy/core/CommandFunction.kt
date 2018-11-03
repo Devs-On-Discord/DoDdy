@@ -9,15 +9,19 @@ data class CommandFunction(
         val module: Module,
         val function: KFunction<*>,
         val parameters: List<KParameter>,
+        val optionals: List<Int>,
         val allArgs: Boolean
 ) {
     fun call(event: MessageReceivedEvent, args: List<String>): CommandResult {
-        if (args.size != parameters.size && !allArgs) {
+        if (args.size + optionals.size < parameters.size && !allArgs) {
             return InvalidArgs(args)
         }
-        val params = ArrayList<Any>()
+        val params = ArrayList<Any?>()
         params.add(module)
         params.add(event)
+        optionals.forEach {
+            params.add(it, null)
+        }
         if (allArgs) {
             params.addAll(args)
         }
