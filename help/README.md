@@ -7,6 +7,8 @@
 | testing       | @ThisIsIPat     |
 
 ## Description
+**Displays help for commands**
+
 The help module displays the help strings associated with every command.
 If a command is provided as an argument, the help string for that command is displayed instead.
 
