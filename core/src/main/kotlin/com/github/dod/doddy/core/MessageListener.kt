@@ -22,7 +22,7 @@ class MessageListener(private val modules: Modules) : EventListener {
             val parsedMessage = mutableListOf<String>()
             val m = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(content.slice(1 until length))
             while (m.find()) {
-                parsedMessage.add(m.group(1))
+                parsedMessage.add(m.group(1).replace("\"", ""))
             }
             //val parsedMessage = content.slice(1 until length).trim().split("/ +/g".toRegex())
             val parsedMessageSize = parsedMessage.size

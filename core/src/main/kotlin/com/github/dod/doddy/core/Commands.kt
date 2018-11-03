@@ -23,7 +23,6 @@ class Commands {
                                 optionals.add(index)
                             }
                         }
-                        println(optionals)
                         val functionsParams = parameters.drop(2)
                         commandAnnotation.names.forEach { commandName ->
                             commandFunctions[commandName] = CommandFunction(
