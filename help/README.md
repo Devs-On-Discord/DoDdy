@@ -9,7 +9,7 @@
 ## !help
 
 ### Description
-_Displays help for commands_
+_Displays help for commands._
 
 Displays the help strings associated with every command.
 If a command is provided as an argument, the help string for that command is displayed instead.
