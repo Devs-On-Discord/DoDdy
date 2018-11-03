@@ -1,27 +1,29 @@
 # Help Module
 
-| Feature       | Author          |
-| ------------- |:---------------:|
-| `!help`       | @ThisIsIPat     |
-| documentation | @ThisIsIPat     |
-| testing       | @ThisIsIPat     |
+| Feature         | Author          |
+| --------------- |:---------------:|
+| `!help`         | @ThisIsIPat     |
+| _documentation_ | @ThisIsIPat     |
+| _testing_       | @ThisIsIPat     |
 
-## Description
-**Displays help for commands**
+## !help
 
-The help module displays the help strings associated with every command.
+### Description
+_Displays help for commands_
+
+Displays the help strings associated with every command.
 If a command is provided as an argument, the help string for that command is displayed instead.
 
-### Usage:
+#### Usage:
 ```
 !help [command]
 ```
 
-### Example output:
+#### Example output:
 ```
 TODO("Base implementation")
 ```
 
-### Aliases:
+#### Aliases:
 * help
 * h
