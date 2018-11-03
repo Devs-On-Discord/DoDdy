@@ -1,3 +1,8 @@
+import org.gradle.kotlin.dsl.extra
+import org.jetbrains.kotlin.gradle.dsl.Coroutines
+import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     application
     kotlin("jvm")
@@ -5,6 +10,12 @@ plugins {
 
 application {
     mainClassName = "com.github.dod.doddy.Main"
+}
+
+tasks {
+    withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = "1.8"
+    }
 }
 
 java {

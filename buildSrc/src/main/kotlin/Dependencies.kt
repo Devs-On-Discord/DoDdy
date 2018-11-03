@@ -6,7 +6,7 @@ object Versions {
 
 object Libs {
     val discord_bot_sdk = "net.dv8tion:JDA:${Versions.jda}"
-    val stdlib = "org.jetbrains.kotlin:kotlin-stdlib:${Versions.kotlin}"
+    val stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Versions.kotlin}"
     val reflection = "org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}"
     val mongodb = "org.litote.kmongo:kmongo-async:${Versions.mongodb}"
     val mongodb_coroutines = "org.litote.kmongo:kmongo-coroutine:${Versions.mongodb}"
