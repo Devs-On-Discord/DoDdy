@@ -1,5 +1,6 @@
 package com.github.dod.doddy.core
 
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -10,11 +11,12 @@ data class CommandFunction(
     val parameters: List<KParameter>,
     val allArgs: Boolean
 ) {
-    fun call(args: List<String>): CommandResult {
+    fun call(event: MessageReceivedEvent, args: List<String>): CommandResult {
         if (args.size != parameters.size && !allArgs) {
             return InvalidArgs(args)
         }
         val params = ArrayList<Any>(args.size)
+        params.add(event)
         if (allArgs) {
             params.addAll(args)
         }

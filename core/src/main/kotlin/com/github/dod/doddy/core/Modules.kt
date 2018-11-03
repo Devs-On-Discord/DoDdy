@@ -1,5 +1,6 @@
 package com.github.dod.doddy.core
 
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.util.*
 
 class Modules internal constructor() {
@@ -12,7 +13,7 @@ class Modules internal constructor() {
         commands.register(module.javaClass.kotlin)
     }
 
-    internal fun onCommand(name: String, args: List<String>): CommandResult {
-        return commands.call(name, args)
+    internal fun onCommand(name: String, event: MessageReceivedEvent, args: List<String>): CommandResult {
+        return commands.call(name, event, args)
     }
 }

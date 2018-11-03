@@ -4,8 +4,9 @@ import net.dv8tion.jda.core.events.Event
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.EventListener
 
-class MessageListener(private val modules: Modules): EventListener {
+class MessageListener(private val modules: Modules) : EventListener {
     override fun onEvent(event: Event) {
+        print(event)
         when (event) {
             is MessageReceivedEvent -> onMessageReceived(event)
         }
@@ -26,7 +27,7 @@ class MessageListener(private val modules: Modules): EventListener {
             } else {
                 emptyList()
             }
-            modules.onCommand(commandName, commandArgs)
+            modules.onCommand(commandName, event, commandArgs)
         }
     }
 }
