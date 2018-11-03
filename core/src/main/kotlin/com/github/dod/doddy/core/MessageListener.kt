@@ -36,10 +36,9 @@ class MessageListener(private val modules: Modules) : EventListener {
                     commandResult.exception.printStackTrace()
                     event.channel.sendMessage(commandResult.exception.toString())
                 }
-                is Success -> event.channel.sendMessage(commandResult.message)
-                else -> event.channel.sendMessage("im on drugs")
+                else -> null
             }
-            messageAction.queue()
+            messageAction?.queue()
         }
     }
 }
