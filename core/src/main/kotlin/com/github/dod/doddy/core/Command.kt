@@ -17,6 +17,6 @@ abstract class Command(vararg val names: String) {
 }*/
 
 @Target(AnnotationTarget.FUNCTION)
-@Retention(AnnotationRetention.SOURCE)
-@MustBeDocumented
+@Retention(AnnotationRetention.RUNTIME)
+//@MustBeDocumented
 annotation class Command(vararg val names: String)

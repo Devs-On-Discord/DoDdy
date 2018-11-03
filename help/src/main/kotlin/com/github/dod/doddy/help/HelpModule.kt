@@ -11,6 +11,5 @@ class HelpModule : Module {
 
     @Command(names = ["help", "h"])
     fun help(event: MessageReceivedEvent) {
-
     }
 }

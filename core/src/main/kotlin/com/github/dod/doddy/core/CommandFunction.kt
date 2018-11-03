@@ -1,18 +1,16 @@
 package com.github.dod.doddy.core
 
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
-import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 
 data class CommandFunction(
-    val module: KClass<out Module>,
     val function: KFunction<*>,
     val parameters: List<KParameter>,
     val allArgs: Boolean
 ) {
     fun call(event: MessageReceivedEvent, args: List<String>): CommandResult {
-        if (args.size != parameters.size && !allArgs) {
+        if (args.size != parameters.size - 1 && !allArgs) {
             return InvalidArgs(args)
         }
         val params = ArrayList<Any>(args.size)

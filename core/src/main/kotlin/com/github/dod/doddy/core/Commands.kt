@@ -1,27 +1,26 @@
 package com.github.dod.doddy.core
 
-import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import kotlin.reflect.KClass
-import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.functions
 
 class Commands {
 
     private val commandFunctions = mutableMapOf<String, CommandFunction>()
 
     fun register(module: KClass<out Module>) {
-        module.memberFunctions.forEach { function ->
+        module.functions.forEach { function ->
             val parameters = function.parameters
-            if (parameters.isEmpty()) {
+            if (parameters.size > 1) {
                 val commandAnnotation = function.annotations.find { annotation -> annotation is Command }
                 if (commandAnnotation != null && commandAnnotation is Command) {
-                    commandAnnotation.names.forEach { commandName ->
-                        if (parameters.first().type == MessageReceivedEvent::class) {
+                    if (parameters[1].type == MessageReceivedEvent::class.createType()) {
+                        commandAnnotation.names.forEach { commandName ->
                             commandFunctions[commandName] = CommandFunction(
-                                module,
-                                function,
-                                parameters.drop(0),
-                                parameters.last().type == List::class
+                                    function,
+                                    parameters,
+                                    parameters.last().type == List::class
                             )
                         }
                     }
