@@ -16,4 +16,10 @@ class Modules internal constructor() {
     internal fun onCommand(name: String, event: MessageReceivedEvent, args: List<String>): CommandResult {
         return commands.call(name, event, args)
     }
+
+    internal fun commandsReady() {
+        modules.forEach {
+            it.onCommandsReady(commands)
+        }
+    }
 }

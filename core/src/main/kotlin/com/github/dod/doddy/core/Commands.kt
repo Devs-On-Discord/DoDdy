@@ -7,7 +7,7 @@ import kotlin.reflect.full.functions
 
 class Commands {
 
-    private val commandFunctions = mutableMapOf<String, CommandFunction>()
+    val commandFunctions = mutableMapOf<String, CommandFunction>()
 
     fun register(caller: Module) {
         val module = caller.javaClass.kotlin

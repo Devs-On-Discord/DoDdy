@@ -7,4 +7,8 @@ interface Module {
     fun getEventListeners() : List<Any> {
         return emptyList()
     }
+
+    fun onCommandsReady(commands: Commands) {
+
+    }
 }

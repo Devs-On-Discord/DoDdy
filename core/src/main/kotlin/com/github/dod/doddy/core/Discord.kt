@@ -20,6 +20,7 @@ object Discord {
     }
 
     fun start() {
+        modules.commandsReady()
         bot.awaitReady()
     }
 }
