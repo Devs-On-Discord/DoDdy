@@ -16,7 +16,7 @@ class Commands {
                 if (commandAnnotation != null && commandAnnotation is Command) {
                     commandAnnotation.names.forEach { commandName ->
                         if (parameters.first().type == User::class) {
-                            commandFunctions[commandName] = CommandFunction(module, function, parameters.drop(0))
+                            commandFunctions[commandName] = CommandFunction(module, function, parameters.drop(0), parameters.last().type == List::class)
                         }
                     }
                 }

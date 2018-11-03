@@ -7,13 +7,17 @@ import kotlin.reflect.KParameter
 data class CommandFunction(
     val module: KClass<out Module>,
     val function: KFunction<*>,
-    val parameters: List<KParameter>
+    val parameters: List<KParameter>,
+    val allArgs: Boolean
 ) {
     fun call(args: List<String>): CommandResult {
-        if (args.size != parameters.size) {
+        if (args.size != parameters.size && !allArgs) {
             return InvalidArgs(args)
         }
         val params = ArrayList<Any>(args.size)
+        if (allArgs) {
+            params.addAll(args)
+        }
         args.forEachIndexed { index, argument ->
             when (parameters[index].type) {
                 String::class -> {
