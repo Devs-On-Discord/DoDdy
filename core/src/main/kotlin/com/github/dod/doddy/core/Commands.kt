@@ -9,7 +9,8 @@ class Commands {
 
     private val commandFunctions = mutableMapOf<String, CommandFunction>()
 
-    fun register(module: KClass<out Module>) {
+    fun register(caller: Module) {
+        val module = caller.javaClass.kotlin
         module.functions.forEach { function ->
             val parameters = function.parameters
             if (parameters.size > 1) {
@@ -18,8 +19,9 @@ class Commands {
                     if (parameters[1].type == MessageReceivedEvent::class.createType()) {
                         commandAnnotation.names.forEach { commandName ->
                             commandFunctions[commandName] = CommandFunction(
+                                    caller,
                                     function,
-                                    parameters,
+                                    parameters.drop(2),
                                     parameters.last().type == List::class
                             )
                         }

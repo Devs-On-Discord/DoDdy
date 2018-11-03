@@ -1,19 +1,22 @@
 package com.github.dod.doddy.core
 
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
+import java.lang.Exception
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 
 data class CommandFunction(
-    val function: KFunction<*>,
-    val parameters: List<KParameter>,
-    val allArgs: Boolean
+        val module: Module,
+        val function: KFunction<*>,
+        val parameters: List<KParameter>,
+        val allArgs: Boolean
 ) {
     fun call(event: MessageReceivedEvent, args: List<String>): CommandResult {
-        if (args.size != parameters.size - 1 && !allArgs) {
+        if (args.size != parameters.size && !allArgs) {
             return InvalidArgs(args)
         }
-        val params = ArrayList<Any>(args.size)
+        val params = ArrayList<Any>()
+        params.add(module)
         params.add(event)
         if (allArgs) {
             params.addAll(args)
@@ -57,7 +60,11 @@ data class CommandFunction(
                 }
             }
         }
-        function.call(params)
+        try {
+            function.call(*params.toArray())
+        } catch (exception: Exception) {
+            return CommandError(exception)
+        }
         return Success("bla")
     }
 }

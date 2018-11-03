@@ -27,14 +27,19 @@ class MessageListener(private val modules: Modules) : EventListener {
             } else {
                 emptyList()
             }
-            when (
+            val messageAction = when (
                 val commandResult = modules.onCommand(commandName, event, commandArgs)) {
                 is CommandNotFound -> event.channel.sendMessage("command not found :" + commandResult.commandName)
                 is InvalidArgs -> event.channel.sendMessage(commandResult.args.toString())
                 is InvalidArg -> event.channel.sendMessage(commandResult.arg + " " + commandResult.error)
+                is CommandError -> {
+                    commandResult.exception.printStackTrace()
+                    event.channel.sendMessage(commandResult.exception.toString())
+                }
                 is Success -> event.channel.sendMessage(commandResult.message)
                 else -> event.channel.sendMessage("im on drugs")
             }
+            messageAction.queue()
         }
     }
 }

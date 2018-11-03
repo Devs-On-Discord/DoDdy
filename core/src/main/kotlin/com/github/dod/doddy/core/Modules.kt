@@ -10,7 +10,7 @@ class Modules internal constructor() {
 
     fun add(module: Module) {
         modules.add(module)
-        commands.register(module.javaClass.kotlin)
+        commands.register(module)
     }
 
     internal fun onCommand(name: String, event: MessageReceivedEvent, args: List<String>): CommandResult {
