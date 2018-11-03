@@ -1,7 +1,7 @@
 # Announcements
-
-    | Feature | Developer
-    | -- | :--: | :--: |
-    | command | :new:  |
-    | documentation | :new:  |
-    | testing | :new:  |
+    
+    | Feature       | Developer     |
+    | ------------- |:-------------:|
+    | command       | @ThisIsIPat   |
+    | documentation | @ThisIsIPat   |
+    | testing       | @ThisIsIPat   |
