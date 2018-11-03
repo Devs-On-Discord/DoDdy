@@ -3,6 +3,7 @@ package com.github.dod.doddy.core
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
+import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.functions
 
 class Commands {
@@ -14,8 +15,8 @@ class Commands {
         module.functions.forEach { function ->
             val parameters = function.parameters
             if (parameters.size > 1) {
-                val commandAnnotation = function.annotations.find { annotation -> annotation is Command }
-                if (commandAnnotation != null && commandAnnotation is Command) {
+                val commandAnnotation = function.findAnnotation<Command>()
+                if (commandAnnotation != null) {
                     if (parameters[1].type == MessageReceivedEvent::class.createType()) {
                         val optionals = mutableListOf<Int>()
                         parameters.forEachIndexed { index, parameter ->
