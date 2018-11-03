@@ -1,6 +1,6 @@
 # Help Module
 
-| Feature       | Developer       |
+| Feature       | Author          |
 | ------------- |:---------------:|
 | `!help`       | @ThisIsIPat     |
 | documentation | @ThisIsIPat     |
@@ -8,13 +8,11 @@
 
 ## Description
 The help module displays the help strings associated with every command.
-
-TODO("Detailed help?") 
-
+If a command is provided as an argument, the help string for that command is displayed instead.
 
 ### Usage:
 ```
-!help
+!help [command]
 ```
 
 ### Example output:
