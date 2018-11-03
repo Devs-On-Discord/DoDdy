@@ -1,9 +1,15 @@
 # Help Module
 
+| Feature       | Developer       |
+| ------------- |:---------------:|
+| command       | @FabianTerhorst |
+| documentation | @FabianTerhorst |
+| testing       | @FabianTerhorst |
+
 ## Description
 The help module displays the help strings associated with every command.
 
-(TODECIDE: Detailed help?)
+TODO("Detailed help?") 
 
 
 Usage:
@@ -13,5 +19,5 @@ Usage:
 
 Example output:
 ```
-TODO("Define a format")
+TODO("Base implementation")
 ```
