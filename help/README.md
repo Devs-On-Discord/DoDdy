@@ -12,15 +12,16 @@ The help module displays the help strings associated with every command.
 TODO("Detailed help?") 
 
 
-Usage:
+### Usage:
 ```
 !help
 ```
 
-Example output:
+### Example output:
 ```
 TODO("Base implementation")
 ```
-Aliases:
+
+### Aliases:
 * help
 * h
