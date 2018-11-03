@@ -1,5 +1,5 @@
 package com.github.dod.doddy.core
-
+/*
 /**
  * Parent class for all commands used by the Discord bot.
  *
@@ -14,4 +14,9 @@ abstract class Command(vararg val names: String) {
      * @return true to consume
      */
     abstract fun onCommand(args: List<String>): Boolean
-}
+}*/
+
+@Target(AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.SOURCE)
+@MustBeDocumented
+annotation class Command(vararg val names: String)
