@@ -1,7 +1,6 @@
 package com.github.dod.doddy.core
 
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
-import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.functions
