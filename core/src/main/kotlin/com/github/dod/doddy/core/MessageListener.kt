@@ -6,7 +6,7 @@ import net.dv8tion.jda.core.hooks.EventListener
 
 class MessageListener(private val modules: Modules) : EventListener {
     override fun onEvent(event: Event) {
-        print(event)
+        println(event)
         when (event) {
             is MessageReceivedEvent -> onMessageReceived(event)
         }
@@ -18,7 +18,7 @@ class MessageListener(private val modules: Modules) : EventListener {
         val length = content.length
         if (length == 0) return
         if (content[0] == '!') {//TODO: use from db
-            val parsedMessage = content.slice(1 until length - 1).trim().split("/ +/g")
+            val parsedMessage = content.slice(1 until length).trim().split("/ +/g".toRegex())
             val parsedMessageSize = parsedMessage.size
             if (parsedMessageSize == 0) return
             val commandName = parsedMessage[0]
