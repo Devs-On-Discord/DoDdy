@@ -2,11 +2,12 @@ package com.github.dod.doddy.core
 
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.JDABuilder
+import java.io.File
 
 object Discord {
     private val modules = Modules()
 
-    val bot: JDA = JDABuilder("token").build()
+    val bot: JDA = JDABuilder(File("../discord.token").readText()).build()
 
     init {
         bot.addEventListener(MessageListener(modules))
