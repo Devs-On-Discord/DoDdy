@@ -36,5 +36,5 @@ dependencies {
     implementation(project(":announcements"))
     implementation(project(":questions"))
     implementation(project(":ranks"))
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation(Libs.stdlib)
 }
