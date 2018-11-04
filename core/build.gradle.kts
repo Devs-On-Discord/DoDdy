@@ -9,6 +9,7 @@ java {
 
 dependencies {
     implementation(Libs.stdlib)
+    implementation(Libs.coroutines)
     implementation(Libs.discord_bot_sdk)
     implementation(Libs.reflection)
 }

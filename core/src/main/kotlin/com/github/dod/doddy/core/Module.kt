@@ -4,9 +4,11 @@ interface Module {
     /**
      * @return the event listeners that should be added to the discord bot
      */
-    fun getEventListeners() : List<Any> {
+    fun getEventListeners(): List<Any> {
         return emptyList()
     }
 
     fun onCommandsReady(commandFunctions: List<CommandFunction>) {}
+
+    fun onDestroy() {}
 }

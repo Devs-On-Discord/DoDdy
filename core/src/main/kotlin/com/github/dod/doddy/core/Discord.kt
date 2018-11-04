@@ -23,4 +23,9 @@ object Discord {
         modules.commandsReady()
         bot.awaitReady()
     }
+
+    fun stop() {
+        modules.destroy()
+        bot.shutdown()
+    }
 }

@@ -1,13 +1,22 @@
 package com.github.dod.doddy.core
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.util.*
-import kotlin.concurrent.thread
+import kotlin.coroutines.CoroutineContext
 
-class Modules internal constructor() {
+class Modules internal constructor() : CoroutineScope {
     private val commands = Commands()
 
     private val modules = LinkedList<Module>()
+
+    private lateinit var job: Job
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Default + job
 
     fun add(module: Module) {
         modules.add(module)
@@ -19,8 +28,16 @@ class Modules internal constructor() {
     }
 
     internal fun commandsReady() {
+        job = Job()
         modules.forEach {
-            thread { it.onCommandsReady(commands.functions) }   // Alternatively, coroutines
-        }                                          // TODO: Wait for threads to finish before bot.awaitReady()
+            launch {
+                it.onCommandsReady(commands.functions)
+            }
+        }
+    }
+
+    internal fun destroy() {
+        modules.forEach { it.onDestroy() }
+        job.cancel()
     }
 }
