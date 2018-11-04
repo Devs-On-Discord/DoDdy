@@ -12,21 +12,22 @@ class HelpEntryProducer(private val commandFunction: CommandFunction) {
     }
 
     fun detailedHelpEntry(): MessageEmbed {
-
-        val footerBuilder = StringBuilder("Aliases:")
-        commandFunction.commandAnnotation.names.forEach { footerBuilder.append(" $it,") }
-
-        return EmbedBuilder()
+        val embed = EmbedBuilder()
                 .setTitle(generateCommandUsage(), commandFunction.commandAnnotation.docUrl)
-
                 .setDescription("**")
                 .appendDescription(commandFunction.commandAnnotation.shortDescription)
                 .appendDescription("**\n\n")
                 .appendDescription(commandFunction.commandAnnotation.longDescription)
+                .setColor(0xFFFFFF)
 
-                .setColor(16777215)
+        val commandNames = commandFunction.commandAnnotation.names
+        if (commandNames.size > 1) {
+            val footerBuilder = StringBuilder("Aliases:")
+            commandFunction.commandAnnotation.names.forEach { footerBuilder.append(" $it,") }
+            embed.setFooter(footerBuilder.dropLast(1).toString(), null)
+        }
 
-                .setFooter(footerBuilder.dropLast(1).toString(), null).build()
+        return embed.build()
     }
 
     private fun generateCommandUsage(): String {
