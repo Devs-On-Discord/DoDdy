@@ -1,6 +1,7 @@
 plugins {
     application
     kotlin("jvm")
+    CodegenPlugin()
 }
 
 application {
@@ -11,6 +12,15 @@ java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
+
+//TODO: this doesn't work
+/*tasks {
+    val localProperties by registering(LocalPropertiesTask::class)
+
+    localProperties {
+        dependsOn(build)
+    }
+}*/
 
 dependencies {
     implementation(project(":core"))

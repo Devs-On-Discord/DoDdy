@@ -3,6 +3,7 @@ object Versions {
     val kotlin = "1.3.0"
     val mongodb = "3.8.3"
     val coroutines = "1.0.0"
+    val kotlinpoet = "1.0.0-RC1"
 }
 
 object Libs {
@@ -12,4 +13,5 @@ object Libs {
     val coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"
     val mongodb = "org.litote.kmongo:kmongo-async:${Versions.mongodb}"
     val mongodb_coroutines = "org.litote.kmongo:kmongo-coroutine:${Versions.mongodb}"
+    val kotlinpoet = "com.squareup:kotlinpoet:${Versions.kotlinpoet}"
 }
