@@ -9,7 +9,6 @@ import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.entities.MessageEmbed
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 
-// PROTOTYPE VERSION: Will be redone code-wise by ThisIsIPat, no worries about how it looks for now.
 class HelpModule : Module {
     private val generalHelpPages = mutableListOf<MessageEmbed>()
     private val detailedHelpPages = mutableMapOf<String, MessageEmbed>()

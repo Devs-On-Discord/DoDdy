@@ -25,7 +25,7 @@ data class CommandFunction(
     }
 
     fun call(event: MessageReceivedEvent, args: List<String>): CommandResult {
-        if (args.size + optionals.size < parameters.size && !allArgs) {
+        if (args.size + optionals.size < parameters.size && !allArgs) {//TODO: check for too many arguments
             return InvalidArgs(args)
         }
         val params = ArrayList<Any?>()
@@ -36,40 +36,42 @@ data class CommandFunction(
         }
         args.forEachIndexed { index, argument ->
             val paramIndex = index + 2
-            when (parameters[index].type.javaType) {
-                stringType -> {
-                    params.add(paramIndex, argument)
-                }
-                intType -> {
-                    val number = argument.toIntOrNull()
-                    if (number != null) {
-                        params.add(paramIndex, number)
-                    } else {
-                        return InvalidArg(argument, "not a number")
+            if (parameters.size > index) {
+                when (parameters[index].type.javaType) {
+                    stringType -> {
+                        params.add(paramIndex, argument)
                     }
-                }
-                longType -> {
-                    val number = argument.toLongOrNull()
-                    if (number != null) {
-                        params.add(paramIndex, number)
-                    } else {
-                        return InvalidArg(argument, "not a number")
+                    intType -> {
+                        val number = argument.toIntOrNull()
+                        if (number != null) {
+                            params.add(paramIndex, number)
+                        } else {
+                            return InvalidArg(argument, "not a number")
+                        }
                     }
-                }
-                shortType -> {
-                    val number = argument.toShortOrNull()
-                    if (number != null) {
-                        params.add(paramIndex, number)
-                    } else {
-                        return InvalidArg(argument, "not a number")
+                    longType -> {
+                        val number = argument.toLongOrNull()
+                        if (number != null) {
+                            params.add(paramIndex, number)
+                        } else {
+                            return InvalidArg(argument, "not a number")
+                        }
                     }
-                }
-                doubleType -> {
-                    val number = argument.toDoubleOrNull()
-                    if (number != null) {
-                        params.add(paramIndex, number)
-                    } else {
-                        return InvalidArg(argument, "not a number")
+                    shortType -> {
+                        val number = argument.toShortOrNull()
+                        if (number != null) {
+                            params.add(paramIndex, number)
+                        } else {
+                            return InvalidArg(argument, "not a number")
+                        }
+                    }
+                    doubleType -> {
+                        val number = argument.toDoubleOrNull()
+                        if (number != null) {
+                            params.add(paramIndex, number)
+                        } else {
+                            return InvalidArg(argument, "not a number")
+                        }
                     }
                 }
             }
