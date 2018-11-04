@@ -4,5 +4,5 @@ import org.litote.kmongo.async.KMongo
 
 object Db {
     val client = KMongo.createClient()
-    val database = client.getDatabase("mongo")
+    val instance = client.getDatabase("mongo")
 }
