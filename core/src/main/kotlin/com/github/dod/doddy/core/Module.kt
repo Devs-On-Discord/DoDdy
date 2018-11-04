@@ -8,5 +8,5 @@ interface Module {
         return emptyList()
     }
 
-    fun onCommandFunctionsReady(commandFunctions: List<CommandFunction>) {}
+    fun onCommandsReady(commandFunctions: List<CommandFunction>) {}
 }

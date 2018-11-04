@@ -2,6 +2,7 @@ package com.github.dod.doddy.core
 
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.util.*
+import kotlin.concurrent.thread
 
 class Modules internal constructor() {
     private val commands = Commands()
@@ -19,7 +20,7 @@ class Modules internal constructor() {
 
     internal fun commandsReady() {
         modules.forEach {
-            it.onCommandFunctionsReady(commands.functions)
-        }
+            thread { it.onCommandsReady(commands.functions) }   // Alternatively, coroutines
+        }                                          // TODO: Wait for threads to finish before bot.awaitReady()
     }
 }
