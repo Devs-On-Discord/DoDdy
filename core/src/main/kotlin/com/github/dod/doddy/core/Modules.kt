@@ -19,7 +19,7 @@ class Modules internal constructor() {
 
     internal fun commandsReady() {
         modules.forEach {
-            it.onCommandsReady(commands)
+            it.onCommandFunctionsReady(commands.functions)
         }
     }
 }

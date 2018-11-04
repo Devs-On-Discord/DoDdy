@@ -19,4 +19,7 @@ abstract class Command(vararg val names: String) {
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 //@MustBeDocumented
-annotation class Command(vararg val names: String)
+annotation class Command(vararg val names: String,
+                         val shortDescription: String,
+                         val longDescription: String,
+                         val docUrl: String)

@@ -9,7 +9,7 @@ class Commands {
 
     private val commandFunctions = mutableMapOf<String, CommandFunction>()
 
-    val functions = mutableListOf<CommandFunction>()
+    internal val functions = mutableListOf<CommandFunction>()
 
     fun register(caller: Module) {
         val module = caller.javaClass.kotlin
@@ -31,7 +31,8 @@ class Commands {
                                 function,
                                 functionsParams,
                                 optionals,
-                                parameters.last().type == List::class
+                                parameters.last().type == List::class,
+                                commandAnnotation
                         )
                         functions.add(commandFunction)
                         commandAnnotation.names.forEach { commandName ->

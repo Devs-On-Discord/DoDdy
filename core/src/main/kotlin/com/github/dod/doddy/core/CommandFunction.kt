@@ -12,7 +12,8 @@ data class CommandFunction(
         val function: KFunction<*>,
         val parameters: List<KParameter>,
         val optionals: List<Int>,
-        val allArgs: Boolean
+        val allArgs: Boolean,
+        val command: Command
 ) {
 
     companion object {
