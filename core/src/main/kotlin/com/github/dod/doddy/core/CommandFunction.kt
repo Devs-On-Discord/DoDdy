@@ -36,7 +36,7 @@ data class CommandFunction(
         }
         args.forEachIndexed { index, argument ->
             val paramIndex = index + 2
-            if (parameters.size > paramIndex) {
+            if (parameters.size > index) {
                 when (parameters[index].type.javaType) {
                     stringType -> {
                         params.add(paramIndex, argument)
