@@ -92,9 +92,8 @@ data class CommandFunction(
                                 mem.getOrNull(0)
                             }
                             else -> {
-                                val mem1 = event.guild.getMembersByNickname(argument, true)
-                                val mem2 = event.guild.getMembersByName(argument, true)
-                                mem1.getOrNull(0) ?: mem2.getOrNull(0)
+                                event.guild.getMembersByNickname(argument, true).firstOrNull()
+                                    ?: event.guild.getMembersByName(argument, true).firstOrNull()
                             }
                         }
                         if (member != null) {
