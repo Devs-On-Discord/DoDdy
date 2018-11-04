@@ -96,9 +96,9 @@ class HelpModule : Module {
         // Add page numbers to footer
         val generalHelpPageAmount = generalHelpPageBuilders.size
         for (i in 0 until generalHelpPageAmount) {
-            generalHelpPages[i] = generalHelpPageBuilders[i]
+            generalHelpPages.add(i, generalHelpPageBuilders[i]
                     .setFooter("Page " + (i+1) + "/" + generalHelpPageAmount, null)
-                    .build()
+                    .build())
         }
 
         if (helpPageErrorNames.size == 0) return
