@@ -4,7 +4,6 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.lang.Exception
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
-import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.javaType
 
 data class CommandFunction(
@@ -24,7 +23,7 @@ data class CommandFunction(
         private val doubleType = Double::class.java
     }
 
-    fun call(event: MessageReceivedEvent, args: List<String>): CommandResult {
+    suspend fun call(event: MessageReceivedEvent, args: List<String>): CommandResult {
         if (args.size + optionals.size < parameters.size && !allArgs) {//TODO: check for too many arguments
             return InvalidArgs(args)
         }
