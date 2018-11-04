@@ -8,12 +8,12 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.javaType
 
 data class CommandFunction(
-        val module: Module,
-        val function: KFunction<*>,
-        val parameters: List<KParameter>,
-        val optionals: List<Int>,
-        val allArgs: Boolean,
-        val commandAnnotation: Command
+    val module: Module,
+    val function: KFunction<*>,
+    val parameters: List<KParameter>,
+    val optionals: List<Int>,
+    val allArgs: Boolean,
+    val commandAnnotation: Command
 ) {
 
     companion object {

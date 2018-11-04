@@ -29,9 +29,13 @@ class Modules internal constructor() : CoroutineScope {
 
     internal fun commandsReady() {
         job = Job()
-        modules.forEach {
-            launch {
-                it.onCommandsReady(commands.functions)
+        launch {
+            repeat(modules.size) { i ->
+                modules.elementAtOrNull(i)?.let { module ->
+                    launch {
+                        module.onCommandsReady(commands.functions)
+                    }
+                }
             }
         }
     }

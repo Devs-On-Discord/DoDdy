@@ -27,12 +27,12 @@ class Commands {
                         }
                         val functionsParams = parameters.drop(2)
                         val commandFunction = CommandFunction(
-                                caller,
-                                function,
-                                functionsParams,
-                                optionals,
-                                parameters.last().type == List::class,
-                                commandAnnotation
+                            caller,
+                            function,
+                            functionsParams,
+                            optionals,
+                            parameters.last().type == List::class,
+                            commandAnnotation
                         )
                         functions.add(commandFunction)
                         commandAnnotation.names.forEach { commandName ->
