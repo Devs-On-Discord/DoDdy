@@ -8,6 +8,7 @@ java {
 }
 
 dependencies {
+    implementation(project(":core"))
     implementation(project(":db"))
     implementation(project(":guilds"))
     implementation(project(":users"))

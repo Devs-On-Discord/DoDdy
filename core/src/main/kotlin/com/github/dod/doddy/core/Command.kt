@@ -1,4 +1,5 @@
 package com.github.dod.doddy.core
+
 /*
 /**
  * Parent class for all commands used by the Discord bot.

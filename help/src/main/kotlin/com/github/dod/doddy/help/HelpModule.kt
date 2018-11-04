@@ -14,7 +14,7 @@ class HelpModule : Module {
     private val detailedHelpPages = mutableMapOf<String, MessageEmbed>()
 
     private val generalHelpPageTemplate = EmbedBuilder()
-            .setColor(16777215)
+            .setColor(0xFFFFFF)
             .setTitle("DoDdy", "https://github.com/Devs-On-Discord/DoDdy")
 
     @Command(names = ["help", "h"],

@@ -44,7 +44,7 @@ class Commands {
         }
     }
 
-    fun call(name: String, event: MessageReceivedEvent, args: List<String>): CommandResult {
+    suspend fun call(name: String, event: MessageReceivedEvent, args: List<String>): CommandResult {
         val commandFunction = commandFunctions[name] ?: return CommandNotFound(name)
         return commandFunction.call(event, args)
     }

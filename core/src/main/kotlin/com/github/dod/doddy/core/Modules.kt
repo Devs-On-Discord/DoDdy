@@ -23,7 +23,7 @@ class Modules internal constructor() : CoroutineScope {
         commands.register(module)
     }
 
-    internal fun onCommand(name: String, event: MessageReceivedEvent, args: List<String>): CommandResult {
+    internal suspend fun onCommand(name: String, event: MessageReceivedEvent, args: List<String>): CommandResult {
         return commands.call(name, event, args)
     }
 
