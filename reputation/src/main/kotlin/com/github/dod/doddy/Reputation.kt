@@ -5,29 +5,37 @@ import com.github.dod.doddy.db.coroutines.findOne
 import com.github.dod.doddy.db.inc
 import com.github.dod.doddy.users.User
 import com.mongodb.client.model.UpdateOptions
+import com.mongodb.client.result.UpdateResult
 import org.litote.kmongo.async.getCollection
 import org.litote.kmongo.eq
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 // 1.0 = no bonus
 private const val REPUTATION_BONUS_FACTOR_MAX = 2.0
 
 suspend fun User.addReputation(guildId: String,
-                               reputation: Long) {
-    // TODO: Non-reliable values?
-    // Computation non-random, values in database seemingly are
+                               reputation: Long) : UpdateResult {
     val dbUsers = Db.instance.getCollection<User>()
     val dbUser = dbUsers.findOne(User::id eq this.id)
 
     val reputationWithBonus = dbUser
-            ?.let { applyBonus(reputation, it.getGlobalReputation(), it.guildReputations[guildId] ?: 0) }
-            ?: reputation
+        ?.let { applyBonus(reputation, it.getGlobalReputation(), it.guildReputations[guildId] ?: 0) }
+        ?: reputation
 
-    println(reputationWithBonus)
-
-    dbUsers.updateOne(User::id eq this.id,
+    return suspendCoroutine { continuation ->
+        dbUsers.updateOne(User::id eq this.id,
             User::guildReputations.inc(guildId, reputationWithBonus),
             UpdateOptions().upsert(true)
-    ) { _, _ -> }
+        ) { result, throwable ->
+            if (throwable != null) {
+                continuation.resumeWithException(throwable)
+            } else {
+                continuation.resume(result)
+            }
+        }
+    }
 }
 
 // Necessary?
