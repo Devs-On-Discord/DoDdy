@@ -1,6 +1,7 @@
 package com.github.dod.doddy
 
 import com.github.dod.doddy.db.Db
+import com.github.dod.doddy.db.inc
 import com.github.dod.doddy.db.incEntry
 import com.github.dod.doddy.users.User
 import com.mongodb.client.model.UpdateOptions
@@ -19,15 +20,15 @@ suspend fun User.addReputation(guildId: String,
     val dbUser = dbUsers.findOne(User::id eq this.id)
 
     val reputationWithBonus = dbUser
-        ?. let { applyBonus(reputation, it.getGlobalReputation(), it.guildReputations[guildId] ?: 0) }
-        ?: reputation
+            ?.let { applyBonus(reputation, it.getGlobalReputation(), it.guildReputations[guildId] ?: 0) }
+            ?: reputation
 
     println(reputationWithBonus)
 
     dbUsers.updateOne(User::id eq this.id,
-        incEntry(User::guildReputations, guildId, reputationWithBonus),
-        UpdateOptions().upsert(true)
-        ) {_, _ -> }
+            User::guildReputations.inc(guildId, reputationWithBonus),
+            UpdateOptions().upsert(true)
+    ) { _, _ -> }
 }
 
 // Necessary?
