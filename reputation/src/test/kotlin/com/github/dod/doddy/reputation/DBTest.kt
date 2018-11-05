@@ -7,15 +7,21 @@ import kotlinx.coroutines.runBlocking
 object DBTest {
     @JvmStatic
     fun main(args: Array<String>) {
+        val demo1 = User("snowflake01", HashMap())
+        val demo2 = User("snowflake02", HashMap())
         runBlocking {
-            val demo1 = User("snowflake01", emptyMap())
             demo1.addReputation("guildSnowflake01",
-                    11)
+                    10)
             demo1.addReputation("guildSnowflake02",
-                15)
+                100)
             demo1.addReputation("guildSnowflake01",
-                14)
-            val demo2 = User("snowflake02", emptyMap())
+                10)
+            demo1.addReputation("guildSnowflake01",
+                10)
+            demo1.addReputation("guildSnowflake02",
+                50)
+            demo1.addReputation("guildSnowflake01",
+                10)
             demo2.addReputation("guildSnowflake02",
                 1337)
         }
