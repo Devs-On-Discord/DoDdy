@@ -2,9 +2,9 @@ package com.github.dod.doddy.reputation
 
 import com.github.dod.doddy.addReputation
 import com.github.dod.doddy.db.Db
+import com.github.dod.doddy.db.coroutines.dropCollection
 import com.github.dod.doddy.users.User
 import kotlinx.coroutines.runBlocking
-import org.litote.kmongo.coroutine.dropCollection
 
 object DBTest {
     @JvmStatic

@@ -10,5 +10,5 @@ java {
 dependencies {
     implementation(Libs.stdlib)
     api(Libs.coroutines)
-    implementation(Libs.mongodb_coroutines) { exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib") }
+    implementation(Libs.mongodb) { exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib") }
 }

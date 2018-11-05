@@ -1,11 +1,11 @@
 package com.github.dod.doddy
 
 import com.github.dod.doddy.db.Db
+import com.github.dod.doddy.db.coroutines.findOne
 import com.github.dod.doddy.db.inc
 import com.github.dod.doddy.users.User
 import com.mongodb.client.model.UpdateOptions
 import org.litote.kmongo.async.getCollection
-import org.litote.kmongo.coroutine.findOne
 import org.litote.kmongo.eq
 
 // 1.0 = no bonus
