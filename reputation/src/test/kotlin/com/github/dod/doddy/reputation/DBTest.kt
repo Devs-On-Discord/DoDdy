@@ -9,7 +9,6 @@ import kotlinx.coroutines.runBlocking
 object DBTest {
     @JvmStatic
     fun main(args: Array<String>) {
-        // Mongo cache broken? Users always created correctly
         for (x in 0 until 50) {
             val demo1 = User("snowflake01", HashMap())
             val demo2 = User("snowflake02", HashMap())
@@ -17,6 +16,7 @@ object DBTest {
             println(demo2)
             runBlocking {
                 Db.instance.dropCollection("user")
+
                 demo1.addReputation("guildSnowflake01",
                     10)
                 demo1.addReputation("guildSnowflake02",

@@ -21,19 +21,16 @@ suspend fun User.addReputation(guildId: String,
     val dbUser = dbUsers.findOne(User::id eq this.id)
 
     val reputationWithBonus = dbUser
-        ?.let { applyBonus(reputation, it.getGlobalReputation(), it.guildReputations[guildId] ?: 0) }
+        ?. let { applyBonus(reputation, it.getGlobalReputation(), it.guildReputations[guildId] ?: 0) }
         ?: reputation
 
-    return suspendCoroutine { continuation ->
+    return suspendCoroutine { cont ->
         dbUsers.updateOne(User::id eq this.id,
             User::guildReputations.inc(guildId, reputationWithBonus),
             UpdateOptions().upsert(true)
-        ) { result, throwable ->
-            if (throwable != null) {
-                continuation.resumeWithException(throwable)
-            } else {
-                continuation.resume(result)
-            }
+        ) { result, t ->
+            if (t != null) cont.resumeWithException(t)
+            else cont.resume(result)
         }
     }
 }
