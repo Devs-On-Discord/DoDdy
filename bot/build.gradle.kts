@@ -27,8 +27,7 @@ dependencies {
     implementation(project(":help"))
 
     implementation(project(":reputation"))
-    implementation(project(":warnings"))
-    implementation(project(":bans"))
+    implementation(project(":moderation"))
     implementation(project(":setup"))
     implementation(project(":votes"))
     implementation(project(":rules"))

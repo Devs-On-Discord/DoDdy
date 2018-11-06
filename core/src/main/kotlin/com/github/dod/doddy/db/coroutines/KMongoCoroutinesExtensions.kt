@@ -100,7 +100,7 @@ fun <T> FindIterable<T>.filter(filter: String): FindIterable<T> = filter(toBson(
  * @param filter the filter, which may be null
  * @return this
  */
-suspend fun <T> FindIterable<T>.first(): T? = singleResult { first(it) }
+suspend fun <T> FindIterable<T>.first(): T? = com.github.dod.doddy.db.coroutines.singleResult { first(it) }
 
 /**
  * Sets the query modifiers to apply to this operation.
@@ -192,7 +192,7 @@ fun <T> MapReduceIterable<T>.filter(filter: String): MapReduceIterable<T> = filt
  * @param callback a callback that will be passed the target containing all documents
  */
 suspend fun <T> MongoIterable<T>.toList(): MutableList<T> {
-    return singleResult { into(mutableListOf(), it) } ?: arrayListOf()
+    return com.github.dod.doddy.db.coroutines.singleResult { into(mutableListOf(), it) } ?: arrayListOf()
 }
 
 /**
@@ -212,7 +212,7 @@ inline fun <reified NewTDocument : Any> MongoCollection<*>.withDocumentClass(): 
  */
 @Deprecated("use countDocuments instead")
 suspend fun <T> MongoCollection<T>.count(): Long {
-    return singleResult { count(it) } ?: 0L
+    return com.github.dod.doddy.db.coroutines.singleResult { count(it) } ?: 0L
 }
 
 /**
@@ -223,7 +223,7 @@ suspend fun <T> MongoCollection<T>.count(): Long {
  */
 @Deprecated("use countDocuments instead")
 suspend fun <T> MongoCollection<T>.count(filter: String, options: CountOptions = CountOptions()): Long {
-    return singleResult { count(toBson(filter), options, it) } ?: 0L
+    return com.github.dod.doddy.db.coroutines.singleResult { count(toBson(filter), options, it) } ?: 0L
 }
 
 /**
@@ -232,7 +232,7 @@ suspend fun <T> MongoCollection<T>.count(filter: String, options: CountOptions =
  * @return count of all collection
  */
 suspend fun <T> MongoCollection<T>.countDocuments(): Long {
-    return singleResult { countDocuments(it) } ?: 0L
+    return com.github.dod.doddy.db.coroutines.singleResult { countDocuments(it) } ?: 0L
 }
 
 /**
@@ -242,7 +242,7 @@ suspend fun <T> MongoCollection<T>.countDocuments(): Long {
  * @return count of filtered collection
  */
 suspend fun <T> MongoCollection<T>.countDocuments(filter: String, options: CountOptions = CountOptions()): Long {
-    return singleResult { countDocuments(toBson(filter), options, it) } ?: 0L
+    return com.github.dod.doddy.db.coroutines.singleResult { countDocuments(toBson(filter), options, it) } ?: 0L
 }
 
 /**
@@ -304,7 +304,7 @@ fun <T> MongoCollection<T>.find(vararg filters: Bson?): FindIterable<T> = find(a
  * @param filter the query filter
  */
 suspend fun <T : Any> MongoCollection<T>.findOne(filter: String = KMongoUtil.EMPTY_JSON): T? {
-    return singleResult { find(filter).first(it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { find(filter).first(it) }
 }
 
 /**
@@ -313,7 +313,7 @@ suspend fun <T : Any> MongoCollection<T>.findOne(filter: String = KMongoUtil.EMP
  * @param filter the query filter
  */
 suspend fun <T : Any> MongoCollection<T>.findOne(filter: Bson): T? {
-    return singleResult { find(filter).first(it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { find(filter).first(it) }
 }
 
 /**
@@ -385,7 +385,7 @@ suspend fun <T : Any> MongoCollection<T>.insertMany(
         documents: List<T>,
         options: InsertManyOptions = InsertManyOptions()
 ): Void? {
-    return singleResult { insertMany(documents, options, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { insertMany(documents, options, it) }
 }
 
 /**
@@ -403,7 +403,7 @@ suspend fun <TDocument : Any> MongoCollection<TDocument>.insertOne(
         document: TDocument,
         options: InsertOneOptions = InsertOneOptions()
 ): Void? {
-    return singleResult { insertOne(document, options, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { insertOne(document, options, it) }
 }
 
 /**
@@ -421,11 +421,11 @@ suspend inline fun <reified T : Any> MongoCollection<T>.insertOne(
         document: String,
         options: InsertOneOptions = InsertOneOptions()
 ): Void? {
-    return singleResult {
+    return com.github.dod.doddy.db.coroutines.singleResult {
         withDocumentClass<BsonDocument>().insertOne(
-                toBson(document, T::class),
-                options,
-                it
+            toBson(document, T::class),
+            options,
+            it
         )
     }
 }
@@ -445,7 +445,7 @@ suspend inline fun <reified T : Any> MongoCollection<T>.insertOne(
 suspend fun <T> MongoCollection<T>.deleteOne(
         filter: String,
         deleteOptions: DeleteOptions = DeleteOptions()
-): DeleteResult? = singleResult { deleteOne(toBson(filter), deleteOptions, it) }
+): DeleteResult? = com.github.dod.doddy.db.coroutines.singleResult { deleteOne(toBson(filter), deleteOptions, it) }
 
 /**
  * Removes at most one document from the collection that matches the given filter.  If no documents match, the collection is not
@@ -462,7 +462,7 @@ suspend fun <T> MongoCollection<T>.deleteOne(
 suspend fun <T> MongoCollection<T>.deleteOne(
         vararg filters: Bson?,
         deleteOptions: DeleteOptions = DeleteOptions()
-): DeleteResult? = singleResult { deleteOne(and(*filters), deleteOptions, it) }
+): DeleteResult? = com.github.dod.doddy.db.coroutines.singleResult { deleteOne(and(*filters), deleteOptions, it) }
 
 /**
  * Removes at most one document from the id parameter.  If no documents match, the collection is not
@@ -494,7 +494,7 @@ suspend fun <T> MongoCollection<T>.deleteMany(
         filter: String,
         options: DeleteOptions = DeleteOptions()
 ): DeleteResult? {
-    return singleResult { deleteMany(toBson(filter), options, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { deleteMany(toBson(filter), options, it) }
 }
 
 /**
@@ -512,7 +512,7 @@ suspend fun <T> MongoCollection<T>.deleteMany(
 suspend fun <T> MongoCollection<T>.deleteMany(
         vararg filters: Bson?,
         options: DeleteOptions = DeleteOptions()
-): DeleteResult? = singleResult { deleteMany(and(*filters), options, it) }
+): DeleteResult? = com.github.dod.doddy.db.coroutines.singleResult { deleteMany(and(*filters), options, it) }
 
 /**
  * Save the document.
@@ -531,7 +531,7 @@ suspend fun <T : Any> MongoCollection<T>.save(document: T): Void? {
         replaceOneById(id, document, ReplaceOptions().upsert(true))
         null
     } else {
-        singleResult<Void> { insertOne(document, it) }
+        com.github.dod.doddy.db.coroutines.singleResult<Void> { insertOne(document, it) }
     }
 }
 
@@ -614,12 +614,12 @@ suspend fun <T : Any> MongoCollection<T>.replaceOne(
         replacement: T,
         options: ReplaceOptions = ReplaceOptions()
 ): UpdateResult? {
-    return singleResult {
+    return com.github.dod.doddy.db.coroutines.singleResult {
         withDocumentClass<BsonDocument>().replaceOne(
-                filter,
-                KMongoUtil.filterIdToBson(replacement),
-                options,
-                it
+            filter,
+            KMongoUtil.filterIdToBson(replacement),
+            options,
+            it
         )
     }
 }
@@ -642,7 +642,7 @@ suspend fun <T> MongoCollection<T>.updateOne(
         update: String,
         options: UpdateOptions = UpdateOptions()
 ): UpdateResult? {
-    return singleResult { updateOne(toBson(filter), toBson(update), options, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { updateOne(toBson(filter), toBson(update), options, it) }
 }
 
 /**
@@ -662,7 +662,7 @@ suspend fun <T> MongoCollection<T>.updateOne(
         filter: String,
         update: Any,
         options: UpdateOptions = UpdateOptions()
-): UpdateResult? = singleResult { updateOne(toBson(filter), setModifier(update), options, it) }
+): UpdateResult? = com.github.dod.doddy.db.coroutines.singleResult { updateOne(toBson(filter), setModifier(update), options, it) }
 
 /**
  * Update a single document in the collection according to the specified arguments.
@@ -682,7 +682,7 @@ suspend inline fun <reified T : Any> MongoCollection<T>.updateOne(
         target: T,
         options: UpdateOptions = UpdateOptions()
 ): UpdateResult? {
-    return singleResult { updateOne(filter, KMongoUtil.toBsonModifier(target), options, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { updateOne(filter, KMongoUtil.toBsonModifier(target), options, it) }
 }
 
 /**
@@ -722,14 +722,14 @@ suspend fun <T> MongoCollection<T>.updateOneById(
         update: Any,
         options: UpdateOptions = UpdateOptions()
 ): UpdateResult? =
-        singleResult {
-            updateOne(
-                    idFilterQuery(id),
-                    KMongoUtil.toBsonModifier(update),
-                    options,
-                    it
-            )
-        }
+    com.github.dod.doddy.db.coroutines.singleResult {
+        updateOne(
+            idFilterQuery(id),
+            KMongoUtil.toBsonModifier(update),
+            options,
+            it
+        )
+    }
 
 /**
  * Update all documents in the collection according to the specified arguments.
@@ -749,7 +749,7 @@ suspend fun <T> MongoCollection<T>.updateMany(
         update: String,
         updateOptions: UpdateOptions = UpdateOptions()
 ): UpdateResult? {
-    return singleResult { updateMany(toBson(filter), toBson(update), updateOptions, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { updateMany(toBson(filter), toBson(update), updateOptions, it) }
 }
 
 /**
@@ -769,7 +769,7 @@ suspend fun <T> MongoCollection<T>.updateMany(
         filter: Bson,
         vararg updates: SetTo<*>,
         updateOptions: UpdateOptions = UpdateOptions()
-): UpdateResult? = singleResult { updateMany(filter, set(*updates), updateOptions, it) }
+): UpdateResult? = com.github.dod.doddy.db.coroutines.singleResult { updateMany(filter, set(*updates), updateOptions, it) }
 
 /**
  * Atomically find a document and remove it.
@@ -783,7 +783,7 @@ suspend fun <T : Any> MongoCollection<T>.findOneAndDelete(
         filter: String,
         options: FindOneAndDeleteOptions = FindOneAndDeleteOptions()
 ): T? {
-    return singleResult { findOneAndDelete(toBson(filter), options, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { findOneAndDelete(toBson(filter), options, it) }
 }
 
 /**
@@ -802,7 +802,7 @@ suspend fun <T> MongoCollection<T>.findOneAndReplace(
         replacement: T,
         options: FindOneAndReplaceOptions = FindOneAndReplaceOptions()
 ): T? {
-    return singleResult { findOneAndReplace(toBson(filter), replacement, options, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { findOneAndReplace(toBson(filter), replacement, options, it) }
 }
 
 /**
@@ -821,7 +821,7 @@ suspend fun <T : Any> MongoCollection<T>.findOneAndUpdate(
         update: String,
         options: FindOneAndUpdateOptions = FindOneAndUpdateOptions()
 ): T? {
-    return singleResult { findOneAndUpdate(toBson(filter), toBson(update), options, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { findOneAndUpdate(toBson(filter), toBson(update), options, it) }
 }
 
 /**
@@ -835,7 +835,7 @@ suspend fun <T> MongoCollection<T>.createIndex(
         key: String,
         options: IndexOptions = IndexOptions()
 ): String? {
-    return singleResult { createIndex(toBson(key), options, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { createIndex(toBson(key), options, it) }
 }
 
 /**
@@ -874,12 +874,12 @@ suspend fun <T> MongoCollection<T>.ensureIndex(
         indexOptions: IndexOptions = IndexOptions()
 ): String? =
         try {
-            singleResult { createIndex(keys, indexOptions, it) }
+            com.github.dod.doddy.db.coroutines.singleResult { createIndex(keys, indexOptions, it) }
         } catch (e: MongoCommandException) {
             //there is an exception if the parameters of an existing index are changed.
             //then drop the index and create a new one
-            singleResult<Void> { dropIndex(keys, it) }
-            singleResult { createIndex(keys, indexOptions, it) }
+            com.github.dod.doddy.db.coroutines.singleResult<Void> { dropIndex(keys, it) }
+            com.github.dod.doddy.db.coroutines.singleResult { createIndex(keys, indexOptions, it) }
         }
 
 /**
@@ -925,7 +925,7 @@ inline fun <reified TResult : Any> MongoCollection<*>.listTypedIndexes(): ListIn
  * @param keys the keys of the index to remove
  */
 suspend fun <T> MongoCollection<T>.dropIndex(keys: String): Void? {
-    return singleResult { dropIndex(toBson(keys), it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { dropIndex(toBson(keys), it) }
 }
 
 /**
@@ -936,13 +936,13 @@ suspend fun <T> MongoCollection<T>.dropIndex(keys: String): Void? {
  * @return the result of the bulk write
  */
 suspend inline fun <reified T : Any> MongoCollection<T>.bulkWrite(vararg requests: String): BulkWriteResult? {
-    return singleResult {
+    return com.github.dod.doddy.db.coroutines.singleResult {
         withDocumentClass<BsonDocument>().bulkWrite(
-                KMongoUtil.toWriteModel(
-                        requests,
-                        codecRegistry,
-                        T::class
-                ), BulkWriteOptions(), it
+            KMongoUtil.toWriteModel(
+                requests,
+                codecRegistry,
+                T::class
+            ), BulkWriteOptions(), it
         )
     }
 }
@@ -959,13 +959,13 @@ suspend inline fun <reified T : Any> MongoCollection<T>.bulkWrite(
         vararg requests: String,
         options: BulkWriteOptions = BulkWriteOptions()
 ): BulkWriteResult? {
-    return singleResult {
+    return com.github.dod.doddy.db.coroutines.singleResult {
         withDocumentClass<BsonDocument>().bulkWrite(
-                KMongoUtil.toWriteModel(
-                        requests,
-                        codecRegistry,
-                        T::class
-                ), options, it
+            KMongoUtil.toWriteModel(
+                requests,
+                codecRegistry,
+                T::class
+            ), options, it
         )
     }
 }
@@ -982,7 +982,7 @@ suspend inline fun <reified T : Any> MongoCollection<T>.bulkWrite(
         vararg requests: WriteModel<T>,
         options: BulkWriteOptions = BulkWriteOptions()
 ): BulkWriteResult? {
-    return singleResult { bulkWrite(requests.toList(), options, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { bulkWrite(requests.toList(), options, it) }
 }
 
 /**
@@ -992,7 +992,7 @@ suspend inline fun <reified T : Any> MongoCollection<T>.bulkWrite(
  * @return TResult object result of the command
  */
 suspend inline fun <reified TResult : Any> MongoDatabase.runCommand(command: Bson): TResult? {
-    return singleResult { runCommand(command, TResult::class.java, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { runCommand(command, TResult::class.java, it) }
 }
 
 /**
@@ -1003,7 +1003,7 @@ suspend inline fun <reified TResult : Any> MongoDatabase.runCommand(command: Bso
  * @return TResult object result of the command
  */
 suspend inline fun <reified TResult : Any> MongoDatabase.runCommand(command: Bson, readPreference: ReadPreference): TResult? {
-    return singleResult { runCommand(command, readPreference, TResult::class.java, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { runCommand(command, readPreference, TResult::class.java, it) }
 }
 
 /**
@@ -1014,7 +1014,7 @@ suspend inline fun <reified TResult : Any> MongoDatabase.runCommand(command: Bso
  * @param <TResult>      the type of the class to use instead of {@code Document}.
  */
 suspend inline fun <reified TResult : Any> MongoDatabase.runCommand(command: String, readPreference: ReadPreference): TResult? {
-    return singleResult { runCommand(KMongoUtil.toBson(command), readPreference, TResult::class.java, it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { runCommand(KMongoUtil.toBson(command), readPreference, TResult::class.java, it) }
 }
 
 /**
@@ -1032,7 +1032,7 @@ suspend inline fun <reified TResult : Any> MongoDatabase.runCommand(command: Str
  * @mongodb.driver.manual reference/command/dropDatabase/#dbcmd.dropDatabase Drop database
  */
 suspend fun MongoDatabase.drop() {
-    singleResult<Void> { this.drop(it) }
+    com.github.dod.doddy.db.coroutines.singleResult<Void> { this.drop(it) }
 }
 
 /**
@@ -1041,7 +1041,7 @@ suspend fun MongoDatabase.drop() {
  * @mongodb.driver.manual reference/command/create Create Command
  */
 suspend fun MongoDatabase.createCollection(collectionName: String) {
-    singleResult<Void> { this.createCollection(collectionName, it) }
+    com.github.dod.doddy.db.coroutines.singleResult<Void> { this.createCollection(collectionName, it) }
 }
 
 /**
@@ -1051,7 +1051,7 @@ suspend fun MongoDatabase.createCollection(collectionName: String) {
  * @mongodb.driver.manual reference/command/create Create Command
  */
 suspend fun MongoDatabase.createCollection(collectionName: String, options: CreateCollectionOptions) {
-    singleResult<Void> { this.createCollection(collectionName, options, it) }
+    com.github.dod.doddy.db.coroutines.singleResult<Void> { this.createCollection(collectionName, options, it) }
 }
 
 /**
@@ -1087,7 +1087,7 @@ inline fun <reified T : Any> MongoDatabase.getCollectionOfName(name: String): Mo
  * @mongodb.driver.manual reference/command/create Create Command
  */
 suspend fun MongoDatabase.createView(viewName: String, viewOn: String, pipeline: List<Bson>) {
-    singleResult<Void> { this.createView(viewName, viewOn, pipeline, it) }
+    com.github.dod.doddy.db.coroutines.singleResult<Void> { this.createView(viewName, viewOn, pipeline, it) }
 }
 
 /**
@@ -1099,7 +1099,7 @@ suspend fun MongoDatabase.createView(viewName: String, viewOn: String, pipeline:
  * @mongodb.driver.manual reference/command/create Create Command
  */
 suspend fun MongoDatabase.createView(viewName: String, viewOn: String, pipeline: List<Bson>, createViewOptions: CreateViewOptions) {
-    singleResult<Void> { this.createView(viewName, viewOn, pipeline, createViewOptions, it) }
+    com.github.dod.doddy.db.coroutines.singleResult<Void> { this.createView(viewName, viewOn, pipeline, createViewOptions, it) }
 }
 
 /**
@@ -1116,5 +1116,5 @@ suspend inline fun <reified T : Any> MongoDatabase.dropCollection()
  * @mongodb.driver.manual reference/command/drop/ Drop Collection
  */
 suspend fun MongoDatabase.dropCollection(collectionName: String): Void? {
-    return singleResult { getCollection(collectionName).drop(it) }
+    return com.github.dod.doddy.db.coroutines.singleResult { getCollection(collectionName).drop(it) }
 }

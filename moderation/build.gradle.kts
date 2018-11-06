@@ -8,7 +8,6 @@ java {
 }
 
 dependencies {
+    implementation(project(":core"))
     implementation(Libs.stdlib)
-    api(Libs.coroutines)
-    implementation(Libs.mongodb) { exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib") }
 }

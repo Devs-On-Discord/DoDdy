@@ -1,18 +1,14 @@
 include(
     "bot",
     "core",
-    "db",
     "help",
     "reputation",
-    "warnings",
-    "bans",
+    "moderation",
     "setup",
     "votes",
     "rules",
     "redirections",
     "announcements",
     "questions",
-    "ranks",
-    "guilds",
-    "users"
+    "ranks"
 )

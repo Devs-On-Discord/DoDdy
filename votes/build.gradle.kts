@@ -8,8 +8,6 @@ java {
 }
 
 dependencies {
-    implementation(project(":db"))
-    implementation(project(":guilds"))
-    implementation(project(":users"))
+    implementation(project(":core"))
     implementation(Libs.stdlib)
 }
