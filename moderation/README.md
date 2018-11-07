@@ -108,8 +108,6 @@ Mod#0012  @ DIRECT MESSAGES < "You're a moderator on more than one server: 1: no
 Mod#0012  @ DIRECT MESSAGES > "1"
 NODE      @ node1           < BAN USER#1234
 Mod#0012  @ DIRECT MESSAGES < "User#1234 has been banned from node1."
-
-NODE      @ node1           < BAN USER#1234
 User#1234 @ DIRECT MESSAGES < "You have been banned from node1 due to the network-wide ban system."
 ```
 
