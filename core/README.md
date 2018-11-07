@@ -1,9 +1,12 @@
 # Core Module
 
-| Feature         | Author(s)       |
-| --------------- | ---------------:|
-| _documentation_ | @ThisIsIPat     |
-| _testing_       | @ThisIsIPat<br>@FabianTerhorst |
+| Feature          | Supervisor(s)   |
+|:---------------- | ---------------:|
+| **database**     | @FabianTerhorst |
+| **data classes** | @ThisIsIPat     |
+| **markers**      | @FabianTerhorst |
+| documentation    | @ThisIsIPat     |
+| testing          | @ThisIsIPat<br>@FabianTerhorst<br>@wasdennnoch |
 
 
 The **Core** module contains basic logic other modules base on.
