@@ -24,16 +24,11 @@ java {
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":help"))
 
-    implementation(project(":reputation"))
+    implementation(project(":support"))
     implementation(project(":moderation"))
-    implementation(project(":setup"))
-    implementation(project(":votes"))
-    implementation(project(":rules"))
-    implementation(project(":redirections"))
-    implementation(project(":announcements"))
-    implementation(project(":questions"))
-    implementation(project(":ranks"))
+    implementation(project(":info"))
+    implementation(project(":reputation"))
+    implementation(project(":polls"))
     implementation(Libs.stdlib)
 }

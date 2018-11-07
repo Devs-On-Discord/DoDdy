@@ -1,4 +1,4 @@
-# Help Module
+# Support Module
 
 | Feature         | Author          |
 | --------------- |:---------------:|
