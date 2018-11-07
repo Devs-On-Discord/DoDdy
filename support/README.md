@@ -1,7 +1,7 @@
 # Support Module
 
 | Feature         | Author(s)       |
-| --------------- |:---------------:|
+| --------------- | ---------------:|
 | `!help`         | @ThisIsIPat     |
 | _documentation_ | @ThisIsIPat     |
 | _testing_       | @ThisIsIPat     |
