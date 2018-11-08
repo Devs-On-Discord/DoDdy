@@ -1,3 +1,9 @@
+# DoDdy
+
+## Commands
+
+To receive information about the available commands, type **@Gopher#2273 help** in a text channel the bot is active in.
+Alternatively, you can take a look at the [wiki](https://github.com/Devs-On-Discord/DoDdy/wiki) to look at the available features.
 
 # License
 
