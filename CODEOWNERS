@@ -10,20 +10,10 @@
 # *.js    @octocat @github/js
 
 # You can also use email addresses if you prefer.
-/bans @fabianterhorst
 /bot @fabianterhorst
 /buildSrc @fabianterhorst
-/core @fabianterhorst
-/db @fabianterhorst
-/gradle @fabianterhorst
-/guilds @fabianterhorst
-/help @fabianterhorst
-/questions @fabianterhorst
-/ranks @fabianterhorst
-/redirections @fabianterhorst
-/reputation @fabianterhorst
-/rules @fabianterhorst
-/setup @fabianterhorst
-/users @fabianterhorst
-/votes @fabianterhorst
-/warnings @fabianterhorst
+/core @fabianterhorst @thisisipat @wasdennnoch
+/info @thisisipat @fabianterhorst
+/moderation @wasdennnoch @thisisipat
+/reputation @fabianterhorst @thisisipat
+/support @thisisipat

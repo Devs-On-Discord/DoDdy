@@ -5,6 +5,5 @@ include(
     "support",
     "moderation",
     "info",
-    "reputation",
-    "polls"
+    "reputation"
 )

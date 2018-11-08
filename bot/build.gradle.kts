@@ -29,7 +29,6 @@ dependencies {
     implementation(project(":moderation"))
     implementation(project(":info"))
     implementation(project(":reputation"))
-    implementation(project(":polls"))
     implementation(Libs.stdlib)
     implementation(Libs.coroutines)
     implementation(Libs.reflection)
