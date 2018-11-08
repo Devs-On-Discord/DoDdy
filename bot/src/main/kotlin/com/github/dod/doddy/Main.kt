@@ -1,7 +1,7 @@
 @file:JvmName("Main")
 package com.github.dod.doddy
 
-import com.github.dod.doddy.core.Discord
+import com.github.dod.doddy.parser.Discord
 import com.github.dod.doddy.bans.BansModule
 import com.github.dod.doddy.help.HelpModule
 

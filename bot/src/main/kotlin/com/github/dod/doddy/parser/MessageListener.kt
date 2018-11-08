@@ -1,4 +1,4 @@
-package com.github.dod.doddy.core
+package com.github.dod.doddy.parser
 
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.core.events.Event

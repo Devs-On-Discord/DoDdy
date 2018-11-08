@@ -10,4 +10,5 @@ java {
 dependencies {
     implementation(project(":core"))
     implementation(Libs.stdlib)
+    implementation(Libs.coroutines)
 }

@@ -1,5 +1,6 @@
-package com.github.dod.doddy.core
+package com.github.dod.doddy.parser
 
+import com.github.dod.doddy.core.Module
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.JDABuilder
 import java.io.File

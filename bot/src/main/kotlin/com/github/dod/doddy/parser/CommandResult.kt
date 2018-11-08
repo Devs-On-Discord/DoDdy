@@ -1,4 +1,4 @@
-package com.github.dod.doddy.core
+package com.github.dod.doddy.parser
 
 sealed class CommandResult
 data class CommandNotFound(val commandName: String) : CommandResult()
