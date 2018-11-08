@@ -1,4 +1,4 @@
-# Moderation Module
+# Moderation
 
 | Feature           | Supervisor(s) |
 |:----------------- | -------------:|

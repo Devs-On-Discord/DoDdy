@@ -2,7 +2,7 @@ package com.github.dod.doddy.parser
 
 import com.github.dod.doddy.core.Command
 import com.github.dod.doddy.core.CommandFunction
-import com.github.dod.doddy.core.Module
+import com.github.dod.doddy.core.Feature
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
@@ -14,7 +14,7 @@ class Commands {
 
     internal val functions = mutableListOf<CommandFunction>()
 
-    fun register(caller: Module) {
+    fun register(caller: Feature) {
         val module = caller.javaClass.kotlin
         module.functions.forEach { function ->
             val parameters = function.parameters

@@ -23,7 +23,7 @@ suspend fun CommandFunction.call(event: MessageReceivedEvent, args: List<String>
         return InvalidArgs(args)
     }
     val params = ArrayList<Any?>()
-    params.add(module)
+    params.add(feature)
     params.add(event)
     if (allArgs) {
         params.addAll(args)

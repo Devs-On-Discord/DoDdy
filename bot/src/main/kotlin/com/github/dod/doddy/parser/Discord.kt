@@ -1,12 +1,12 @@
 package com.github.dod.doddy.parser
 
-import com.github.dod.doddy.core.Module
+import com.github.dod.doddy.core.Feature
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.JDABuilder
 import java.io.File
 
 object Discord {
-    private val modules = Modules()
+    private val modules = Features()
 
     val bot: JDA = JDABuilder(File("../discord.token").readText()).build()
 
@@ -14,9 +14,9 @@ object Discord {
         bot.addEventListener(MessageListener(modules))
     }
 
-    fun add(module: Module) {
-        modules.add(module)
-        module.getEventListeners().forEach { eventListener ->
+    fun add(feature: Feature) {
+        modules.add(feature)
+        feature.getEventListeners().forEach { eventListener ->
             bot.addEventListener(eventListener)
         }
     }

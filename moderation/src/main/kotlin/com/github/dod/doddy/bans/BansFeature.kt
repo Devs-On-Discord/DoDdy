@@ -1,12 +1,12 @@
 package com.github.dod.doddy.bans
 
 import com.github.dod.doddy.core.Command
-import com.github.dod.doddy.core.Module
+import com.github.dod.doddy.core.Feature
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 
-class BansModule : Module {
+class BansFeature : Feature {
 
     @Command(names = ["ban"],
         shortDescription = "Bans the specified member.",

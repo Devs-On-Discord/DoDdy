@@ -1,4 +1,4 @@
-# Info Module
+# Info
     
 | Feature          | Supervisor(s) |
 |:---------------- | -------------:|

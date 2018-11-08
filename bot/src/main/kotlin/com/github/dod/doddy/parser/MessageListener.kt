@@ -6,7 +6,7 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.EventListener
 import java.util.regex.Pattern
 
-class MessageListener(private val modules: Modules) : EventListener {
+class MessageListener(private val features: Features) : EventListener {
     override fun onEvent(event: Event) {
         println(event)
         when (event) {
@@ -19,7 +19,7 @@ class MessageListener(private val modules: Modules) : EventListener {
         val content = event.message.contentRaw
         val length = content.length
         if (length == 0) return
-        modules.launch {
+        features.launch {
             if (content[0] == '!') {//TODO: use from db
                 val parsedMessage = mutableListOf<String>()
                 val m = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(content.slice(1 until length))
@@ -37,7 +37,7 @@ class MessageListener(private val modules: Modules) : EventListener {
                 }
 
                 val messageAction = when (
-                    val commandResult = modules.onCommand(commandName, event, commandArgs)) {
+                    val commandResult = features.onCommand(commandName, event, commandArgs)) {
                     is CommandNotFound -> event.channel.sendMessage("command not found :" + commandResult.commandName)
                     is InvalidArgs -> event.channel.sendMessage(commandResult.args.toString())
                     is InvalidArg -> event.channel.sendMessage(commandResult.arg + " " + commandResult.error)

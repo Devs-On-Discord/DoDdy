@@ -4,7 +4,7 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 
 data class CommandFunction(
-    val module: Module,
+    val feature: Feature,
     val function: KFunction<*>,
     val parameters: List<KParameter>,
     val optionals: List<Int>,

@@ -1,6 +1,6 @@
 package com.github.dod.doddy.parser
 
-import com.github.dod.doddy.core.Module
+import com.github.dod.doddy.core.Feature
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -9,19 +9,19 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
-class Modules internal constructor() : CoroutineScope {
+class Features internal constructor() : CoroutineScope {
     private val commands = Commands()
 
-    private val modules = LinkedList<Module>()
+    private val modules = LinkedList<Feature>()
 
     private lateinit var job: Job
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Default + job
 
-    fun add(module: Module) {
-        modules.add(module)
-        commands.register(module)
+    fun add(feature: Feature) {
+        modules.add(feature)
+        commands.register(feature)
     }
 
     internal suspend fun onCommand(name: String, event: MessageReceivedEvent, args: List<String>): CommandResult {

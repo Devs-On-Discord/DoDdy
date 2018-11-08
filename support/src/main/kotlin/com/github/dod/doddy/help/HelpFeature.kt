@@ -2,14 +2,14 @@ package com.github.dod.doddy.help
 
 import com.github.dod.doddy.core.Command
 import com.github.dod.doddy.core.CommandFunction
-import com.github.dod.doddy.core.Module
+import com.github.dod.doddy.core.Feature
 import net.dv8tion.jda.core.AccountType
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.entities.MessageEmbed
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 
-class HelpModule : Module {
+class HelpFeature : Feature {
     private val generalHelpPages = mutableListOf<MessageEmbed>()
     private val detailedHelpPages = mutableMapOf<String, MessageEmbed>()
 

@@ -1,4 +1,4 @@
-# Support Module
+# Support
 
 | Feature         | Supervisor(s) |
 |:--------------- | -------------:|
