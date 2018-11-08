@@ -2,7 +2,7 @@
     
 | Feature          | Supervisor(s) |
 |:---------------- | -------------:|
-| **``polls``**        | - |
+| **``polls``**    | - |
 | ``polls``        | - |
 | ``announcement`` | - |
 | ``welcome``      | - |
