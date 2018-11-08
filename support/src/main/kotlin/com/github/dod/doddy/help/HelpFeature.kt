@@ -3,6 +3,7 @@ package com.github.dod.doddy.help
 import com.github.dod.doddy.core.Command
 import com.github.dod.doddy.core.CommandFunction
 import com.github.dod.doddy.core.Feature
+import com.github.dod.doddy.util.toMessageEmbeds
 import net.dv8tion.jda.core.AccountType
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
@@ -59,10 +60,7 @@ class HelpFeature : Feature {
 
     // Could be split up in more methods for more structure
     override fun onBotReady(bot: JDA, commandFunctions: List<CommandFunction>) {
-        var generalHelpPageBuilderIt = EmbedBuilder(generalHelpPageTemplate)
-
-        val helpPageErrorNames = mutableListOf<String>()
-        val generalHelpPageBuilders = mutableListOf<EmbedBuilder>()
+        val generalHelpPageFields = mutableListOf<MessageEmbed.Field>()
 
         for (commandFunction in commandFunctions) {
             val commandMetaInfo = commandFunction.commandAnnotation
@@ -71,61 +69,20 @@ class HelpFeature : Feature {
             val shortHelpEntry = helpEntryProducer.shortHelpEntry()
             val detailedHelpEntry = helpEntryProducer.detailedHelpEntry()
 
-            // Check whether new general help page is needed (due to size limit)
-            if (isValidWithNewEntry(generalHelpPageBuilderIt, shortHelpEntry)) {
-                generalHelpPageBuilderIt.addField(shortHelpEntry)
-            } else {
-                generalHelpPageBuilders.add(generalHelpPageBuilderIt)
-                generalHelpPageBuilderIt = EmbedBuilder(generalHelpPageTemplate)
-
-                if (isValidWithNewEntry(generalHelpPageBuilderIt, shortHelpEntry))
-                    generalHelpPageBuilderIt.addField(shortHelpEntry)
-                else
-                    helpPageErrorNames.add("[G] " + commandMetaInfo.names[0])
-            }
+            generalHelpPageFields.add(shortHelpEntry)
 
             // Add detailed help pages if they can be sent
             if (detailedHelpEntry.isSendable(AccountType.BOT)) {
-                addDetailedHelpPage(commandMetaInfo.names, detailedHelpEntry)
+                commandMetaInfo.names.forEach { commandName ->
+                    detailedHelpPages[commandName] = detailedHelpEntry
+                }
             } else {
-                helpPageErrorNames.add("[D] " + commandMetaInfo.names[0])
+                IllegalStateException("Couldn't render detailed help page for command: ${commandMetaInfo.names[0]}").printStackTrace()
             }
         }
-        // Add remaining general help page
-        generalHelpPageBuilders.add(generalHelpPageBuilderIt)
 
-        // Add page numbers to footer
-        val generalHelpPageAmount = generalHelpPageBuilders.size
-        for (i in 0 until generalHelpPageAmount) {
-            generalHelpPages.add(i, generalHelpPageBuilders[i]
-                    .setFooter("Page " + (i+1) + "/" + generalHelpPageAmount, null)
-                    .build())
-        }
-
-        if (helpPageErrorNames.size == 0) return
-
-        // Turn error strings into embeds
-        val errorMsgBuilder = EmbedBuilder()
-                .setColor(0xFF0000)
-                .setTitle("Errors when creating help pages")
-                .setDescription("The following help pages couldn't be created: **")
-        helpPageErrorNames.forEach {
-            errorMsgBuilder.appendDescription("\n")
-            errorMsgBuilder.appendDescription(it)
-        }
-        errorMsgBuilder.appendDescription("**")
-        generalHelpPages.add(errorMsgBuilder.build())
-    }
-
-    private fun isValidWithNewEntry(helpPage: EmbedBuilder,
-                                    shortHelpEntry: MessageEmbed.Field? = null) = EmbedBuilder(helpPage)
-            .addField(shortHelpEntry)
-            .setFooter("Page 999/999", null).build()    // Extreme case
-            .isSendable(AccountType.BOT)
-
-    private fun addDetailedHelpPage(commandNames: Array<out String>, detailedHelpEntry: MessageEmbed) {
-        commandNames.forEach { commandName ->
-            detailedHelpPages[commandName] = detailedHelpEntry
+        generalHelpPageFields.toMessageEmbeds(generalHelpPageTemplate, true).forEach {
+            generalHelpPages.add(it.build())
         }
     }
 }
