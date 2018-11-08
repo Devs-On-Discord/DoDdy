@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.util.*
 import kotlin.coroutines.CoroutineContext
@@ -28,13 +29,13 @@ class Features internal constructor() : CoroutineScope {
         return commands.call(name, event, args)
     }
 
-    internal fun commandsReady() {
+    internal fun botReady(bot: JDA) {
         job = Job()
         launch {
             repeat(modules.size) { i ->
-                modules.elementAtOrNull(i)?.let { module ->
+                modules.elementAtOrNull(i)?.let { feature ->
                     launch {
-                        module.onCommandsReady(commands.functions)
+                        feature.onBotReady(bot, commands.functions)
                     }
                 }
             }

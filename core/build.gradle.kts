@@ -10,4 +10,5 @@ java {
 dependencies {
     implementation(Libs.stdlib)
     implementation(Libs.mongodb)
+    implementation(Libs.discord_bot_sdk)
 }

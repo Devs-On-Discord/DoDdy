@@ -8,7 +8,7 @@ import java.io.File
 object Discord {
     private val modules = Features()
 
-    val bot: JDA = JDABuilder(File("../discord.token").readText()).build()
+    internal val bot: JDA = JDABuilder(File("../discord.token").readText()).build()
 
     init {
         bot.addEventListener(MessageListener(modules))
@@ -22,7 +22,7 @@ object Discord {
     }
 
     fun start() {
-        modules.commandsReady()
+        modules.botReady(bot)
         bot.awaitReady()
     }
 

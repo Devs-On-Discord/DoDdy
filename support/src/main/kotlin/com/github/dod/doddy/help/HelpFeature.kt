@@ -5,6 +5,7 @@ import com.github.dod.doddy.core.CommandFunction
 import com.github.dod.doddy.core.Feature
 import net.dv8tion.jda.core.AccountType
 import net.dv8tion.jda.core.EmbedBuilder
+import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.entities.MessageEmbed
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
@@ -57,7 +58,7 @@ class HelpFeature : Feature {
     }
 
     // Could be split up in more methods for more structure
-    override fun onCommandsReady(commandFunctions: List<CommandFunction>) {
+    override fun onBotReady(bot: JDA, commandFunctions: List<CommandFunction>) {
         var generalHelpPageBuilderIt = EmbedBuilder(generalHelpPageTemplate)
 
         val helpPageErrorNames = mutableListOf<String>()
