@@ -2,6 +2,7 @@ package com.github.dod.doddy.parser
 
 import com.github.dod.doddy.core.CommandFunction
 import net.dv8tion.jda.core.entities.Member
+import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import java.lang.Exception
 import kotlin.reflect.jvm.javaType
@@ -16,6 +17,7 @@ private val intType = Int::class.java
 private val longType = Long::class.java
 private val shortType = Short::class.java
 private val doubleType = Double::class.java
+private val userType = User::class.java
 private val memberType = Member::class.java
 
 suspend fun CommandFunction.call(event: MessageReceivedEvent, args: List<String>): CommandResult {
@@ -67,23 +69,51 @@ suspend fun CommandFunction.call(event: MessageReceivedEvent, args: List<String>
                         return InvalidArg(argument, "not a number")
                     }
                 }
-                memberType -> {
-                    val member: Member? = when {
-                        snowflakeRegex.matches(argument) -> event.guild.getMemberById(argument)
-                        mentionRegex.matches(argument) -> event.guild.getMemberById(argument.slice(2 until argument.length - 1).removePrefix("!"))
+                userType -> {
+                    val userId = when {
+                        snowflakeRegex.matches(argument) -> argument
+                        mentionRegex.matches(argument) -> argument.replace("<@!?".toRegex(), "").dropLast(1)
+                        else -> null
+                    }
+                    val user: User? = when {
+                        userId != null -> {
+                            try {
+                                event.jda.retrieveUserById(userId).complete()
+                            } catch (_: Exception) {
+                                null
+                            }
+                        }
                         usernameDiscrimRegex.matches(argument) -> {
                             val hashIndex = argument.lastIndexOf("#")
                             val username = argument.slice(0 until hashIndex)
                             val discrim = argument.substring(hashIndex + 1)
-                            val mem = event.guild.getMembersByName(username, true).filter {
+                            event.jda.getUsersByName(username, true).firstOrNull {
+                                it.discriminator == discrim
+                            }
+                        }
+                        else -> event.guild.getMembersByNickname(argument, true).firstOrNull()?.user
+                            ?: event.jda.getUsersByName(argument, true).firstOrNull()
+                    }
+                    if (user != null) {
+                        params.add(paramIndex, user)
+                    } else {
+                        return InvalidArg(argument, "not a valid user")
+                    }
+                }
+                memberType -> {
+                    val member: Member? = when {
+                        snowflakeRegex.matches(argument) -> event.guild.getMemberById(argument)
+                        mentionRegex.matches(argument) -> event.guild.getMemberById(argument.replace("^<@!?".toRegex(), "").dropLast(1))
+                        usernameDiscrimRegex.matches(argument) -> {
+                            val hashIndex = argument.lastIndexOf("#")
+                            val username = argument.slice(0 until hashIndex)
+                            val discrim = argument.substring(hashIndex + 1)
+                            event.guild.getMembersByName(username, true).firstOrNull {
                                 it.user.discriminator == discrim
                             }
-                            mem.getOrNull(0)
                         }
-                        else -> {
-                            event.guild.getMembersByNickname(argument, true).firstOrNull()
-                                ?: event.guild.getMembersByName(argument, true).firstOrNull()
-                        }
+                        else -> event.guild.getMembersByNickname(argument, true).firstOrNull()
+                            ?: event.guild.getMembersByName(argument, true).firstOrNull()
                     }
                     if (member != null) {
                         params.add(paramIndex, member)
