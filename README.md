@@ -2,7 +2,7 @@
 
 ## Contribute
 
-Read the (wiki)[https://github.com/Devs-On-Discord/DoDdy/wiki] for information about how to contribute.
+Read the [wiki](https://github.com/Devs-On-Discord/DoDdy/wiki) for information about how to contribute.
 
 ## Commands
 
