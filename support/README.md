@@ -32,7 +32,7 @@ Mod#0001 @ DIRECT MESSAGES < "Available commands: help, ban, warn" [...]
 
 Mod#0001 @ node1#channel1  > "help ban"
 ALL      @ node1#channel1  < "The requested information has been sent."
-Mod#0001 @ DIRECT MESSAGES < "ban <user> {reason]"
+Mod#0001 @ DIRECT MESSAGES < "ban <user> [reason]"
 Mod#0001 @ DIRECT MESSAGES < "Bans the specified user."
 Mod#0001 @ DIRECT MESSAGES < "Bans the specified user and provides an option for other nodes to also ban that user."
 Mod#0001 @ DIRECT MESSAGES < "Aliases: ban"

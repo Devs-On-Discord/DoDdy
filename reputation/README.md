@@ -3,7 +3,7 @@
 | Feature              | Supervisor(s)   |
 |:-------------------- | ---------------:|
 | **``reputation``**   | @ThisIsIPat     |
-| ``question-stalker`` | - |
+| ``question-stalker`` | @FabianTerhorst |
 | ``role-stalker``     | @FabianTerhorst |
 | documentation        | @ThisIsIPat     |
 | testing              | - |
@@ -16,7 +16,7 @@ The **Reputation** module describes the network-wide reputation and its ecosyste
 
 #### Description
 
-_Shows a users reputation._
+_Displays a users reputation._
 
 Returns ones own reputation unless another user is specified.
 

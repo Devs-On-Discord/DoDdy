@@ -23,7 +23,7 @@ class HelpFeature : Feature {
             shortDescription = "Displays help for commands.",
             longDescription = "Displays the help strings associated with every command. " +
                     "If a command is provided as an argument, the help string for that command is displayed instead.",
-            docUrl = "https://github.com/Devs-On-Discord/DoDdy/blob/develop/help/README.md#help")
+            docUrl = "https://github.com/Devs-On-Discord/DoDdy/tree/develop/support#help")
     fun help(event: MessageReceivedEvent, commandName: String?) {
         val privateChannelFuture = event.author.openPrivateChannel().submit()
 
