@@ -1,5 +1,9 @@
 # DoDdy
 
+## Contribute
+
+Read the (wiki)[https://github.com/Devs-On-Discord/DoDdy/wiki] for information about how to contribute.
+
 ## Commands
 
 To receive information about the available commands, type **@Gopher#2273 help** in a text channel the bot is active in.
