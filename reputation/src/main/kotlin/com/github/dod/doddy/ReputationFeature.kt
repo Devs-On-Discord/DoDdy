@@ -23,7 +23,8 @@ class ReputationFeature : Feature {
         longDescription = "Returns ones own reputation unless another userName is specified.",
         docUrl = "https://github.com/Devs-On-Discord/DoDdy/tree/develop/reputation#reputation")
     suspend fun reputationCommand(event: MessageReceivedEvent, userName: String?) {
-        val dbUsers = Db.instance.getCollection<User>()
+        event.channel.sendMessage("Not implemented!").queue()
+        /* val dbUsers = Db.instance.getCollection<User>()
 
         val user = parseUser(userName)   // resolves user
 
@@ -41,5 +42,6 @@ class ReputationFeature : Feature {
 
             // Show reputation for each guild, put bold if the guildIt is the same guild the event channel is in
         }, { result, t -> /* TODO: Some voodoo coroutine stuff, probably similar to ReputationChanger */ })
+        */
     }
 }
